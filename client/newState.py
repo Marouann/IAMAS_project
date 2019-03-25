@@ -6,7 +6,7 @@ class State:
         self.atoms = atoms
         # length, int
         self.length = len(atoms)
-    
+
     def removeAtom(self, atom):
         # if atom not in s then do nothing
         try:
