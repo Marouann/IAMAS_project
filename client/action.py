@@ -5,7 +5,7 @@ class Action:
     '''
 
     def __init__(self, name, preconditions, positive_effects, negative_effects):
-        self.name = name
+        self.name = name # Use capital letter for action names: MOVE, PUSH, PULL.
         self.preconditions = preconditions
         self.positive_effects = positive_effects
         self.negative_effects = negative_effects
@@ -18,7 +18,7 @@ class Action:
 
         while practical and i<len(preconditions):
             actual_atom = preconditions[i]
-            practical = practical and (actual_atom in s.atoms)
+            practical = practical and (actual_atom in s.atoms or actual_atom in s.rigid_atoms)
             i += 1
         return practical
 

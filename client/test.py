@@ -10,12 +10,11 @@ b2 = Atom("Box", ["2"])
 s0 = State("s0", [p1, p2, b1, b2])
 print(s0)
 
-move = Action(name= "Move", 
-                preconditions= [Atom("Box", ['x']), 
-                                Atom("On", ["A","x"])],
-                positive_effects = [Atom("On", ["B","x"])],
-                negative_effects = [Atom("On", ["A","x"])], 
-                variables = ["x"])
+move = Action(name= "Move",
+              preconditions=lambda x: [Atom("Box", [x]),
+                              Atom("On", ["A",x])],
+              positive_effects = lambda x: [Atom("On", ["B",x])],
+              negative_effects = lambda x: [Atom("On", ["A",x])])
 
 move.checkPreconditions(s0, ["3"])
 

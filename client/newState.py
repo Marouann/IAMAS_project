@@ -1,7 +1,8 @@
 class State:
-    def __init__(self, name, atoms):
+    def __init__(self, name, atoms, rigid_atoms):
         self.name = name
         self.atoms = atoms
+        self.rigid_atoms = ridid_atoms
         self.length = len(atoms)
 
     def removeAtom(self, atom):
@@ -29,5 +30,4 @@ class State:
         return state_str[:-1]
 
     def copy(self):
-        return State(s.name, s.atoms.copy())
-    
+        return State(self.name, self.atoms.copy(), self.rigid_atoms)
