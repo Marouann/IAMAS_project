@@ -160,8 +160,12 @@ def main():
     client = SearchClient(server_messages)
 
     # test actions execution
-    # actions = [['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)']]
-    # print(client.executeAction(actions), file=sys.stderr, flush=True)
+
+    actions = [['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)']]
+    #test actions execution on the SAExample
+    #actions = [['Move(W)'], ['Pull(E,S)'], ['NoOp'], ['Push(W,N)']]
+    print(client.executeAction(actions), file=sys.stderr, flush=True)
+
 
 
 if __name__ == '__main__':
