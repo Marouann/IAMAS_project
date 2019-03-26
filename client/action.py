@@ -11,7 +11,7 @@ class Action:
         self.negative_effects = negative_effects
 
 
-    def isPracticalInState(self, s, variables):
+    def checkPreconditions(self, s, variables):
         practical = True
         i = 0
         preconditions = self.preconditions(*variables)
@@ -23,7 +23,7 @@ class Action:
         return practical
 
     def execute(self, s, variables):
-        if self.isPracticalInState(s, variables):
+        if self.checkPreconditions(s, variables):
 
             for effect in self.negative_effects(*variables):
                 s.removeAtom(effect)
@@ -32,4 +32,3 @@ class Action:
                 s.addAtom(effect)
         else:
             print("This action is not applicable here.")
-            
