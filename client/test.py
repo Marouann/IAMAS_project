@@ -2,10 +2,10 @@ from newState import State
 from action import Action
 from atom import Atom
 
-p1 = Atom("On",["A", "1"])
-p2 = Atom("On",["A", "2"])
-b1 = Atom("Box", ["1"])
-b2 = Atom("Box", ["2"])
+p1 = Atom("On",["A", (1,2)])
+p2 = Atom("On",["A", (1,2)])
+b1 = Atom("Box", [(1,2)])
+b2 = Atom("Box", [(1,2)])
 
 s0 = State("s0", [p1, p2, b1, b2])
 print(s0)
