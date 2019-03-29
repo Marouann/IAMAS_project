@@ -20,6 +20,7 @@ class SearchClient:
             # Initialize the predicates
             atoms = []
             rigidAtoms = []
+            boxColors = {}
 
             currentBox = 1
             currentGoal = 1
@@ -57,8 +58,7 @@ class SearchClient:
 
                     objects = splittedLine[1].split(",")
                     for obj in objects:
-                        Color = Atom('Color', [obj, color])
-                        rigidAtoms.append(Color)
+                        boxColors[obj.replace(' ', '')] = color
 
                 if initial:
                     for col, char in enumerate(line):
@@ -68,8 +68,14 @@ class SearchClient:
                             AgentAt = Atom('AgentAt', [char, (row, col)])
                             atoms.append(AgentAt)
 
+                            Color = Atom('Color', [char, boxColors[char]])
+                            rigidAtoms.append(Color)
+
                         elif char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
                             Box = 'B' + str(currentBox)
+
+                            Color = Atom('Color', [Box, boxColors[char]])
+                            rigidAtoms.append(Color)
 
                             Letter = Atom('Letter', [Box, char])
                             rigidAtoms.append(Letter)
