@@ -10,3 +10,10 @@ kb.update(atom, feedback=True)
 kb.len(feedback=True)
 kb.delete(atom)
 kb.len(feedback=True)
+
+kb.update_nonAtom('At1', 'A2', 'C48')
+kb.update_nonAtom('At2', 'A2', 'C48')
+kb.update_nonAtom('At3', 'A2', 'C48')
+kb.update_nonAtom('At4', 'A2', 'C48')
+
+print(kb)
