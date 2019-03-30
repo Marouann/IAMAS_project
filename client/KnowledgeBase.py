@@ -41,7 +41,7 @@ class KnowledgeBase():
     def is_empty(self):
         return self.len() == 0
 
-    def conten(self):
+    def content(self):
         return self.kb.copy()
 
     def __str__(self):

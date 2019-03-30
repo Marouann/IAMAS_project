@@ -31,12 +31,12 @@ class SearchClient:
                 elif line == "#initial":
                     color = False
                     initial = True
-                    #row = 0
+                    row = 0
                     line = server_messages.readline().rstrip()
 
                 elif line == "#goal":
                     initial = False
-                    #row = 0
+                    row = 0
 
 
                 elif line == "#end":
