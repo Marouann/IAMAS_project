@@ -13,28 +13,30 @@ class KnowledgeBase():
     def __isin__(self, atom):
         return atom in self.kb
 
-    def update(self, atom):
+    def update(self, atom, feedback=False):
         if not self.__isin__(atom):
             self.kb[atom] = atom
-            print('KB: added', atom)
+            if feedback: print('[KB] Added', atom)
         else:
-            print('KB: cannot add', atom)
+            if feedback: print('[KB] Cannot update', atom)
 
-    def update_nonAtom(self, name, *variables):
+    def update_nonAtom(self, name, *variables, feedback=False):
         atom = Atom(name, *variables)
-        self.update(atom)
+        self.update(atom, feedback)
 
-    def delete(self, atom):
+    def delete(self, atom, feedback=False):
         if self.__isin__(atom):
             del self.kb[atom]
-            print('KB deleted:', atom)
+            if feedback: print('[KB] Deleted', atom)
         else:
-            print('KB cannot delete:', atom)
+            if feedback: print('[KB] Cannot delete', atom)
 
-    def clear(self):
+    def clear(self, feedback=False):
         self.kb.clear()
+        if feedback: print('[KB] Cleared')
 
-    def len(self):
+    def len(self, feedback=False):
+        if feedback: print('[KB] Length:', self.kb.__len__())
         return self.kb.__len__()
 
     def is_empty(self):
