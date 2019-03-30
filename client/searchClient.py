@@ -1,14 +1,14 @@
 import argparse
 import re
 import sys
-from state import State
+from newState import State
+from atom import Atom
 
 class SearchClient:
     def __init__(self, server_messages):
         self.initial_state = None
         self.domain = None
         self.levelName = None
-        self.colors = {}
 
         try:
             line = server_messages.readline()
@@ -17,8 +17,13 @@ class SearchClient:
             goal = False
             row = 0
 
-            # Initialize the state
-            self.initial_state = State()
+            # Initialize the predicates
+            atoms = []
+            rigidAtoms = []
+
+            currentBox = 1
+            currentGoal = 1
+
             while line != "#end":
                 if line == '#domain':
                     line = server_messages.readline().rstrip()
@@ -36,7 +41,6 @@ class SearchClient:
                     row = 0
                     line = server_messages.readline().rstrip()
 
-
                 elif line == "#goal":
                     initial = False
                     goal = True
@@ -47,34 +51,78 @@ class SearchClient:
 
                 if color:
                     splittedLine = line.split(":")
-                    self.colors[splittedLine[0]] = splittedLine[1].split(",")
-                if initial:
-                    self.initial_state.walls.append([False for _ in range(len(line))])
-                    self.initial_state.boxes.append([None for _ in range(len(line))])
+                    color = splittedLine[0]
+                    IsColor = Atom('IsColor', [color])
+                    rigidAtoms.append(IsColor)
 
+                    objects = splittedLine[1].split(",")
+                    for obj in objects:
+                        Color = Atom('Color', [obj, color])
+                        rigidAtoms.append(Color)
+
+                if initial:
                     for col, char in enumerate(line):
-                        if char == '+': self.initial_state.walls[row][col] = True
+                        if char == '+':
+                            a=1
                         elif char in "0123456789":
-                            self.initial_state.agents[char] = { "row": row, "col": col }
+                            AgentAt = Atom('AgentAt', [char, (row, col)])
+                            atoms.append(AgentAt)
+
                         elif char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-                            self.initial_state.boxes[row][col] = char
+                            Box = 'B' + str(currentBox)
+
+                            Letter = Atom('Letter', [Box, char])
+                            rigidAtoms.append(Letter)
+
+                            BoxAt = Atom('BoxAt', [Box, (row, col)])
+                            atoms.append(BoxAt)
+
+                            currentBox += 1
                         elif char == ' ':
                             # Free cell.
+                            FreeL = Atom('Free', [(row, col)])
+                            atoms.append(FreeL)
                             pass
                         else:
                             print('Error, read invalid level character: {}'.format(char), file=sys.stderr, flush=True)
                             sys.exit(1)
+
+                        if char != '+':
+                            if row > 0 and col < len(previousLine):
+                                if previousLine[col] != '+':
+                                    rigidAtoms.append(Atom('Neighbour', [(row - 1, col), (row, col)]))
+                                    rigidAtoms.append(Atom('Neighbour', [(row, col), (row - 1, col)]))
+                            if col > 0:
+                                if line[col - 1] != '+':
+                                    rigidAtoms.append(Atom('Neighbour', [(row, col), (row, col - 1)]))
+                                    rigidAtoms.append(Atom('Neighbour', [(row, col - 1), (row, col)]))
+
+                                    
                     row += 1
 
                 if goal:
-                    self.initial_state.goals.append([None for _ in range(len(line))])
                     for col, char in enumerate(line):
-                        if char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ": self.initial_state.goals[row][col] = char
+                        if char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+                            Goal = 'G' + str(currentGoal)
+
+                            Letter = Atom('Letter', [Goal, char.lower()])
+                            rigidAtoms.append(Letter)
+
+                            GoalAt = Atom('GoalAt', [Goal, (row, col)])
+                            rigidAtoms.append(GoalAt)
+
+                            currentGoal += 1
 
                     row += 1
-
+                
+                previousLine = line
                 line = server_messages.readline().rstrip()
 
+            self.initial_state = State('s0', atoms, rigidAtoms)
+            for i in self.initial_state.rigid_atoms:
+                print(str(i), file=sys.stderr, flush=True)
+            for i in self.initial_state.atoms:
+                print(str(i), file=sys.stderr, flush=True)
 
         except Exception as ex:
             print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)
@@ -117,10 +165,13 @@ def main():
     client = SearchClient(server_messages)
 
     # test actions execution
-    #actions = [['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)']]
+
+    actions = [['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)']]
     #test actions execution on the SAExample
-    actions = [['Move(W)'], ['Pull(E,S)'], ['NoOp'], ['Push(W,N)']]
+    #actions = [['Move(W)'], ['Pull(E,S)'], ['NoOp'], ['Push(W,N)']]
+    print('Execute some actions', file=sys.stderr, flush=True)
     print(client.executeAction(actions), file=sys.stderr, flush=True)
+
 
 
 if __name__ == '__main__':
