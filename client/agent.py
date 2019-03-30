@@ -1,3 +1,5 @@
+from client.Action import *
+
 class Agent:
     def __init__(self, position, goal):
         self.position = position
