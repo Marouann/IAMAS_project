@@ -1,3 +1,5 @@
+from atom import Atom
+
 class Action:
     '''
         variables can be anything when defining the actions, they will be replaced by actual variables
@@ -32,3 +34,29 @@ class Action:
                 s.addAtom(effect)
         else:
             print("This action is not applicable here.")
+
+
+Move = Action(
+    'Move',
+    lambda agt, agtFrom, agtTo: [Atom('AgentAt', [agt, agtFrom]), Atom('Free', [agtTo]), Atom('Neighbour', [agtFrom, agtTo])],
+    lambda agt, agtFrom, agtTo: [Atom('AgentAt', [agt, agtTo]), Atom('Free', [agtFrom])],
+    lambda agt, agtFrom, agtTo: [Atom('AgentAt', [agt, agtFrom]), Atom('Free', [agtTo])],
+)
+
+Push = Action(
+    'Push',
+    lambda agt, agtFrom, box, boxFrom, boxTo, color: [Atom('AgentAt', [agt, agtFrom]), Atom('Neighbour', [agtFrom, boxFrom]),
+        Atom('BoxAt', [box, boxFrom]), Atom('Neighbour', [boxFrom, boxTo]), Atom('Free', [boxTo]),
+        Atom('IsColor', [c]), Atom('Color', [agt, color]), Atom('Color', [box, color])],
+    lambda agt, agtFrom, box, boxFrom, boxTo, color: [Atom('AgentAt', [agt, boxFrom]), Atom('Free', [agtFrom]),  Atom('BoxAt', [box, boxTo])],
+    lambda agt, agtFrom, box, boxFrom, boxTo, color: [Atom('AgentAt', [agt, agtFrom]), Atom('Free', [boxTo]),  Atom('BoxAt', [box, boxFrom])],
+)
+
+Pull = Action(
+    'Pull',
+    lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', [agt, agtFrom]), Atom('Neighbour', [agtFrom, boxTo]),
+        Atom('BoxAt', [box, boxFrom]), Atom('Neighbour', [boxFrom, agtFrom]), Atom('Free', [agtTo])],
+        Atom('IsColor', [c]), Atom('Color', [agt, color]), Atom('Color', [box, color])],
+    lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', [agt, agtTo]), Atom('Free', [agtTo]),  Atom('BoxAt', [box, agtFrom])],
+    lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', [agt, agtFrom]), Atom('Free', [agtTo]),  Atom('BoxAt', [box, boxFrom])],
+)

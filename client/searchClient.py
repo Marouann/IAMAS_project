@@ -18,7 +18,9 @@ class SearchClient:
             row = 0
 
             # Initialize the predicates
-            predicates = []
+            atoms = []
+            rigidAtoms = []
+            boxColors = {}
 
             currentBox = 1
             currentGoal = 1
@@ -52,72 +54,81 @@ class SearchClient:
                     splittedLine = line.split(":")
                     color = splittedLine[0]
                     IsColor = Atom('IsColor', [color])
-                    predicates.append(IsColor)
+                    rigidAtoms.append(IsColor)
 
                     objects = splittedLine[1].split(",")
                     for obj in objects:
-                        Color = Atom('Color', [obj, color])
-                        predicates.append(Color)
+                        boxColors[obj.replace(' ', '')] = color
 
                 if initial:
                     for col, char in enumerate(line):
                         if char == '+':
                             a=1
                         elif char in "0123456789":
-                            AgentAt = Atom('AgentAt', [char, row, col])
-                            predicates.append(AgentAt)
+                            AgentAt = Atom('AgentAt', [char, (row, col)])
+                            atoms.append(AgentAt)
 
-                            L = Atom('L', [row, col])
-                            predicates.append(L)
+                            Color = Atom('Color', [char, boxColors[char]])
+                            rigidAtoms.append(Color)
+
                         elif char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-                            Box = Atom('Box', [currentBox])
-                            predicates.append(Box)
+                            Box = 'B' + str(currentBox)
 
-                            Letter = Atom('Letter', [currentBox, char])
-                            predicates.append(Letter)
+                            Color = Atom('Color', [Box, boxColors[char]])
+                            rigidAtoms.append(Color)
 
-                            BoxAt = Atom('BoxAt', [currentBox, row, col])
-                            predicates.append(BoxAt)
+                            Letter = Atom('Letter', [Box, char])
+                            rigidAtoms.append(Letter)
 
-                            L = Atom('L', [row, col])
-                            predicates.append(L)
+                            BoxAt = Atom('BoxAt', [Box, (row, col)])
+                            atoms.append(BoxAt)
 
                             currentBox += 1
                         elif char == ' ':
                             # Free cell.
-                            FreeL = Atom('Free', [row, col])
-                            predicates.append(FreeL)
-
-                            L = Atom('L', [row, col])
-                            predicates.append(L)
+                            FreeL = Atom('Free', [(row, col)])
+                            atoms.append(FreeL)
                             pass
                         else:
                             print('Error, read invalid level character: {}'.format(char), file=sys.stderr, flush=True)
                             sys.exit(1)
+
+                        if char != '+':
+                            if row > 0 and col < len(previousLine):
+                                if previousLine[col] != '+':
+                                    rigidAtoms.append(Atom('Neighbour', [(row - 1, col), (row, col)]))
+                                    rigidAtoms.append(Atom('Neighbour', [(row, col), (row - 1, col)]))
+                            if col > 0:
+                                if line[col - 1] != '+':
+                                    rigidAtoms.append(Atom('Neighbour', [(row, col), (row, col - 1)]))
+                                    rigidAtoms.append(Atom('Neighbour', [(row, col - 1), (row, col)]))
+
+                                    
                     row += 1
 
                 if goal:
                     for col, char in enumerate(line):
                         if char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-                            Goal = Atom('Goal', [currentGoal])
-                            predicates.append(Box)
+                            Goal = 'G' + str(currentGoal)
 
-                            Letter = Atom('Letter', [currentGoal, char.lower()])
-                            predicates.append(Letter)
+                            Letter = Atom('Letter', [Goal, char.lower()])
+                            rigidAtoms.append(Letter)
 
-                            GoalAt = Atom('GoalAt', [currentGoal, row, col])
-                            predicates.append(BoxAt)
+                            GoalAt = Atom('GoalAt', [Goal, (row, col)])
+                            rigidAtoms.append(GoalAt)
 
                             currentGoal += 1
 
                     row += 1
-
+                
+                previousLine = line
                 line = server_messages.readline().rstrip()
 
-            self.initial_state = State('s0', predicates)
+            self.initial_state = State('s0', atoms, rigidAtoms)
+            for i in self.initial_state.rigid_atoms:
+                print(str(i), file=sys.stderr, flush=True)
             for i in self.initial_state.atoms:
                 print(str(i), file=sys.stderr, flush=True)
-            print(str(self.initial_state), file=sys.stderr, flush=True)
 
         except Exception as ex:
             print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)
@@ -164,6 +175,7 @@ def main():
     actions = [['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)']]
     #test actions execution on the SAExample
     #actions = [['Move(W)'], ['Pull(E,S)'], ['NoOp'], ['Push(W,N)']]
+    print('Execute some actions', file=sys.stderr, flush=True)
     print(client.executeAction(actions), file=sys.stderr, flush=True)
 
 
