@@ -25,7 +25,7 @@ class State:
         return self.length
 
     def __eq__(self, other):
-        return self.atoms == other.atoms and self.parent == other.parent and self.last_action = other.last_action
+        return set(self.atoms) == set(other.atoms) #and self.parent == other.parent and self.last_action == other.last_action
 
     def __str__(self):
         state_str = "State " + self.name + "\n \nRigid Atoms: \n"
@@ -45,9 +45,10 @@ class State:
             if atom.name == "BoxAt" and atom.variables[1] == position:
                 return atom
 
-    def findBoxColor(self, boxName):
-        for atom in self.rigid_atoms:
-            if atom.name == "Color" and atom.variables[0] == boxName:
+    def findAgent(self, agt):
+        for atom in self.atoms:
+            if atom.name == "AgentAt" and atom.variables[0] == agt:
                 return atom.variables[1]
+
     def copy(self):
         return State(self.name, self.atoms.copy(), self.rigid_atoms, self.parent)

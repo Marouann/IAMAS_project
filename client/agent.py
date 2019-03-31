@@ -26,13 +26,14 @@ class Agent:
         S = ( 1,  0, 'S')
         E = ( 0,  1, 'E')
         W = ( 0, -1, 'W')
-
+        agtFrom = s.findAgent(self.agt)
+        # print(agtFrom, file=sys.stderr, flush=True)
         for action in self.actions:
             for dir in [N,S,E,W]:
-                agtTo = (self.position[0]+dir[0], self.position[1]+dir[1])
+                agtTo = (agtFrom[0]+dir[0], agtFrom[1]+dir[1])
                 if action.name == "Move":
-                    if action.checkPreconditions(s, [self.agt, self.position, agtTo]):
-                        possibleActions.append((action, [self.agt, self.position, agtTo], "Move(" + dir[2] + ")", agtTo))
+                    if action.checkPreconditions(s, [self.agt, agtFrom, agtTo]):
+                        possibleActions.append((action, [self.agt, agtFrom, agtTo], "Move(" + dir[2] + ")", agtTo))
                 elif action.name == "Push":
                     for second_dir in [N,S,E,W]:
                         boxFrom = agtTo #the agent will take the place of box
@@ -40,21 +41,20 @@ class Agent:
                         box = s.findBox(boxFrom)
                         if box:
                             boxName = box.variables[0]
-                            if action.checkPreconditions(s, [self.agt, self.position, boxName, boxFrom, boxTo, self.color]): # we also need box somehow
+                            if action.checkPreconditions(s, [self.agt, agtFrom, boxName, boxFrom, boxTo, self.color]): # we also need box somehow
                                 possibleActions.append((action,
-                                                        [self.agt, self.position, boxName, boxFrom, boxTo, self.color],
+                                                        [self.agt, agtFrom, boxName, boxFrom, boxTo, self.color],
                                                         "Push(" + dir[2] + "," + second_dir[2] + ")",
                                                         agtTo))
                 elif action.name == "Pull":
                     for second_dir in [N,S,E,W]:
-                        boxFrom = (self.position[0]+second_dir[0], self.position[1]+second_dir[1])
+                        boxFrom = (agtFrom[0]+second_dir[0], agtFrom[1]+second_dir[1])
                         box = s.findBox(boxFrom)
                         if box:
                             boxName = box.variables[0]
-                            color = s.findBoxColor(boxName)
-                            if action.checkPreconditions(s, [self.agt, self.position, agtTo, boxName, boxFrom, color]): # we also need box somehow
+                            if action.checkPreconditions(s, [self.agt, agtFrom, agtTo, boxName, boxFrom, self.color]): # we also need box somehow
                                 possibleActions.append((action,
-                                                        [self.agt, self.position, agtTo, boxName, boxFrom, color],
+                                                        [self.agt, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                         "Pull(" + dir[2] + "," + second_dir[2] + ")",
                                                         agtTo))
         return possibleActions
@@ -67,10 +67,27 @@ class Agent:
         goalNotFound = True
         while frontier != [] and goalNotFound:
             s = frontier.pop(0)
+            print(len(frontier), file=sys.stderr, flush=True)
             possibleActions = self.getPossibleActions(s)
+            # print(possibleActions, file=sys.stderr, flush=True)
             for action in possibleActions:
                 new_state = s.copy()
+
                 action[0].execute(new_state, action[1])
+                # print(new_state, file=sys.stderr, flush=True)
                 new_state.parent = s
                 new_state.last_action = action[2]
-                frontier.append(new_state)
+                if self.goal in new_state.atoms:
+
+                    goalNotFound = False
+                    self.extract_plan(new_state)
+                    break
+                if not new_state in frontier:
+                    frontier.append(new_state)
+
+    def extract_plan(self, state):
+        if self.parent:
+            self.current_plan.append(self.last_action)
+            self.extract_plan(self.parent)
+        else:
+            self.current_plan = reverse(self.current_plan)
