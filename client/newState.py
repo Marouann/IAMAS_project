@@ -1,3 +1,5 @@
+import sys
+
 class State:
     def __init__(self, name, atoms, rigid_atoms):
         self.name = name
@@ -28,7 +30,7 @@ class State:
 
         for atom in self.rigid_atoms:
             state_str += str(atom)[6:] + "^"
-        
+
         state_str =  state_str[:-1]
         state_str += "\n \nAtoms: \n"
 
@@ -38,7 +40,7 @@ class State:
 
     def findBox(self,position):
         for atom in self.atoms:
-            if atom.name == "BoxAt" and atom.variables[1] == position[0] and atom.variables[2] == position[1]:
+            if atom.name == "BoxAt" and atom.variables[1] == position:
                 return atom
 
     def findBoxColor(self, boxName):

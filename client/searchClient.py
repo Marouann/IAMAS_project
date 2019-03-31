@@ -1,8 +1,11 @@
 import argparse
 import re
 import sys
+import numpy as np
 from newState import State
 from atom import Atom
+from agent import Agent
+from action import *
 
 class SearchClient:
     def __init__(self, server_messages):
@@ -103,7 +106,7 @@ class SearchClient:
                                     rigidAtoms.append(Atom('Neighbour', [(row, col), (row, col - 1)]))
                                     rigidAtoms.append(Atom('Neighbour', [(row, col - 1), (row, col)]))
 
-                                    
+
                     row += 1
 
                 if goal:
@@ -120,7 +123,7 @@ class SearchClient:
                             currentGoal += 1
 
                     row += 1
-                
+
                 previousLine = line
                 line = server_messages.readline().rstrip()
 
@@ -175,8 +178,38 @@ def main():
     actions = [['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)']]
     #test actions execution on the SAExample
     #actions = [['Move(W)'], ['Pull(E,S)'], ['NoOp'], ['Push(W,N)']]
-    print('Execute some actions', file=sys.stderr, flush=True)
-    print(client.executeAction(actions), file=sys.stderr, flush=True)
+    # print('Execute some actions', file=sys.stderr, flush=True)
+    # print(client.executeAction(actions), file=sys.stderr, flush=True)
+
+    agt1 = Agent('1', (5,3), Atom("BoxAt",["B1", (5,1)]), [Move, Push, Pull], "green")
+    agt0 = Agent('0', (1,8), Atom("BoxAt",["B2", (1,10)]), [Move, Push, Pull], "red")
+    currentState = client.initial_state
+
+    print("Begin", file=sys.stderr, flush=True)
+    # action_agt1 = agt1.getPossibleActions(currentState)
+    # print(action_agt1, file=sys.stderr, flush=True)
+
+    while True:
+        # print(currentState, file=sys.stderr, flush=True)
+        action_agt1 = agt1.getPossibleActions(currentState)
+        action_agt0 = agt0.getPossibleActions(currentState)
+
+        action_agt0 = action_agt0[np.random.choice(len(action_agt0))]
+        action_agt1 = action_agt1[np.random.choice(len(action_agt1))]
+        # print(action_agt0, action_agt1, file=sys.stderr, flush=True)
+
+        joint_action = [action_agt0[2],action_agt1[2]]
+        print(joint_action, file=sys.stderr, flush=True)
+        valid = client.executeAction([joint_action])
+        # print(valid, file=sys.stderr, flush=True)
+        if valid[0][0] == 'true' and valid[0][1] == 'true':
+            action_agt0[0].execute(currentState, action_agt0[1])
+            action_agt1[0].execute(currentState, action_agt1[1])
+
+            agt0.position = action_agt0[3]
+            agt1.position = action_agt1[3]
+        else:
+            break
 
 
 
