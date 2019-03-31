@@ -1,11 +1,13 @@
 import sys
 
 class State:
-    def __init__(self, name, atoms, rigid_atoms):
+    def __init__(self, name, atoms, rigid_atoms, parent = None, last_action = "NoOp"):
         self.name = name
         self.atoms = atoms
         self.rigid_atoms = rigid_atoms
         self.length = len(atoms)
+        self.parent = parent
+        self.last_action = last_action
 
     def removeAtom(self, atom):
         # if atom not in s then do nothing
@@ -23,7 +25,7 @@ class State:
         return self.length
 
     def __eq__(self, other):
-        return self.atoms == other.atoms
+        return self.atoms == other.atoms and self.parent == other.parent and self.last_action = other.last_action
 
     def __str__(self):
         state_str = "State " + self.name + "\n \nRigid Atoms: \n"
@@ -48,4 +50,4 @@ class State:
             if atom.name == "Color" and atom.variables[0] == boxName:
                 return atom.variables[1]
     def copy(self):
-        return State(self.name, self.atoms.copy(), self.rigid_atoms)
+        return State(self.name, self.atoms.copy(), self.rigid_atoms, self.parent)

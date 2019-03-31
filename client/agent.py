@@ -7,6 +7,18 @@ class Agent:
         self.goal = goal
         self.actions = actions
         self.color = color
+        self.current_plan = []
+
+    '''
+    getPossibleActions return a list of tuple that represents the different actions the agent
+    can execute in state s.
+        return (logical_action, variables, primitive_action, new_agt_position)
+
+    - logical_action is either Move, Push or Pull defined in Action.py
+    - variables is the list of variable that the logical action take in argument
+    - primitive_action is the action that we want to send to the server (e.g. "Push(E,E)")
+    - new_agt_position is position of agent after executing the action
+    '''
 
     def getPossibleActions(self, s):
         possibleActions = []
@@ -46,3 +58,19 @@ class Agent:
                                                         "Pull(" + dir[2] + "," + second_dir[2] + ")",
                                                         agtTo))
         return possibleActions
+
+
+
+    def plan(self, state):
+        frontier = []
+        frontier.append(state)
+        goalNotFound = True
+        while frontier != [] and goalNotFound:
+            s = frontier.pop(0)
+            possibleActions = self.getPossibleActions(s)
+            for action in possibleActions:
+                new_state = s.copy()
+                action[0].execute(new_state, action[1])
+                new_state.parent = s
+                new_state.last_action = action[2]
+                frontier.append(new_state)
