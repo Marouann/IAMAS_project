@@ -36,5 +36,14 @@ class State:
             state_str += str(atom)[6:] + "^"
         return state_str[:-1]
 
+    def findBox(self,position):
+        for atom in self.atoms:
+            if atom.name == "BoxAt" and atom.variables[1] == position[0] and atom.variables[2] == position[1]:
+                return atom
+
+    def findBoxColor(self, boxName):
+        for atom in self.rigid_atoms:
+            if atom.name == "Color" and atom.variables[0] == boxName:
+                return atom.variables[1]
     def copy(self):
         return State(self.name, self.atoms.copy(), self.rigid_atoms)
