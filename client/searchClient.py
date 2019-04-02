@@ -1,8 +1,12 @@
 import argparse
 import re
 import sys
+import numpy as np
 from newState import State
 from atom import Atom
+from agent import Agent
+from action import *
+from knowledgeBase import KnowledgeBase
 
 class SearchClient:
     def __init__(self, server_messages):
@@ -18,8 +22,8 @@ class SearchClient:
             row = 0
 
             # Initialize the predicates
-            atoms = []
-            rigidAtoms = []
+            atoms = KnowledgeBase("Atoms")
+            rigidAtoms = KnowledgeBase("Rigid atoms")
             boxColors = {}
 
             currentBox = 1
@@ -53,8 +57,8 @@ class SearchClient:
                 if color:
                     splittedLine = line.split(":")
                     color = splittedLine[0]
-                    IsColor = Atom('IsColor', [color])
-                    rigidAtoms.append(IsColor)
+                    IsColor = Atom('IsColor', color)
+                    rigidAtoms.update(IsColor)
 
                     objects = splittedLine[1].split(",")
                     for obj in objects:
@@ -65,29 +69,29 @@ class SearchClient:
                         if char == '+':
                             a=1
                         elif char in "0123456789":
-                            AgentAt = Atom('AgentAt', [char, (row, col)])
-                            atoms.append(AgentAt)
+                            AgentAt = Atom('AgentAt', char, (row, col))
+                            atoms.update(AgentAt)
 
-                            Color = Atom('Color', [char, boxColors[char]])
-                            rigidAtoms.append(Color)
+                            Color = Atom('Color', char, boxColors[char])
+                            rigidAtoms.update(Color)
 
                         elif char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
                             Box = 'B' + str(currentBox)
 
-                            Color = Atom('Color', [Box, boxColors[char]])
-                            rigidAtoms.append(Color)
+                            Color = Atom('Color', Box, boxColors[char])
+                            rigidAtoms.update(Color)
 
-                            Letter = Atom('Letter', [Box, char])
-                            rigidAtoms.append(Letter)
+                            Letter = Atom('Letter', Box, char)
+                            rigidAtoms.update(Letter)
 
-                            BoxAt = Atom('BoxAt', [Box, (row, col)])
-                            atoms.append(BoxAt)
+                            BoxAt = Atom('BoxAt', Box, (row, col))
+                            atoms.update(BoxAt)
 
                             currentBox += 1
                         elif char == ' ':
                             # Free cell.
-                            FreeL = Atom('Free', [(row, col)])
-                            atoms.append(FreeL)
+                            FreeL = Atom('Free', (row, col))
+                            atoms.update(FreeL)
                             pass
                         else:
                             print('Error, read invalid level character: {}'.format(char), file=sys.stderr, flush=True)
@@ -96,14 +100,14 @@ class SearchClient:
                         if char != '+':
                             if row > 0 and col < len(previousLine):
                                 if previousLine[col] != '+':
-                                    rigidAtoms.append(Atom('Neighbour', [(row - 1, col), (row, col)]))
-                                    rigidAtoms.append(Atom('Neighbour', [(row, col), (row - 1, col)]))
+                                    rigidAtoms.update(Atom('Neighbour', (row - 1, col), (row, col)))
+                                    rigidAtoms.update(Atom('Neighbour', (row, col), (row - 1, col)))
                             if col > 0:
                                 if line[col - 1] != '+':
-                                    rigidAtoms.append(Atom('Neighbour', [(row, col), (row, col - 1)]))
-                                    rigidAtoms.append(Atom('Neighbour', [(row, col - 1), (row, col)]))
+                                    rigidAtoms.update(Atom('Neighbour', (row, col), (row, col - 1)))
+                                    rigidAtoms.update(Atom('Neighbour', (row, col - 1), (row, col)))
 
-                                    
+
                     row += 1
 
                 if goal:
@@ -111,24 +115,23 @@ class SearchClient:
                         if char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
                             Goal = 'G' + str(currentGoal)
 
-                            Letter = Atom('Letter', [Goal, char.lower()])
-                            rigidAtoms.append(Letter)
+                            Letter = Atom('Letter', Goal, char.lower())
+                            rigidAtoms.update(Letter)
 
-                            GoalAt = Atom('GoalAt', [Goal, (row, col)])
-                            rigidAtoms.append(GoalAt)
+                            GoalAt = Atom('GoalAt', Goal, (row, col))
+                            rigidAtoms.update(GoalAt)
 
                             currentGoal += 1
 
                     row += 1
-                
+
                 previousLine = line
                 line = server_messages.readline().rstrip()
 
+
+
             self.initial_state = State('s0', atoms, rigidAtoms)
-            for i in self.initial_state.rigid_atoms:
-                print(str(i), file=sys.stderr, flush=True)
-            for i in self.initial_state.atoms:
-                print(str(i), file=sys.stderr, flush=True)
+
 
         except Exception as ex:
             print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)
@@ -169,14 +172,42 @@ def main():
 
     # Read level and create the initial state of the problem.
     client = SearchClient(server_messages)
-
+    # print("Begin", file=sys.stderr, flush=True)
     # test actions execution
 
     actions = [['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)'], ['Move(W)','Move(E)']]
     #test actions execution on the SAExample
     #actions = [['Move(W)'], ['Pull(E,S)'], ['NoOp'], ['Push(W,N)']]
-    print('Execute some actions', file=sys.stderr, flush=True)
-    print(client.executeAction(actions), file=sys.stderr, flush=True)
+    # print('Execute some actions', file=sys.stderr, flush=True)
+    # print(client.executeAction(actions), file=sys.stderr, flush=True)
+
+    agt1 = Agent('1', (5,3), Atom("BoxAt","B1", (5,1)), [Move, Push, Pull], "green")
+    agt0 = Agent('0', (1,8), Atom("BoxAt","B1", (1,4)), [Move, Push, Pull], "red")
+    currentState = client.initial_state
+
+    print("Begin", file=sys.stderr, flush=True)
+    action_agt1 = agt1.getPossibleActions(currentState)
+    print(action_agt1, file=sys.stderr, flush=True)
+    print(currentState, file=sys.stderr, flush=True)
+    while True:
+
+        action_agt0 = agt0.getPossibleActions(currentState)
+        action_agt1 = agt1.getPossibleActions(currentState)
+        action_agt0 = action_agt0[np.random.choice(len(action_agt0))]
+        action_agt1 = action_agt1[np.random.choice(len(action_agt1))]
+
+        joint_action = [action_agt0[2],action_agt1[2]]
+        print(joint_action, file=sys.stderr, flush=True)
+        valid = client.executeAction([joint_action])
+        if valid[0][0] == 'true' and valid[0][1] == 'true':
+            action_agt0[0].execute(currentState, action_agt0[1])
+            action_agt1[0].execute(currentState, action_agt1[1])
+
+        else:
+            break
+
+    # agt1.plan(currentState)
+    # print(agt1.current_plan, file=sys.stderr, flush=True)
 
 
 
