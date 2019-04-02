@@ -23,3 +23,6 @@ class Atom:
             var_string += ", "
         var_string = var_string[:-2]
         return "Atom: " + self.name +"(" + var_string + ")"
+
+    def __hash__(self):
+       return int(hash(self.name) + hash(self.variables))
