@@ -16,4 +16,12 @@ kb.update_nonAtom('At2', 'A2', 'C48')
 kb.update_nonAtom('At3', 'A2', 'C48')
 kb.update_nonAtom('At4', 'A2', 'C48')
 
+kb1 = KnowledgeBase()
+kb1.kb = kb.content()
+
+atom = Atom('A', 'C11')
+kb.update(atom)
+atom = Atom('A', 'C21')
+kb1.update(atom)
+print(kb == kb1)
 print(kb)

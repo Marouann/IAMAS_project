@@ -50,3 +50,7 @@ class KnowledgeBase():
             for v in self.kb.keys():
                 values += '  ' + str(v) + '\n'
         return values
+
+    def __eq__(self, other):
+        if not isinstance(other, KnowledgeBase): return False
+        return self.kb == other.kb
