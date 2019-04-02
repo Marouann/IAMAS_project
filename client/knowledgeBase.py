@@ -6,8 +6,9 @@ import sys
 # kb[key] = value , key is a hashed version of atom and value is the atom itself
 
 class KnowledgeBase():
-    def __init__(self):
+    def __init__(self, name):
         self.kb = {}
+        self.name = name
 
     def __isin__(self, atom):
         return atom in self.kb
@@ -47,7 +48,7 @@ class KnowledgeBase():
         return self.kb.copy()
 
     def __str__(self):
-        values = '\n[KB] CONTAINS: \n'
+        values = '\n' + self.name + ' CONTAINS: \n'
         if not self.is_empty():
             for v in self.kb.keys():
                 values += '  ' + str(v) + '\n'

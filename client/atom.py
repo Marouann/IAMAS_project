@@ -8,7 +8,7 @@
 # The free cells : Atom('Free', [(x, y)])
 
 class Atom:
-    def __init__(self, name, variables):
+    def __init__(self, name, *variables):
         self.name = name
         self.variables = variables
         self.arity = len(variables)

@@ -22,8 +22,8 @@ class SearchClient:
             row = 0
 
             # Initialize the predicates
-            atoms = KnowledgeBase()
-            rigidAtoms = KnowledgeBase()
+            atoms = KnowledgeBase("Atoms")
+            rigidAtoms = KnowledgeBase("Rigid atoms")
             boxColors = {}
 
             currentBox = 1
@@ -128,13 +128,10 @@ class SearchClient:
                 previousLine = line
                 line = server_messages.readline().rstrip()
 
-            
+
 
             self.initial_state = State('s0', atoms, rigidAtoms)
-            for i in self.initial_state.rigid_atoms:
-                print(str(i), file=sys.stderr, flush=True)
-            for i in self.initial_state.atoms:
-                print(str(i), file=sys.stderr, flush=True)
+
 
         except Exception as ex:
             print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)
@@ -184,33 +181,28 @@ def main():
     # print('Execute some actions', file=sys.stderr, flush=True)
     # print(client.executeAction(actions), file=sys.stderr, flush=True)
 
-    agt1 = Agent('0', (5,3), Atom("BoxAt",["B1", (5,1)]), [Move, Push, Pull], "green")
-    agt0 = Agent('1', (1,8), Atom("BoxAt",["B1", (1,4)]), [Move, Push, Pull], "red")
+    agt1 = Agent('1', (5,3), Atom("BoxAt","B1", (5,1)), [Move, Push, Pull], "green")
+    agt0 = Agent('0', (1,8), Atom("BoxAt","B1", (1,4)), [Move, Push, Pull], "red")
     currentState = client.initial_state
 
     print("Begin", file=sys.stderr, flush=True)
     action_agt1 = agt1.getPossibleActions(currentState)
     print(action_agt1, file=sys.stderr, flush=True)
-
+    print(currentState, file=sys.stderr, flush=True)
     while True:
-        # print(currentState, file=sys.stderr, flush=True)
-        action_agt1 = agt1.getPossibleActions(currentState)
-        action_agt0 = agt0.getPossibleActions(currentState)
 
+        action_agt0 = agt0.getPossibleActions(currentState)
+        action_agt1 = agt1.getPossibleActions(currentState)
         action_agt0 = action_agt0[np.random.choice(len(action_agt0))]
         action_agt1 = action_agt1[np.random.choice(len(action_agt1))]
-        # print(action_agt0, action_agt1, file=sys.stderr, flush=True)
 
         joint_action = [action_agt0[2],action_agt1[2]]
         print(joint_action, file=sys.stderr, flush=True)
         valid = client.executeAction([joint_action])
-        # print(valid, file=sys.stderr, flush=True)
         if valid[0][0] == 'true' and valid[0][1] == 'true':
             action_agt0[0].execute(currentState, action_agt0[1])
             action_agt1[0].execute(currentState, action_agt1[1])
 
-            # agt0.position = action_agt0[3]
-            # agt1.position = action_agt1[3]
         else:
             break
 

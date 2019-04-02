@@ -44,8 +44,7 @@ class Agent:
                             if action.checkPreconditions(s, [self.agt, agtFrom, boxName, boxFrom, boxTo, self.color]): # we also need box somehow
                                 possibleActions.append((action,
                                                         [self.agt, agtFrom, boxName, boxFrom, boxTo, self.color],
-                                                        "Push(" + dir[2] + "," + second_dir[2] + ")",
-                                                        agtTo))
+                                                        "Push(" + dir[2] + "," + second_dir[2] + ")"))
                 elif action.name == "Pull":
                     for second_dir in [N,S,E,W]:
                         boxFrom = (agtFrom[0]+second_dir[0], agtFrom[1]+second_dir[1])
@@ -55,8 +54,7 @@ class Agent:
                             if action.checkPreconditions(s, [self.agt, agtFrom, agtTo, boxName, boxFrom, self.color]): # we also need box somehow
                                 possibleActions.append((action,
                                                         [self.agt, agtFrom, agtTo, boxName, boxFrom, self.color],
-                                                        "Pull(" + dir[2] + "," + second_dir[2] + ")",
-                                                        agtTo))
+                                                        "Pull(" + dir[2] + "," + second_dir[2] + ")"))
         return possibleActions
 
 
