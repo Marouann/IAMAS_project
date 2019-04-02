@@ -1,112 +1,50 @@
-import random
+import sys
+from knowledgeBase import KnowledgeBase
 
 class State:
-    _RNG = random.Random(1)
-    # MAX_ROW = 70
-    # MAX_COL = 70
+    def __init__(self, name, atoms, rigid_atoms, parent = None, last_action = "NoOp"):
+        self.name = name
+        self.atoms = atoms
+        self.rigid_atoms = rigid_atoms
+        self.parent = parent
+        self.last_action = last_action
 
-    def __init__(self, copy: 'State' = None):
-        '''
-        If copy is None: Creates an empty State.
-        If copy is not None: Creates a copy of the copy state.
+    def removeAtom(self, atom):
+        # if atom not in s then do nothing
+        try:
+            self.atoms.delete(atom)
+        except ValueError:
+            pass
 
-        The lists walls, boxes, and goals are indexed from top-left of the level, row-major order (row, col).
-               Col 0  Col 1  Col 2  Col 3
-        Row 0: (0,0)  (0,1)  (0,2)  (0,3)  ...
-        Row 1: (1,0)  (1,1)  (1,2)  (1,3)  ...
-        Row 2: (2,0)  (2,1)  (2,2)  (2,3)  ...
-        ...
+    def addAtom(self, atom):
+        self.atoms.update(atom)
 
-        For example, self.walls is a list of size [MAX_ROW][MAX_COL] and
-        self.walls[2][7] is True if there is a wall at row 2, column 7 in this state.
-
-        Note: The state should be considered immutable after it has been hashed, e.g. added to a dictionary!
-        '''
-        self._hash = None
-        if copy is None:
-            self.agents = {}
-
-            self.walls = []
-            self.boxes = []
-            self.goals = []
-
-            self.parent = None
-            self.action = None
-
-            self.g = 0
-        else:
-            self.agents = copy.agents
-
-            self.walls = copy.walls
-            self.boxes = [row[:] for row in copy.boxes]
-            self.goals = copy.goals
-
-            self.parent = copy.parent
-            self.action = copy.action
-
-            self.g = copy.g
-
-    def is_initial_state(self) -> 'bool':
-        return self.parent is None
-
-    def is_goal_state(self) -> 'bool':
-        for row in range(len(self.walls)):
-            for col in range(len(self.walls[row])):
-                goal = self.goals[row][col]
-                box = self.boxes[row][col]
-                if goal is not None and (box is None or goal != box.lower()):
-                    return False
-        return True
-
-    def is_free(self, row: 'int', col: 'int') -> 'bool':
-        return not self.walls[row][col] and self.boxes[row][col] is None
-
-    def box_at(self, row: 'int', col: 'int') -> 'bool':
-        return self.boxes[row][col] is not None
-
-    def extract_plan(self) -> '[State, ...]':
-        plan = []
-        state = self
-        while not state.is_initial_state():
-            plan.append(state)
-            state = state.parent
-        plan.reverse()
-        return plan
-
-    def __hash__(self):
-        if self._hash is None:
-            prime = 31
-            _hash = 1
-            _hash = _hash * prime + self.agent_row
-            _hash = _hash * prime + self.agent_col
-            _hash = _hash * prime + hash(tuple(tuple(row) for row in self.boxes))
-            _hash = _hash * prime + hash(tuple(tuple(row) for row in self.goals))
-            _hash = _hash * prime + hash(tuple(tuple(row) for row in self.walls))
-            self._hash = _hash
-        return self._hash
+    # def __len__(self):
+    #     return self.atoms.kb.length
 
     def __eq__(self, other):
-        if self is other: return True
-        if not isinstance(other, State): return False
-        if self.agent_row != other.agent_row: return False
-        if self.agent_col != other.agent_col: return False
-        if self.boxes != other.boxes: return False
-        if self.goals != other.goals: return False
-        if self.walls != other.walls: return False
-        return True
+        return self.atoms == other.atoms #and self.parent == other.parent and self.last_action == other.last_action
 
-    def __repr__(self):
-        lines = []
-        for row in range(len(self.walls)):
-            line = []
-            for col in range(len(self.walls[row])):
-                if self.boxes[row][col] is not None: line.append(self.boxes[row][col])
-                elif self.goals[row][col] is not None: line.append(self.goals[row][col])
-                elif self.walls[row][col] is not None: line.append('+')
-                elif self.agent_row == row and self.agent_col == col: line.append('0')
-                else: line.append(' ')
-            lines.append(''.join(line))
-        return '\n'.join(lines)
+    def __str__(self):
+        state_str = "State " + self.name + "\n"
+
+        state_str += str(self.rigid_atoms)
+
+        state_str += str(self.atoms)
+
+        return(state_str)
+
+    def findBox(self,position):
+        for key, atom in self.atoms.kb.items():
+            if atom.name == "BoxAt" and atom.variables[1] == position:
+                return atom
+
+    def findAgent(self, agt):
+        for key, atom in self.atoms.kb.items():
+            if atom.name == "AgentAt" and atom.variables[0] == agt:
+                return atom.variables[1]
 
     def copy(self):
-        return State("s", self.atoms.copy(), self.rigid_atoms)
+        atoms_copy = KnowledgeBase("Atoms")
+        atoms_copy.kb = self.atoms.kb.copy()
+        return State(self.name, atoms_copy, self.rigid_atoms, self.parent)

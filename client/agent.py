@@ -75,7 +75,7 @@ class Agent:
                 # print(new_state, file=sys.stderr, flush=True)
                 new_state.parent = s
                 new_state.last_action = action[2]
-                if self.goal in new_state.atoms:
+                if self.goal in new_state.atoms.kb:
 
                     goalNotFound = False
                     self.extract_plan(new_state)
@@ -84,8 +84,8 @@ class Agent:
                     frontier.append(new_state)
 
     def extract_plan(self, state):
-        if self.parent:
-            self.current_plan.append(self.last_action)
-            self.extract_plan(self.parent)
+        if state.parent:
+            self.current_plan.append(state.last_action)
+            self.extract_plan(state.parent)
         else:
-            self.current_plan = reverse(self.current_plan)
+            self.current_plan.reverse()
