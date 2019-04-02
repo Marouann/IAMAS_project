@@ -13,6 +13,7 @@ class KnowledgeBase():
         return atom in self.kb
 
     def update(self, atom, feedback=False):
+        if not isinstance(atom, Atom): pass
         if not self.__isin__(atom):
             self.kb[atom] = atom
             if feedback: print('[KB] Added', atom, flush=True)
@@ -24,6 +25,7 @@ class KnowledgeBase():
         self.update(atom, feedback)
 
     def delete(self, atom, feedback=False):
+        if not isinstance(atom,Atom): pass
         if self.__isin__(atom):
             del self.kb[atom]
             if feedback: print('[KB] Deleted', atom, flush=True)
