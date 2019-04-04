@@ -8,6 +8,7 @@ from atom import Atom
 from agent import Agent
 from action import *
 from knowledgeBase import KnowledgeBase
+from getLevel import getLevel
 
 class SearchClient:
     def __init__(self, server_messages):
@@ -15,128 +16,12 @@ class SearchClient:
         self.domain = None
         self.levelName = None
 
-        try:
-            line = server_messages.readline()
-            color = False
-            initial = False
-            goal = False
-            row = 0
+        level = getLevel(server_messages)
 
-            # Initialize the predicates
-            atoms = KnowledgeBase("Atoms")
-            rigidAtoms = KnowledgeBase("Rigid atoms")
-            boxColors = {}
+        self.initial_state = level['initial_state']
+        self.domain = level['domain']
+        self.levelName = level['levelName']
 
-            currentBox = 1
-            currentGoal = 1
-
-            while line != "#end":
-                if line == '#domain':
-                    line = server_messages.readline().rstrip()
-                    self.domain= line
-                elif line == "#levelname":
-                    line = server_messages.readline().rstrip()
-                    self.levelName = line
-                elif line == "#colors":
-                    color = True
-                    line = server_messages.readline().rstrip()
-                elif line == "#initial":
-                    color = False
-                    initial = True
-
-                    row = 0
-                    line = server_messages.readline().rstrip()
-
-                elif line == "#goal":
-                    initial = False
-                    goal = True
-
-                    row = 0
-                elif line == "#end":
-                    goal = False
-
-                if color:
-                    splittedLine = line.split(":")
-                    color = splittedLine[0]
-                    IsColor = Atom('IsColor', color)
-                    rigidAtoms.update(IsColor)
-
-                    objects = splittedLine[1].split(",")
-                    for obj in objects:
-                        boxColors[obj.replace(' ', '')] = color
-
-                if initial:
-                    for col, char in enumerate(line):
-                        if char == '+':
-                            a=1
-                        elif char in "0123456789":
-                            AgentAt = Atom('AgentAt', char, (row, col))
-                            atoms.update(AgentAt)
-
-                            Color = Atom('Color', char, boxColors[char])
-                            rigidAtoms.update(Color)
-
-                        elif char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-                            Box = 'B' + str(currentBox)
-
-                            Color = Atom('Color', Box, boxColors[char])
-                            rigidAtoms.update(Color)
-
-                            Letter = Atom('Letter', Box, char)
-                            rigidAtoms.update(Letter)
-
-                            BoxAt = Atom('BoxAt', Box, (row, col))
-                            atoms.update(BoxAt)
-
-                            currentBox += 1
-                        elif char == ' ':
-                            # Free cell.
-                            FreeL = Atom('Free', (row, col))
-                            atoms.update(FreeL)
-                            pass
-                        else:
-                            print('Error, read invalid level character: {}'.format(char), file=sys.stderr, flush=True)
-                            sys.exit(1)
-
-                        if char != '+':
-                            if row > 0 and col < len(previousLine):
-                                if previousLine[col] != '+':
-                                    rigidAtoms.update(Atom('Neighbour', (row - 1, col), (row, col)))
-                                    rigidAtoms.update(Atom('Neighbour', (row, col), (row - 1, col)))
-                            if col > 0:
-                                if line[col - 1] != '+':
-                                    rigidAtoms.update(Atom('Neighbour', (row, col), (row, col - 1)))
-                                    rigidAtoms.update(Atom('Neighbour', (row, col - 1), (row, col)))
-
-
-                    row += 1
-
-                if goal:
-                    for col, char in enumerate(line):
-                        if char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-                            Goal = 'G' + str(currentGoal)
-
-                            Letter = Atom('Letter', Goal, char.lower())
-                            rigidAtoms.update(Letter)
-
-                            GoalAt = Atom('GoalAt', Goal, (row, col))
-                            rigidAtoms.update(GoalAt)
-
-                            currentGoal += 1
-
-                    row += 1
-
-                previousLine = line
-                line = server_messages.readline().rstrip()
-
-
-
-            self.initial_state = State('s0', atoms, rigidAtoms)
-
-
-        except Exception as ex:
-            print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)
-            sys.exit(1)
 
     '''
     actionList is a 2D array of actions (size number_action_to_execute * number_of_agents).
@@ -145,7 +30,7 @@ class SearchClient:
 
     return successive result of the server to actions, same size as input
     '''
-    def executeAction(self,actionsList):
+    def executeAction(self, actionsList):
         server_answer = []
         for jointAction in actionsList:
             actions_string = ""
@@ -191,9 +76,6 @@ def main():
 
     actions = list(zip(agt0.current_plan, agt1.current_plan))
     valid = client.executeAction(actions)
-
-
-
 
 
 if __name__ == '__main__':
