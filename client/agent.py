@@ -74,7 +74,7 @@ class Agent:
                 action[0].execute(new_state, action[1])
                 # print(new_state, file=sys.stderr, flush=True)
                 new_state.parent = s
-                new_state.last_action = action[2]
+                new_state.last_action = { 'action': action[0], 'params': action[1], 'message': action[2] }
                 if self.goal in new_state.atoms.kb:
 
                     goalNotFound = False

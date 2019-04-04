@@ -22,6 +22,10 @@ def getLevel(server_messages):
         rigidAtoms = KnowledgeBase("Rigid atoms")
         boxColors = {}
 
+        agents = []
+        goals = []
+        boxes = []
+
         currentBox = 1
         currentGoal = 1
 
@@ -71,6 +75,8 @@ def getLevel(server_messages):
                         Color = Atom('Color', char, boxColors[char])
                         rigidAtoms.update(Color)
 
+                        agents.append({ 'name': char, 'color': boxColors[char] })
+
                     elif char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
                         Box = 'B' + str(currentBox)
 
@@ -82,6 +88,8 @@ def getLevel(server_messages):
 
                         BoxAt = Atom('BoxAt', Box, (row, col))
                         atoms.update(BoxAt)
+
+                        boxes.append({ 'name': Box, 'letter': char, 'color': boxColors[char]})
 
                         currentBox += 1
                     elif char == ' ':
@@ -111,11 +119,13 @@ def getLevel(server_messages):
                     if char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
                         Goal = 'G' + str(currentGoal)
 
-                        Letter = Atom('Letter', Goal, char.lower())
+                        Letter = Atom('Letter', Goal, char)
                         rigidAtoms.update(Letter)
 
                         GoalAt = Atom('GoalAt', Goal, (row, col))
                         rigidAtoms.update(GoalAt)
+
+                        goals.append({ 'name': Goal, 'letter': char })
 
                         currentGoal += 1
 
@@ -128,4 +138,11 @@ def getLevel(server_messages):
         print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)
         sys.exit(1)
 
-    return { 'initial_state': State('s0', atoms, rigidAtoms), 'domain': domain, 'levelName': levelName }
+    return {
+            'initial_state': State('s0', atoms, rigidAtoms),
+            'domain': domain,
+            'levelName': levelName, 
+            'agents': agents,
+            'goals': goals,
+            'boxes': boxes,
+        }
