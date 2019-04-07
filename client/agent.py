@@ -1,5 +1,5 @@
 import sys
-
+from state import *
 class Agent:
     def __init__(self, agt, position, goal, actions, color):
         self.agt = agt
@@ -20,7 +20,7 @@ class Agent:
     - new_agt_position is position of agent after executing the action
     '''
 
-    def getPossibleActions(self, s):
+    def getPossibleActions(self, s: 'State'):
         possibleActions = []
         N = (-1,  0, 'N')
         S = ( 1,  0, 'S')

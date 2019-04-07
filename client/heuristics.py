@@ -7,11 +7,11 @@ class Heuristic(metaclass=ABCMeta):
         self.goals = goals
         self.initial_state = initial_state
 
-    def h(self, state: 'State') -> 'int':
-        raise NotImplementedError
+    @abstractmethod
+    def h(self, state: 'State') -> 'int': raise NotImplementedError
 
     @abstractmethod
-    def f(self, state: 'State') -> 'int': pass
+    def f(self, state: 'State') -> 'int': raise NotImplementedError
 
     @abstractmethod
     def __repr__(self): raise NotImplementedError
@@ -25,7 +25,7 @@ class GoalCount(Heuristic):
                 goal_count -= 1;
         return goal_count
 
-    def f(self, state: 'State'):
-        pass
+    def f(self, state: 'State') -> 'int':
+        return self.h(state) + state.cost_value
 
 

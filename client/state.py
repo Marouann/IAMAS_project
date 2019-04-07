@@ -6,6 +6,7 @@ class State:
     def __init__(self, name: 'str',
                  atoms:'KnowledgeBase',
                  rigid_atoms:'KnowledgeBase',
+                 cost: 'int',
                  parent = None,
                  last_action = "NoOp"):
         self.name = name
@@ -13,6 +14,8 @@ class State:
         self.rigid_atoms = rigid_atoms
         self.parent = parent
         self.last_action = last_action
+
+        self.cost = cost #current cost of the state  TO DISCUSS
 
         self.agent_hash = {}
         self.box_hash = {}
@@ -55,7 +58,11 @@ class State:
     def copy(self):
         atoms_copy = KnowledgeBase("Atoms")
         atoms_copy.copy(self.atoms)
-        return State(self.name, atoms_copy, self.rigid_atoms, self.parent)
+        return State(name=self.name,
+                     atoms=atoms_copy,
+                     rigid_atoms=self.rigid_atoms,
+                     parent=self.parent,
+                     cost=self.cost+1)
 
     ##RETURN ALL ATOMS
     def atoms(self):

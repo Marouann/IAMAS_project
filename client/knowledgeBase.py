@@ -12,7 +12,6 @@ class KnowledgeBase():
         return atom in self.__kb
 
     def update(self, atom:'Atom', feedback=False):
-        if not isinstance(atom, Atom): raise Exception('Not an Atom')
         if not self.__isin__(atom):
             self.__kb[atom] = atom
             if feedback: print('[KB] Added', atom, flush=True)
@@ -20,7 +19,6 @@ class KnowledgeBase():
             if feedback: print('[KB] Cannot update', atom, flush=True)
 
     def delete(self, atom:'Atom', feedback=False):
-        if not isinstance(atom,Atom): raise Exception('Not an Atom')
         if self.__isin__(atom):
             del self.__kb[atom]
             if feedback: print('[KB] Deleted', atom, flush=True)
@@ -31,37 +29,37 @@ class KnowledgeBase():
         self.__kb.clear()
         if feedback: print('[KB] Cleared', flush=True)
 
-    def len(self, feedback=False):
+    def len(self, feedback=False) -> 'int':
         if feedback: print('[KB] Length:', self.__kb.__len__(), flush=True)
         return self.__kb.__len__()
 
-    def is_empty(self):
+    def is_empty(self) -> 'bool':
         return self.len() == 0
 
-    def kb(self):
+    def kb(self) -> 'dict':
         return self.__kb
 
-    def __contains__(self, key):
+    def __contains__(self, key) -> 'bool':
         return key in self.__kb
 
     def copy(self, other:'KnowledgeBase'):
         self.__kb = other.kb().copy()
 
-    def __str__(self):
+    def __str__(self) -> 'str':
         values = '\n' + self.name + ' CONTAINS: \n'
         if not self.is_empty():
             for v in self.__kb.keys():
                 values += '  ' + str(v) + '\n'
         return values
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> 'bool':
         if not isinstance(other, KnowledgeBase): return False
         return self.__kb == other.kb()
 
     def __iter__(self):
         return self.__kb.__iter__()
 
-    def __add__(self, other:'KnowledgeBase'):
+    def __add__(self, other:'KnowledgeBase') -> 'dict':
         return {**self.__kb, **other.kb()}
 
     def items(self):
