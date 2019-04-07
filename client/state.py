@@ -35,16 +35,15 @@ class State:
         return(state_str)
 
     def findBox(self,position):
-        for key, atom in self.atoms.kb.items():
+        for atom in self.atoms:
             if atom.name == "BoxAt" and atom.variables[1] == position:
                 return atom
 
     def findAgent(self, agt):
-        for key, atom in self.atoms.kb.items():
+        for atom in self.atoms:
             if atom.name == "AgentAt" and atom.variables[0] == agt:
                 return atom.variables[1]
 
     def copy(self):
-        atoms_copy = KnowledgeBase("Atoms")
-        atoms_copy.kb = self.atoms.kb.copy()
+        atoms_copy = KnowledgeBase("Atoms").copy(self.atoms)
         return State(self.name, atoms_copy, self.rigid_atoms, self.parent)

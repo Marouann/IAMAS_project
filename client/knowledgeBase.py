@@ -21,10 +21,6 @@ class KnowledgeBase():
         else:
             if feedback: print('[KB] Cannot update', atom, flush=True)
 
-    def update_nonAtom(self, name, *variables, feedback=False):
-        atom = Atom(name, *variables)
-        self.update(atom, feedback)
-
     def delete(self, atom, feedback=False):
         if not isinstance(atom,Atom): pass
         if self.__isin__(atom):
@@ -47,6 +43,8 @@ class KnowledgeBase():
     def content(self):
         return self.kb.copy()
 
+    def copy(self, KnowledgeBase):
+        self.kb = KnowledgeBase.content()
     def __str__(self):
         values = '\n' + self.name + ' CONTAINS: \n'
         if not self.is_empty():
@@ -57,3 +55,13 @@ class KnowledgeBase():
     def __eq__(self, other):
         if not isinstance(other, KnowledgeBase): return False
         return self.kb == other.kb
+
+    def __getitem__(self, key):
+        return self.kb[key]
+
+    def __iter__(self):
+        return self.kb.__iter__()
+
+    def items(self):
+        return self.kb.items()
+
