@@ -4,15 +4,17 @@ class Strategy:
 
     def __init__(self, state, agent, strategy='bfs'):
         self.state = state
+        self.explored_states = set()
         self.agent = agent
         self.strategy = strategy
-
 
     def plan(self):
         if self.strategy == 'bfs':
             self.bfs()
         elif self.strategy == 'dfs':
             self.dfs()
+        elif self.strategy == 'uniform':
+            self.uniform()
         elif self.strategy == 'best-first':
             self.bestFirst()
         elif self.strategy == 'astar':
