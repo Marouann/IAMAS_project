@@ -38,13 +38,18 @@ def main():
 
 
     ## DOES NOT PRODUCE CONFLICT
+<<<<<<< HEAD
     #agt1 = Agent('1', (5,3), Atom("BoxAt","B2", (1,10)), [Move, Push, Pull], "green")
     #agt0 = Agent('0', (1,8), Atom("BoxAt","B1", (5,1)), [Move, Push, Pull], "red")
+=======
+    # agt1 = Agent('1', (5,3), Atom("BoxAt","B2", (1,10)), [Move, Push, Pull], "green")
+    # agt0 = Agent('0', (1,8), Atom("BoxAt","B1", (5,1)), [Move, Push, Pull], "red")
+>>>>>>> Add BFS in strategy
 
     ## PRODUCEs CONFLICT
     # agt1 = Agent('1', (5,3), Atom("BoxAt","B2", (5,1)), [Move, Push, Pull], "green")
     # agt0 = Agent('0', (1,8), Atom("BoxAt","B1", (1,10)), [Move, Push, Pull], "red")
-    
+
     # currentState = client.initial_state
 
     # print(currentState, file=sys.stderr, flush=True)
