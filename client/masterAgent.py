@@ -11,9 +11,10 @@ from knowledgeBase import KnowledgeBase
 from getLevel import getLevel
 
 class MasterAgent:
-    def __init__(self, initial_state, agents):
+    def __init__(self, initial_state: 'State', agents: '[Agent]', goal):
         self.currentState = initial_state
         self.agents = []
+        self.goal = goal
 
         for agt in sorted(agents, key=lambda k: k['name']):
             agtAt = initial_state.findAgent(agt['name'])
@@ -21,8 +22,8 @@ class MasterAgent:
             self.agents.append(agent)
 
         # Here we need to assign the first goals to the agent
-        self.agents[0].goal = Atom("BoxAt","B1", (5,1))
-        self.agents[1].goal = Atom("BoxAt","B2", (1,10))
+        self.agents[0].goal = goal[0]
+        #self.agents[1].goal = Atom("BoxAt","B2", (1,10))
 
     
     def solveLevel(self):
@@ -52,7 +53,6 @@ class MasterAgent:
                 actions_string += agent_action
                 actions_string += ";"
             actions_string = actions_string[:-1] # remove last ';' from the string
-            print(actions_string, flush=True) # send action to server
 
             # retrieve answer from server and separate answer for specific action
             # [:-1] is only to remove the '\n' at the end of response

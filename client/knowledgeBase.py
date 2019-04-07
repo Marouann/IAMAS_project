@@ -8,10 +8,10 @@ class KnowledgeBase():
         self.__kb = {}
         self.name = name
 
-    def __isin__(self, atom):
+    def __isin__(self, atom:'Atom'):
         return atom in self.__kb
 
-    def update(self, atom, feedback=False):
+    def update(self, atom:'Atom', feedback=False):
         if not isinstance(atom, Atom): raise Exception('Not an Atom')
         if not self.__isin__(atom):
             self.__kb[atom] = atom
@@ -19,7 +19,7 @@ class KnowledgeBase():
         else:
             if feedback: print('[KB] Cannot update', atom, flush=True)
 
-    def delete(self, atom, feedback=False):
+    def delete(self, atom:'Atom', feedback=False):
         if not isinstance(atom,Atom): raise Exception('Not an Atom')
         if self.__isin__(atom):
             del self.__kb[atom]
@@ -44,11 +44,8 @@ class KnowledgeBase():
     def __contains__(self, key):
         return key in self.__kb
 
-    def copy(self, other):
-        if isinstance(other, KnowledgeBase):
-            self.__kb = other.kb().copy()
-        else:
-            raise Exception('Copy failed: input is not a knowledge base type')
+    def copy(self, other:'KnowledgeBase'):
+        self.__kb = other.kb().copy()
 
     def __str__(self):
         values = '\n' + self.name + ' CONTAINS: \n'
@@ -63,6 +60,9 @@ class KnowledgeBase():
 
     def __iter__(self):
         return self.__kb.__iter__()
+
+    def __add__(self, other:'KnowledgeBase'):
+        return {**self.__kb, **other.kb()}
 
     def items(self):
         return self.__kb.items()

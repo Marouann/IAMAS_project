@@ -1,28 +1,36 @@
 import sys
 from knowledgeBase import KnowledgeBase
+from atom import *
 
 class State:
-    def __init__(self, name, atoms, rigid_atoms, parent = None, last_action = "NoOp"):
+    def __init__(self, name: 'str',
+                 atoms:'KnowledgeBase',
+                 rigid_atoms:'KnowledgeBase',
+                 parent = None,
+                 last_action = "NoOp"):
         self.name = name
         self.atoms = atoms
         self.rigid_atoms = rigid_atoms
         self.parent = parent
         self.last_action = last_action
 
-    def removeAtom(self, atom):
+        self.agent_hash = {}
+        self.box_hash = {}
+
+    def removeAtom(self, atom: 'Atom'):
         # if atom not in s then do nothing
         try:
             self.atoms.delete(atom)
         except ValueError:
             pass
 
-    def addAtom(self, atom):
+    def addAtom(self, atom:'Atom'):
         self.atoms.update(atom)
 
     # def __len__(self):
     #     return self.atoms.kb.length
 
-    def __eq__(self, other):
+    def __eq__(self, other:'State'):
         return self.atoms == other.atoms #and self.parent == other.parent and self.last_action == other.last_action
 
     def __str__(self):
@@ -48,3 +56,7 @@ class State:
         atoms_copy = KnowledgeBase("Atoms")
         atoms_copy.copy(self.atoms)
         return State(self.name, atoms_copy, self.rigid_atoms, self.parent)
+
+    ##RETURN ALL ATOMS
+    def atoms(self):
+        return self.atoms + self.rigid_atoms
