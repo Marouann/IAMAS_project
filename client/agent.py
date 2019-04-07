@@ -1,5 +1,6 @@
 import sys
 from strategy import Strategy
+from random import shuffle
 
 class Agent:
     def __init__(self, agt, position, goal, actions, color):
@@ -56,6 +57,7 @@ class Agent:
                                 possibleActions.append((action,
                                                         [self.agt, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                         "Pull(" + dir[2] + "," + second_dir[2] + ")"))
+        shuffle(possibleActions)
         return possibleActions
 
 
