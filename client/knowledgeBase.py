@@ -41,6 +41,9 @@ class KnowledgeBase():
     def kb(self):
         return self.__kb
 
+    def __contains__(self, key):
+        return key in self.__kb
+
     def copy(self, other):
         if isinstance(other, KnowledgeBase):
             self.__kb = other.kb().copy()

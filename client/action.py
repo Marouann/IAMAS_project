@@ -20,7 +20,7 @@ class Action:
         preconditions = self.preconditions(*variables)
         while practical and i<len(preconditions):
             actual_atom = preconditions[i]
-            practical = practical and (actual_atom in s.atoms.kb() or actual_atom in s.rigid_atoms.kb())
+            practical = practical and (actual_atom in s.atoms or actual_atom in s.rigid_atoms)
             i += 1
         return practical
 
