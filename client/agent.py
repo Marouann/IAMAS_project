@@ -1,4 +1,5 @@
 import sys
+from strategy import Strategy
 
 class Agent:
     def __init__(self, agt, position, goal, actions, color):
@@ -60,32 +61,5 @@ class Agent:
 
 
     def plan(self, state):
-        frontier = []
-        frontier.append(state)
-        goalNotFound = True
-        while frontier != [] and goalNotFound:
-            s = frontier.pop(0)
-            print(len(frontier), file=sys.stderr, flush=True)
-            possibleActions = self.getPossibleActions(s)
-            # print(possibleActions, file=sys.stderr, flush=True)
-            for action in possibleActions:
-                new_state = s.copy()
-
-                action[0].execute(new_state, action[1])
-                # print(new_state, file=sys.stderr, flush=True)
-                new_state.parent = s
-                new_state.last_action = { 'action': action[0], 'params': action[1], 'message': action[2] }
-                if self.goal in new_state.atoms.kb:
-
-                    goalNotFound = False
-                    self.extract_plan(new_state)
-                    break
-                if not new_state in frontier:
-                    frontier.append(new_state)
-
-    def extract_plan(self, state):
-        if state.parent:
-            self.current_plan.append(state.last_action)
-            self.extract_plan(state.parent)
-        else:
-            self.current_plan.reverse()
+        strategy = Strategy(state, self)
+        strategy.plan()
