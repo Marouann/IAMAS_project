@@ -22,10 +22,13 @@ class GoalCount(Heuristic):
         goal_count = self.goals.len()
         for atom in state.atoms:
             if atom in self.goals:
-                goal_count -= 1;
+                goal_count -= 1
         return goal_count
 
     def f(self, state: 'State') -> 'int':
-        return self.h(state) + state.cost_value
+        return self.h(state) + state.cost
+
+class AdditiveHeuristics(Heuristic):
+    pass
 
 
