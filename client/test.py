@@ -1,4 +1,3 @@
-from newState import State
 from action import Action
 from atom import Atom
 

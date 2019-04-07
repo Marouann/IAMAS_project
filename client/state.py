@@ -45,5 +45,6 @@ class State:
                 return atom.variables[1]
 
     def copy(self):
-        atoms_copy = KnowledgeBase("Atoms").copy(self.atoms)
+        atoms_copy = KnowledgeBase("Atoms")
+        atoms_copy.copy(self.atoms)
         return State(self.name, atoms_copy, self.rigid_atoms, self.parent)
