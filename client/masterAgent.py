@@ -22,14 +22,10 @@ class MasterAgent:
             self.agents.append(agent)
 
         # Here we need to assign the first goals to the agent
-<<<<<<< HEAD
+
         self.agents[0].goal = goal[0]
         #self.agents[1].goal = Atom("BoxAt","B2", (1,10))
-=======
-        self.agents[0].goal = Atom("BoxAt","B1", (18,6))
-        # self.agents[1].goal = Atom("BoxAt","B2", (1,10))
 
->>>>>>> Add BFS in strategy
 
     def solveLevel(self):
         # We need to check the goal.

@@ -13,16 +13,8 @@ class Strategy:
             self.bfs()
         elif self.strategy == 'dfs':
             self.dfs()
-<<<<<<< HEAD
-<<<<<<< HEAD
         elif self.strategy == 'uniform':
             self.uniform()
-=======
->>>>>>> Add BFS in strategy
-=======
-        elif self.strategy == 'uniform':
-            self.uniform()
->>>>>>> Add strategy
         elif self.strategy == 'best-first':
             self.bestFirst()
         elif self.strategy == 'astar':
