@@ -18,9 +18,6 @@ class State:
 
         self.cost = cost  # current cost of the state  TO DISCUSS
 
-        self.agent_hash = {}
-        self.box_hash = {}
-
     def removeAtom(self, atom: 'Atom'):
         # if atom not in s then do nothing
         try:

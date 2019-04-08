@@ -23,6 +23,7 @@ class Strategy:
             self.bestFirst()
         elif self.strategy == 'astar':
             self.astar()
+        print('done')
 
     def uniform(self): #### LETS DISCUSS THIS ! I THINK WE SHOULD RESTRUCTURE ! it is not entoirelly correct
         frontier = []
@@ -38,8 +39,9 @@ class Strategy:
                 new_state.parent = s
                 new_state.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
                 if self.agent.goal in new_state.atoms:
-                    goalNotFound = False
                     self.extract_plan(new_state)
+                    goalNotFound = False
+
                     break
                 if not new_state in frontier:  # not efficient at all should be replaced either by a set or by KB
                     heappush(frontier, (new_state.cost, new_state))
@@ -57,22 +59,26 @@ class Strategy:
             for action in possibleActions:
                 new_state = s.copy()
                 action[0].execute(new_state, action[1])
-                #print(new_state, file=sys.stderr, flush=True)
+                print(new_state.atoms, file=sys.stderr, flush=True)
                 new_state.parent = s
-                new_state.name = new_state.parent.name+'1'
                 new_state.last_action = { 'action': action[0], 'params': action[1], 'message': action[2] }
                 if self.agent.goal in new_state.atoms:
-                    goalNotFound = False
+
                     self.extract_plan(new_state)
+                    self.goalNotFound = False
                     break
-                if new_state not in frontier and new_state not in self.expanded: # not efficient at all should be replaced either by a set or by KB ## we should hash states as well
+                elif new_state not in frontier and new_state not in self.expanded: # not efficient at all should be replaced either by a set or by KB ## we should hash states as well
                     print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
                     frontier.append(new_state)
 
 
     def extract_plan(self, state):
         if state.parent:
+            print(type(state.parent))
             self.agent.current_plan.append(state.last_action)
             self.extract_plan(state.parent)
+
         else:
             self.agent.current_plan.reverse()
+
+

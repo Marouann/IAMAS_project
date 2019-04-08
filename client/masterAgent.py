@@ -5,7 +5,7 @@ import numpy as np
 
 from state import State
 from atom import Atom
-from agent import Agent
+from agent import *
 from action import *
 from knowledgeBase import KnowledgeBase
 from getLevel import getLevel
@@ -23,7 +23,7 @@ class MasterAgent:
             self.agents.append(agent)
 
         # Here we need to assign the first goals to the agent
-        self.agents[0].goal = Atom('BoxAt', 'B1', (2, 6))
+        self.agents[0].goal = Atom('BoxAt', 'B1', (1,1))
         # self.agents[1].goal = Atom("BoxAt","B2", (1,10))
 
     def solveLevel(self):
@@ -35,6 +35,7 @@ class MasterAgent:
 
         actions = list(zip(*plans))
         serverAction = [tuple(i['message'] for i in k) for k in actions]
+        print('I am ghere')
         valid = self.executeAction(serverAction)
 
     '''
@@ -46,6 +47,7 @@ class MasterAgent:
     '''
 
     def executeAction(self, actionsList):
+        print('Executing')
         server_answer = []
         for jointAction in actionsList:
             actions_string = ""
