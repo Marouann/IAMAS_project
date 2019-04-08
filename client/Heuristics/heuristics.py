@@ -51,65 +51,79 @@ class AdditiveHeuristics(Heuristic):
                 if action.name == "Move" and effect.name="AgentAt":
                     agt = agent.agt
                     agtFrom = effect.variables[1]
-                    agtTo = findNeighbour(agtFrom)
-                    possibleActions.append(action, (agt, agtFrom, agtTo))
+                    possibleAgtTo = findNeighbour(agtFrom)
+                    for agtTo in possibleAgtTo:
+                        possibleActions.append(action, (agt, agtFrom, agtTo))
 
                 elif action.name == "Move" and effect.name="Free":
                     agt = agent.agt
                     agtTo = effect.variables[0]
-                    agtFrom = findNeighbour(agtTo)
-                    possibleActions.append(action, (agt, agtFrom, agtTo))
+                    possibleAgtFrom = findNeighbour(agtTo)
+                    for agtFrom in possibleAgtFrom:
+                        possibleActions.append(action, (agt, agtFrom, agtTo))
 
                 elif action.name == "Push" and effect.name="AgentAt":
                     agt = agent.agt
                     boxFrom = effect.variables[1]
-                    agtFrom = findNeighbour(boxFrom)
+                    possibleAgtFrom = findNeighbour(boxFrom)
                     box = state.findBox(boxFrom)
-                    boxTo = findNeighbour(boxFrom) # restrict somehow for no swap between agt and box
+                    possibleBoxTo = findNeighbour(boxFrom) # restrict somehow for no swap between agt and box
                     color = agent.color
-                    possibleActions.append(action, (agt, agtFrom, box, boxFrom, boxTo, color))
+                    for boxTo in possibleBoxTo:
+                        for agtFrom in possibleAgtFrom
+                            possibleActions.append(action, (agt, agtFrom, box, boxFrom, boxTo, color))
 
                 elif action.name == "Push" and effect.name="Free":
                     agt = agent.agt
                     agtFrom = effect.variables[0]
-                    boxFrom = findNeighbour(agtFrom)
+                    possibleBoxFrom = findNeighbour(agtFrom)
                     box = state.findBox(boxFrom)
-                    boxTo = findNeighbour(boxFrom)
+                    possibleBoxTo = findNeighbour(boxFrom)
                     color = agent.color
-                    possibleActions.append(action, (agt, agtFrom, box, boxFrom, boxTo, color))
+                    for boxFrom in possibleBoxFrom:
+                        for boxTo in possibleBoxTo:
+                            possibleActions.append(action, (agt, agtFrom, box, boxFrom, boxTo, color))
 
                 elif action.name == "Push" and effect.name="BoxAt":
                     agt = agent.agt
                     box = effect.variables[0]
                     boxTo = effect.variables[1]
-                    boxFrom = findNeighbour(boxTo)
-                    agtFrom = findNeighbour(boxFrom)
+                    possibleBoxFrom = findNeighbour(boxTo)
+                    possibleAgtFrom = findNeighbour(boxFrom)
                     color = agent.color
-                    possibleActions.append(action, (agt, agtFrom, box, boxFrom, boxTo, color))
+                    for boxFrom in possibleBoxFrom:
+                        for agtFrom in possibleAgtFrom:
+                            possibleActions.append(action, (agt, agtFrom, box, boxFrom, boxTo, color))
 
                 elif action.name == "Pull" and effect.name="AgentAt":
                     agt = agent.agt
                     agtTo = effect.variables[1]
-                    agtFrom = findNeighbour(agtTo)
-                    boxFrom = findNeighbour(agtFrom)
+                    possibleAgtFrom = findNeighbour(agtTo)
+                    possibleBoxFrom = findNeighbour(agtFrom)
                     box = state.findBox(boxFrom)
                     color = agent.color
-                    possibleActions.append(action, (agt, agtFrom, agtTo, box, boxFrom, color))
+                    for agtFrom in possibleAgtFrom:
+                        for boxFrom in possibleBoxFrom:
+                            possibleActions.append(action, (agt, agtFrom, agtTo, box, boxFrom, color))
 
                 elif action.name == "Pull" and effect.name="Free":
                     agt = agent.agt
                     boxFrom = effect.variables[0]
-                    agtFrom = findNeighbour(boxFrom)
-                    agtTo = findNeighbour(agtFrom)
+                    possibleAgtFrom = findNeighbour(boxFrom)
+                    possibleAgtTo = findNeighbour(agtFrom)
                     box = state.findBox(boxFrom)
                     color = agent.color
-                    possibleActions.append(action, (agt, agtFrom, agtTo, box, boxFrom, color))
+                    for agtFrom in possibleAgtFrom:
+                        for agtTo in possibleAgtTo:
+                            possibleActions.append(action, (agt, agtFrom, agtTo, box, boxFrom, color))
 
                 elif action.name == "Pull" and effect.name="BoxAt":
                     agt = agent.agt
                     box = effect.variables[0]
                     agtFrom = effect.variables[1]
-                    agtTo = findNeighbour(agtFrom)
-                    boxFrom = findNeighbour(agtFrom)
+                    possibleAgtTo = findNeighbour(agtFrom)
+                    possibleBoxFrom = findNeighbour(agtFrom)
                     color = agent.color
-                    possibleActions.append(action, (agt, agtFrom, agtTo, box, boxFrom, color))
+                    for agtTo in possibleAgtTo:
+                        for boxFrom in possibleBoxFrom:
+                            possibleActions.append(action, (agt, agtFrom, agtTo, box, boxFrom, color))
