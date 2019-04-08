@@ -8,12 +8,13 @@
 # The free cells : Atom('Free', [(x, y)])
 
 class Atom:
-    def __init__(self, name, *variables):
+    def __init__(self, name: 'str', *variables):
         self.name = name
         self.variables = variables
         self.arity = len(variables)
 
     def __eq__(self, other):
+        if not isinstance(other, Atom): return False
         return self.name == other.name and self.arity == other.arity and self.variables == other.variables
 
     def __str__(self):

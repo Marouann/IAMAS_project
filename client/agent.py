@@ -1,6 +1,7 @@
 import sys
 from strategy import Strategy
 from random import shuffle
+from state import State
 
 class Agent:
     def __init__(self, agt, position, goal, actions, color):
@@ -22,7 +23,7 @@ class Agent:
     - new_agt_position is position of agent after executing the action
     '''
 
-    def getPossibleActions(self, s):
+    def getPossibleActions(self, s: 'State'):
         possibleActions = []
         N = (-1,  0, 'N')
         S = ( 1,  0, 'S')
@@ -62,6 +63,6 @@ class Agent:
 
 
 
-    def plan(self, state):
+    def plan(self, state:'State'):
         strategy = Strategy(state, self)
         strategy.plan()

@@ -1,4 +1,5 @@
 from atom import Atom
+from state import State
 import sys
 
 class Action:
@@ -7,15 +8,15 @@ class Action:
         at applicability check or at execution of the action
     '''
 
-    def __init__(self, name, preconditions, positive_effects, negative_effects):
+    def __init__(self, name: 'str', preconditions, positive_effects, negative_effects):
         self.name = name # Move, Push, Pull.
-        self.preconditions = preconditions
-        self.positive_effects = positive_effects
-        self.negative_effects = negative_effects
+        self.preconditions = preconditions # type?
+        self.positive_effects = positive_effects # type?
+        self.negative_effects = negative_effects # type?
 
 
-    def checkPreconditions(self, s, variables):
-        practical = True
+    def checkPreconditions(self, s:'State', variables): ## should it be with a *
+        practical = True ## what does it stands for ?
         i = 0
         preconditions = self.preconditions(*variables)
         while practical and i<len(preconditions):
@@ -24,7 +25,7 @@ class Action:
             i += 1
         return practical
 
-    def execute(self, s, variables):
+    def execute(self, s: 'State', variables):
         if self.checkPreconditions(s, variables):
 
             for effect in self.negative_effects(*variables):

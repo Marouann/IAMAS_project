@@ -22,7 +22,7 @@ class MasterAgent:
             self.agents.append(agent)
 
         # Here we need to assign the first goals to the agent
-        self.agents[0].goal = Atom ('BoxAt', 'B1', (2,5))
+        #self.agents[0].goal = Atom ('BoxAt', 'B1', (2,6))
         self.agents[1].goal = Atom("BoxAt","B2", (1,10))
 
 

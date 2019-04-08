@@ -62,7 +62,7 @@ class Strategy:
                     goalNotFound = False
                     self.extract_plan(new_state)
                     break
-                if not new_state in frontier: # not efficient at all should be replaced either by a set or by KB
+                if not new_state in frontier: # not efficient at all should be replaced either by a set or by KB ## we should hash states as well
                     frontier.append(new_state)
 
 
