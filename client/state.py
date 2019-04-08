@@ -67,3 +67,6 @@ class State:
     ##RETURN ALL ATOMS
     def atoms(self):
         return self.atoms + self.rigid_atoms
+
+    def __hash__(self):
+        return hash(self.atoms)

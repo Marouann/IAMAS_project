@@ -65,3 +65,9 @@ class KnowledgeBase():
     def items(self):
         return self.__kb.items()
 
+    def __hash__(self):
+        hash_value = 0
+        for item in self.__kb:
+            hash_value +=hash(item)
+
+        return hash_value

@@ -1,5 +1,6 @@
 from collections import deque
 from heapq import heapify, heappush, heappop
+import sys
 
 class Strategy:
 
@@ -9,6 +10,7 @@ class Strategy:
         self.agent = agent
         self.strategy = strategy
         self.goalNotFound = True
+        self.expanded = set()
 
     def plan(self):
         if self.strategy == 'bfs':
@@ -49,20 +51,22 @@ class Strategy:
         self.goalNotFound = True
         while frontier != [] and self.goalNotFound:
             s = frontier.popleft()
+            self.expanded.add(s)
             possibleActions = self.agent.getPossibleActions(s)
-            # print(possibleActions, file=sys.stderr, flush=True)
+            #print(possibleActions, file=sys.stderr, flush=True)
             for action in possibleActions:
                 new_state = s.copy()
-
                 action[0].execute(new_state, action[1])
-                # print(new_state, file=sys.stderr, flush=True)
+                #print(new_state, file=sys.stderr, flush=True)
                 new_state.parent = s
+                new_state.name = new_state.parent.name+'1'
                 new_state.last_action = { 'action': action[0], 'params': action[1], 'message': action[2] }
                 if self.agent.goal in new_state.atoms:
                     goalNotFound = False
                     self.extract_plan(new_state)
                     break
-                if not new_state in frontier: # not efficient at all should be replaced either by a set or by KB ## we should hash states as well
+                if new_state not in frontier and new_state not in self.expanded: # not efficient at all should be replaced either by a set or by KB ## we should hash states as well
+                    print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
                     frontier.append(new_state)
 
 
