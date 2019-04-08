@@ -10,6 +10,7 @@ from action import *
 from knowledgeBase import KnowledgeBase
 from getLevel import getLevel
 
+
 class MasterAgent:
     def __init__(self, initial_state: 'State', agents, goal):
         self.currentState = initial_state
@@ -22,9 +23,8 @@ class MasterAgent:
             self.agents.append(agent)
 
         # Here we need to assign the first goals to the agent
-        self.agents[0].goal = Atom ('BoxAt', 'B1', (2,6))
-        #self.agents[1].goal = Atom("BoxAt","B2", (1,10))
-
+        self.agents[0].goal = Atom('BoxAt', 'B1', (2, 6))
+        # self.agents[1].goal = Atom("BoxAt","B2", (1,10))
 
     def solveLevel(self):
         # We need to check the goal.
@@ -37,7 +37,6 @@ class MasterAgent:
         serverAction = [tuple(i['message'] for i in k) for k in actions]
         valid = self.executeAction(serverAction)
 
-
     '''
     actionList is a 2D array of actions (size number_action_to_execute * number_of_agents).
         - a row corresponds to a joint action
@@ -45,6 +44,7 @@ class MasterAgent:
 
     return successive result of the server to actions, same size as input
     '''
+
     def executeAction(self, actionsList):
         server_answer = []
         for jointAction in actionsList:
@@ -52,7 +52,7 @@ class MasterAgent:
             for agent_action in jointAction:
                 actions_string += agent_action
                 actions_string += ";"
-            actions_string = actions_string[:-1] # remove last ';' from the string
+            actions_string = actions_string[:-1]  # remove last ';' from the string
 
             # retrieve answer from server and separate answer for specific action
             # [:-1] is only to remove the '\n' at the end of response
