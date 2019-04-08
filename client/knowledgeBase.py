@@ -8,7 +8,7 @@ class KnowledgeBase():
         self.__kb = {}
         self.name = name
 
-    def __isin__(self, atom:'Atom'):
+    def __isin__(self, atom:'Atom') -> 'bool':
         return atom in self.__kb
 
     def update(self, atom:'Atom', feedback=False):
@@ -65,9 +65,9 @@ class KnowledgeBase():
     def items(self):
         return self.__kb.items()
 
-    def __hash__(self):
+    def __hash__(self) -> 'int':
         hash_value = 0
         for item in self.__kb:
-            hash_value +=hash(item)
+            hash_value += hash(item) % 13
 
-        return hash_value
+        return int(hash_value)
