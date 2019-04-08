@@ -1,4 +1,5 @@
 from collections import deque
+from heapq import heapify, heappush, heappop
 
 class Strategy:
 
@@ -7,6 +8,7 @@ class Strategy:
         self.explored_states = set()
         self.agent = agent
         self.strategy = strategy
+        self.goalNotFound = True
 
     def plan(self):
         if self.strategy == 'bfs':
@@ -20,13 +22,33 @@ class Strategy:
         elif self.strategy == 'astar':
             self.astar()
 
+    def uniform(self): #### LETS DISCUSS THIS ! I THINK WE SHOULD RESTRUCTURE ! it is not entoirelly correct
+        frontier = []
+        heappush(frontier, (self.state.cost, self.state))
+        while len(frontier)> 0 and self.goalNotFound:
+            s = heappop(frontier)[1]
+            possibleActions = self.agent.getPossibleActions(s)
+            for action in possibleActions:
+                new_state = s.copy()
+
+                action[0].execute(new_state, action[1])
+                # print(new_state, file=sys.stderr, flush=True)
+                new_state.parent = s
+                new_state.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
+                if self.agent.goal in new_state.atoms:
+                    goalNotFound = False
+                    self.extract_plan(new_state)
+                    break
+                if not new_state in frontier:  # not efficient at all should be replaced either by a set or by KB
+                    heappush(frontier, (new_state.cost, new_state))
+
 
     def bfs(self):
         frontier = deque()
         frontier.append(self.state)
-        goalNotFound = True
-        while frontier != [] and goalNotFound:
-            s = frontier.popleft(0)
+        self.goalNotFound = True
+        while frontier != [] and self.goalNotFound:
+            s = frontier.popleft()
             possibleActions = self.agent.getPossibleActions(s)
             # print(possibleActions, file=sys.stderr, flush=True)
             for action in possibleActions:
@@ -36,8 +58,7 @@ class Strategy:
                 # print(new_state, file=sys.stderr, flush=True)
                 new_state.parent = s
                 new_state.last_action = { 'action': action[0], 'params': action[1], 'message': action[2] }
-                if self.agent.goal in new_state.atoms.kb:
-
+                if self.agent.goal in new_state.atoms:
                     goalNotFound = False
                     self.extract_plan(new_state)
                     break

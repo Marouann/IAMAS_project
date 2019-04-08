@@ -6,7 +6,7 @@ class State:
     def __init__(self, name: 'str',
                  atoms:'KnowledgeBase',
                  rigid_atoms:'KnowledgeBase',
-                 cost: 'int',
+                 cost = 0,
                  parent = None,
                  last_action = "NoOp"):
         self.name = name

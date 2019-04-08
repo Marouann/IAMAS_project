@@ -11,7 +11,7 @@ from knowledgeBase import KnowledgeBase
 from getLevel import getLevel
 
 class MasterAgent:
-    def __init__(self, initial_state: 'State', agents: '[Agent]', goal):
+    def __init__(self, initial_state: 'State', agents, goal):
         self.currentState = initial_state
         self.agents = []
         self.goal = goal
@@ -22,9 +22,8 @@ class MasterAgent:
             self.agents.append(agent)
 
         # Here we need to assign the first goals to the agent
-
-        self.agents[0].goal = goal[0]
-        #self.agents[1].goal = Atom("BoxAt","B2", (1,10))
+        self.agents[0].goal = Atom ('BoxAt', 'B1', (2,5))
+        self.agents[1].goal = Atom("BoxAt","B2", (1,10))
 
 
     def solveLevel(self):

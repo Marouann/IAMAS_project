@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 import inspect
 from state import *
 from action import *
+from agent import *
 
 
 class Heuristic(metaclass=ABCMeta):
@@ -41,7 +42,7 @@ class AdditiveHeuristics(Heuristic):
     def f(self, state: 'State') -> 'int':
         return self.h(state) + state.cost
 
-    def getActions(self, state, goal, agent): # goal must be one atom only
+    def getActions(self, state:'State', goal, agent: 'Agent'): # goal must be one atom only
         possibleActions = []
         for action in [Move, Push, Pull]:
             positive_effects_function = action[1] # retrieve positive effect of action
