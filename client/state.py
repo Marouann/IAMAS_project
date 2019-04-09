@@ -16,7 +16,7 @@ class State:
         self.parent = parent
         self.last_action = last_action
 
-        self.cost = cost  # current cost of the state  TO DISCUSS
+        self.cost = cost
 
     def removeAtom(self, atom: 'Atom'):
         # if atom not in s then do nothing
