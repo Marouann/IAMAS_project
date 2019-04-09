@@ -57,16 +57,6 @@ class MasterAgent:
         for agt in self.agents:
             agt.plan(self.currentState)
             plans.append(agt.current_plan)
-<<<<<<< HEAD
-        #print('I am sending message to the server', file=sys.stderr, flush=True)
-        while True:
-            actions = list(zip(*plans))
-            serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
-            # print('I have made a list of actions', file=sys.stderr, flush=True)
-
-            valid = self.executeAction(serverAction) ## keep the response from the server
-            print(valid, file=sys.stderr, flush=True)
-=======
 
         # print('I am sending message to the server', file=sys.stderr, flush=True)
 
@@ -123,7 +113,6 @@ class MasterAgent:
                 joint_action.append('NoOp')
         return joint_action
 
->>>>>>> eca870168f1e1540b7f711e6c8df5abc1ac26b9c
     '''
     actionList is a 2D array of actions (size number_action_to_execute * number_of_agents).
         - a row corresponds to a joint action
