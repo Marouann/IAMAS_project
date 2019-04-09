@@ -37,9 +37,8 @@ def main():
 
     # Read level and create the initial state of the problem.
     client = SearchClient(server_messages)
-    
-    client.masterAgent.solveLevel()
 
+    client.masterAgent.solveLevel()
 
 if __name__ == '__main__':
     # Run client.

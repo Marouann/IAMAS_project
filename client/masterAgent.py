@@ -22,20 +22,24 @@ class MasterAgent:
         
         # Here we need to assign the first goals to the agent
 
-        # BFSLEVEL STARTING POSITIONS
-        #self.agents[0].goal = Atom("BoxAt", "B1", (5, 1))
-        #self.agents[1].goal = Atom("BoxAt", "B2", (1,10))
+        # SAExample goal POSITIONS (Use SA.lvl)
+        #self.agents[0].goal = Atom("BoxAt", "B1", (1, 1))
 
-        # agt0 = Agent('0', (1,2), Atom("BoxAt","B1", (1,4)), [Move, Push, Pull], "red")
-        # agt1 = Agent('1', (5,3), Atom("BoxAt","B2", (5,1)), [Move, Push, Pull], "green")
+        # BFSLEVEL goal POSITIONS (Use BFStest.lvl)
+        #self.agents[0].goal = Atom("BoxAt", "B1", (1, 4))
+        #self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))
+
+        # BFSLEVEL with conflict goal POSITIONS (Use BFStestConflict.lvl)
+        #self.agents[0].goal = Atom("BoxAt", "B1", (1, 4))
+        #self.agents[1].goal = Atom("BoxAt", "B2", (5,1))
 
         # PRODUCES NO CONFLICT (Use MAExample.lvl)
         #self.agents[0].goal = Atom("BoxAt", "B1", (5, 1))
         #self.agents[1].goal = Atom("BoxAt", "B2", (1,10))
 
-        # PRODUCES CONFLICT (Use MAConflictExample.lvl goals are switched, nicer to visualize) 
-        self.agents[0].goal = Atom("BoxAt", "B1", (1, 10))
-        self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))
+        # PRODUCES CONFLICT (Use MAConflictExample.lvl: goals are switched, nicer to visualize) 
+        # self.agents[0].goal = Atom("BoxAt", "B1", (1, 10))
+        # self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))
 
     def solveLevel(self):
         # We need to check the goal.
