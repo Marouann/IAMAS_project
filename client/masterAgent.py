@@ -49,6 +49,8 @@ class MasterAgent:
     '''
 
     def executeAction(self, actionsList):
+        print('I am executing actions', file=sys.stderr, flush=True)
+
         server_answer = []
         for jointAction in actionsList:
             actions_string = ""
@@ -59,7 +61,10 @@ class MasterAgent:
 
             # retrieve answer from server and separate answer for specific action
             # [:-1] is only to remove the '\n' at the end of response
+            print('Waiting for server', file=sys.stderr, flush=True)
+
             server_answer.append(sys.stdin.readline()[:-1].split(";"))
+            print(server_answer, file=sys.stderr, flush=True)
 
             # We need to update the masterAgent.currentState in case there is a conflict
 
