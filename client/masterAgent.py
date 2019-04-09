@@ -21,7 +21,7 @@ class MasterAgent:
             agtAt = initial_state.findAgent(agt['name'])
             agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull], agt['color'])
             self.agents.append(agent)
-        
+
         # Here we need to assign the first goals to the agent
 
         # SAExample goal POSITIONS (Use SA.lvl)
@@ -39,7 +39,7 @@ class MasterAgent:
         #self.agents[0].goal = Atom("BoxAt", "B1", (5, 1))
         #self.agents[1].goal = Atom("BoxAt", "B2", (1,10))
 
-        # PRODUCES CONFLICT (Use MAConflictExample.lvl: goals are switched, nicer to visualize) 
+        # PRODUCES CONFLICT (Use MAConflictExample.lvl: goals are switched, nicer to visualize)
         self.agents[0].goal = Atom("BoxAt", "B1", (1, 10))
         self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))
 
@@ -49,13 +49,61 @@ class MasterAgent:
         for agt in self.agents:
             agt.plan(self.currentState)
             plans.append(agt.current_plan)
+
         # print('I am sending message to the server', file=sys.stderr, flush=True)
 
-        actions = list(zip(*plans))
-        serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
-        # print('I have made a list of actions', file=sys.stderr, flush=True)
+        # actions = list(zip(*plans)) #won't work if plan are not the same length
+        # serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
+        nb_iter = 0
+        while True:
+            nb_iter += 1
+            action_to_execute = self.getNextJointAction()
+            valid = self.executeAction(action_to_execute) ## keep the response fro mthe server
 
-        valid = self.executeAction(serverAction) ## keep the response fro mthe server
+            conflicting_agents = [i for i in range(len(valid)) if valid[i]=='false']
+            if conflicting_agents != []:
+                self.solveConflict(conflicting_agents, action_to_execute)
+            if nb_iter % 10 == 0:
+
+                self.agents[1].plan(self.currentState) # need a real replan function
+
+    def solveConflict(self, conflicting_agents, actions):
+        conflicting_agents= [0,1] # replace this by having function find the conflicting agents
+        priority_agent = conflicting_agents.pop(0)
+        action_of_priority_agent = actions[priority_agent]
+        preconditions = action_of_priority_agent['action'].preconditions(*action_of_priority_agent['params'])
+        unmet_preconditions = []
+
+        for atom in preconditions:
+            if atom not in self.currentState.atoms and atom not in self.currentState.rigid_atoms:
+                unmet_preconditions.append(atom)
+
+        conflict_solver = conflicting_agents[0]
+
+        if unmet_preconditions != []:
+            keep_goal = self.agents[conflict_solver].goal
+            self.agents[conflict_solver].goal = unmet_preconditions[0]
+            self.agents[conflict_solver].current_plan = []
+            self.agents[conflict_solver].plan(self.currentState)
+            # print(self.agents[conflict_solver].goal, file=sys.stderr, flush=True)
+            # print(len(self.agents[conflict_solver].current_plan), file=sys.stderr, flush=True)
+            self.executeAction(['NoOp', self.agents[conflict_solver].current_plan[0]]) # generalize this for more than 2 agents conflicting
+            self.agents[conflict_solver].goal = keep_goal
+            self.agents[conflict_solver].current_plan = []
+
+            self.agents[priority_agent].current_plan = [action_of_priority_agent] + self.agents[priority_agent].current_plan
+        else:
+            self.executeAction([action_of_priority_agent,'NoOp']) # generalize this for more than 2 agents conflicting
+
+
+    def getNextJointAction(self):
+        joint_action = []
+        for agt in self.agents:
+            if agt.current_plan != []:
+                joint_action.append(agt.current_plan.pop(0))
+            else:
+                joint_action.append('NoOp')
+        return joint_action
 
     '''
     actionList is a 2D array of actions (size number_action_to_execute * number_of_agents).
@@ -65,23 +113,32 @@ class MasterAgent:
     return successive result of the server to actions, same size as input
     '''
 
-    def executeAction(self, actionsList):
+    def executeAction(self, jointAction):
         #print('I am executing actions', file=sys.stderr, flush=True)
 
-        server_answer = []
-        for jointAction in actionsList:
-            actions_string = ""
-            for agent_action in jointAction:
+        server_answer = ''
+
+        actions_string = ''
+        for agent_action in jointAction:
+            if agent_action != 'NoOp':
+                actions_string += agent_action['message']
+                actions_string += ';'
+            else:
                 actions_string += agent_action
-                actions_string += ";"
-            actions_string = actions_string[:-1]  # remove last ';' from the string
+                actions_string += ';'
+        actions_string = actions_string[:-1]  # remove last ';' from the string
 
-            # retrieve answer from server and separate answer for specific action
-            # [:-1] is only to remove the '\n' at the end of response
-            print(actions_string, flush=True)
+        # retrieve answer from server and separate answer for specific action
+        # [:-1] is only to remove the '\n' at the end of response
+        print(actions_string, flush=True)
+        print(actions_string, file=sys.stderr, flush=True)
 
-            server_answer.append(sys.stdin.readline()[:-1].split(";"))
+        server_answer = sys.stdin.readline()[:-1].split(";")
 
-            # We need to update the masterAgent.currentState in case there is a conflict
+        for i, answer in enumerate(server_answer):
+            if answer == 'true':
+                if jointAction[i] != 'NoOp':
+                    jointAction[i]['action'].execute(self.currentState, jointAction[i]['params'])
+
 
         return server_answer

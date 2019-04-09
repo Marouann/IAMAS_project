@@ -79,4 +79,5 @@ class Strategy:
             self.agent.current_plan.append(state.last_action)
             self.extract_plan(state.parent)
         else:
+            self.agent.current_plan = self.agent.current_plan[:-1]
             self.agent.current_plan.reverse()
