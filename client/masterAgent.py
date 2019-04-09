@@ -32,10 +32,12 @@ class MasterAgent:
         for agt in self.agents:
             agt.plan(self.currentState)
             plans.append(agt.current_plan)
+        print('I am sending message to the server', file=sys.stderr, flush=True)
 
         actions = list(zip(*plans))
-        serverAction = [tuple(i['message'] for i in k) for k in actions]
-        print('I am ghere')
+        serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
+        print('I have made a list of actions', file=sys.stderr, flush=True)
+
         valid = self.executeAction(serverAction)
 
     '''
@@ -47,7 +49,6 @@ class MasterAgent:
     '''
 
     def executeAction(self, actionsList):
-        print('Executing')
         server_answer = []
         for jointAction in actionsList:
             actions_string = ""

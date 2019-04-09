@@ -1,4 +1,5 @@
 from collections import deque
+from state import State
 from heapq import heapify, heappush, heappop
 import sys
 
@@ -23,7 +24,6 @@ class Strategy:
             self.bestFirst()
         elif self.strategy == 'astar':
             self.astar()
-        print('done')
 
     def uniform(self): #### LETS DISCUSS THIS ! I THINK WE SHOULD RESTRUCTURE ! it is not entoirelly correct
         frontier = []
@@ -50,8 +50,8 @@ class Strategy:
     def bfs(self):
         frontier = deque()
         frontier.append(self.state)
-        self.goalNotFound = True
-        while frontier != [] and self.goalNotFound:
+        goalNotFound = True
+        while len(frontier) > 0 and goalNotFound:
             s = frontier.popleft()
             self.expanded.add(s)
             possibleActions = self.agent.getPossibleActions(s)
@@ -63,22 +63,22 @@ class Strategy:
                 new_state.parent = s
                 new_state.last_action = { 'action': action[0], 'params': action[1], 'message': action[2] }
                 if self.agent.goal in new_state.atoms:
-
                     self.extract_plan(new_state)
-                    self.goalNotFound = False
+                    print('I found a goal state', file=sys.stderr, flush=True)
+                    goalNotFound = False
                     break
-                elif new_state not in frontier and new_state not in self.expanded: # not efficient at all should be replaced either by a set or by KB ## we should hash states as well
+                elif new_state not in frontier and new_state not in self.expanded and goalNotFound: # not efficient at all should be replaced either by a set or by KB ## we should hash states as well
                     print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
                     frontier.append(new_state)
 
 
     def extract_plan(self, state):
-        if state.parent:
-            print(type(state.parent))
+        if state:
             self.agent.current_plan.append(state.last_action)
             self.extract_plan(state.parent)
-
         else:
             self.agent.current_plan.reverse()
+            print('I extracted a plan', file=sys.stderr, flush=True)
+
 
 

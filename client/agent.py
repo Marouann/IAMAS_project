@@ -67,4 +67,3 @@ class Agent:
     def plan(self, state: 'State'):
         strategy = Strategy(state, self)
         strategy.plan()
-        print('done')
