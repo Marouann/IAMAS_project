@@ -51,6 +51,13 @@ class MasterAgent:
         self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))  # B goal
 
 
+    '''
+    What is current_plan?
+
+
+    '''
+
+
     def solveLevel(self):
         # We need to check the goal.
         plans = []
@@ -62,23 +69,46 @@ class MasterAgent:
 
         # actions = list(zip(*plans)) #won't work if plan are not the same length
         # serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
-        nb_iter = 0
-        while True:
-            nb_iter += 1
-            action_to_execute = self.getNextJointAction()
-            valid = self.executeAction(action_to_execute) ## keep the response fro mthe server
 
-            conflicting_agents = [i for i in range(len(valid)) if valid[i]=='false']
+        # counter in while
+        nb_iter = 0 
+        # stop util reached goal
+        while True:
+            nb_iter += 1 
+            
+            # Gets the first actions from each agent (joint action on first row)
+            action_to_execute = self.getNextJointAction()
+
+            # Keep the response from the server ([true, false, ...])
+            valid = self.executeAction(action_to_execute)
+
+            # Gets the indexes (agent number) of server response (valid) for when action is not possible ([agt0, agt1, ...])
+            conflicting_agents = [i for i in range(len(valid)) if valid[i]=='false']  
+
+            # If there exists conflicts (false in valid array) then run solveConflict function with the conflicting agents
             if conflicting_agents != []:
                 self.solveConflict(conflicting_agents, action_to_execute)
-            if nb_iter % 10 == 0:
 
-                self.agents[1].plan(self.currentState) # need a real replan function
+            # Replan after 10 interations (Need a real replan function)
+            if nb_iter % 10 == 0:
+                self.agents[1].plan(self.currentState)
+
+    
+
+
 
     def solveConflict(self, conflicting_agents, actions):
-        conflicting_agents= [0,1] # replace this by having function find the conflicting agents
+
+        # Function that should return conflicting agents
+        conflicting_agents= [0,1] ## replace this by having function find the conflicting agents
+
+        # Set a priority agent (in this cases the first one in the array)
         priority_agent = conflicting_agents.pop(0)
+
+        ###############
+        ###############
         action_of_priority_agent = actions[priority_agent]
+
         preconditions = action_of_priority_agent['action'].preconditions(*action_of_priority_agent['params'])
         unmet_preconditions = []
 
@@ -103,15 +133,29 @@ class MasterAgent:
         else:
             self.executeAction([action_of_priority_agent,'NoOp']) # generalize this for more than 2 agents conflicting
 
+    
+
 
     def getNextJointAction(self):
+        ''' 
+        Gets joint action 
+        
+
+        
+        '''
         joint_action = []
         for agt in self.agents:
             if agt.current_plan != []:
                 joint_action.append(agt.current_plan.pop(0))
             else:
                 joint_action.append('NoOp')
+        
+        print(joint_action, file=sys.stderr, flush=True)
+
         return joint_action
+
+
+
 
     '''
     actionList is a 2D array of actions (size number_action_to_execute * number_of_agents).
@@ -120,6 +164,8 @@ class MasterAgent:
 
     return successive result of the server to actions, same size as input
     '''
+
+
 
     def executeAction(self, jointAction):
         #print('I am executing actions', file=sys.stderr, flush=True)
@@ -138,8 +184,9 @@ class MasterAgent:
 
         # retrieve answer from server and separate answer for specific action
         # [:-1] is only to remove the '\n' at the end of response
-        print(actions_string, flush=True)
-        print(actions_string, file=sys.stderr, flush=True)
+        print(actions_string, flush=True) # send to server
+
+        print(actions_string, file=sys.stderr, flush=True) # print out
 
         server_answer = sys.stdin.readline()[:-1].split(";")
 
