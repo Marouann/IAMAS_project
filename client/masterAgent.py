@@ -23,8 +23,8 @@ class MasterAgent:
             self.agents.append(agent)
 
         # Here we need to assign the first goals to the agent
-        self.agents[0].goal = Atom('BoxAt', 'B1', (1,1))
-        # self.agents[1].goal = Atom("BoxAt","B2", (1,10))
+        self.agents[0].goal = Atom('BoxAt', 'B1', (1,10))
+        self.agents[1].goal = Atom("BoxAt","B2", (5,1))
 
     def solveLevel(self):
         # We need to check the goal.
@@ -61,6 +61,7 @@ class MasterAgent:
 
             # retrieve answer from server and separate answer for specific action
             # [:-1] is only to remove the '\n' at the end of response
+            print(actions_string, flush=True)
             print('Waiting for server', file=sys.stderr, flush=True)
 
             server_answer.append(sys.stdin.readline()[:-1].split(";"))
