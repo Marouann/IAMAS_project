@@ -1,5 +1,5 @@
 from unittest import TestCase
-from KnowledgeBase import KnowledgeBase
+from knowledgeBase import *
 from atom import Atom
 
 class TestKnowledgeBase(TestCase):
@@ -36,9 +36,3 @@ class TestKnowledgeBase(TestCase):
         kb.update(Atom('At', 'A2', 'C32'))
         kb.update(Atom('At', 'A3', 'C32'))
         self.assert_(kb.len()==3)
-
-    def test_update_nonAtom(self):
-        kb = KnowledgeBase()
-        kb.update(Atom('At', 'A1', 'C12'))
-        kb.update_nonAtom('At', 'A1', 'C12')
-        self.assert_(kb.len() == 1)

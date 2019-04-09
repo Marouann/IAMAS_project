@@ -16,6 +16,7 @@ def getLevel(server_messages):
         initial = False
         goal = False
         row = 0
+        previousLine = line
 
         # Initialize the predicates
         atoms = KnowledgeBase("Atoms")

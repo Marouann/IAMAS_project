@@ -9,7 +9,8 @@ from agent import Agent
 from action import *
 from knowledgeBase import KnowledgeBase
 from getLevel import getLevel
-from masterAgent import MasterAgent
+from masterAgent import *
+
 
 class SearchClient:
     def __init__(self, server_messages):
@@ -19,16 +20,16 @@ class SearchClient:
 
         # We get the level information from the incoming stream.
         level = getLevel(server_messages)
-
         self.domain = level['domain']
         self.levelName = level['levelName']
 
-        self.masterAgent = MasterAgent(level['initial_state'], level['agents']) # level['goals'], level['boxes']
+        self.masterAgent = MasterAgent(level['initial_state'], level['agents'],
+                                       level['goals'])  # level['goals'], level['boxes']
+
 
 def main():
     # We first declare our name. The server will receive it and be ready to start with us.
     print('Best group', flush=True)
-
     # Read server messages from stdin.
     server_messages = sys.stdin
 
@@ -38,15 +39,15 @@ def main():
     # Read level and create the initial state of the problem.
     client = SearchClient(server_messages)
 
-
     ## DOES NOT PRODUCE CONFLICT
-    agt1 = Agent('1', (5,3), Atom("BoxAt","B2", (1,10)), [Move, Push, Pull], "green")
-    agt0 = Agent('0', (1,8), Atom("BoxAt","B1", (5,1)), [Move, Push, Pull], "red")
+
+    # agt1 = Agent('1', (5,3), Atom("BoxAt","B2", (1,10)), [Move, Push, Pull], "green")
+    # agt0 = Agent('0', (1,8), Atom("BoxAt","B1", (5,1)), [Move, Push, Pull], "red")
 
     ## PRODUCEs CONFLICT
     # agt1 = Agent('1', (5,3), Atom("BoxAt","B2", (5,1)), [Move, Push, Pull], "green")
     # agt0 = Agent('0', (1,8), Atom("BoxAt","B1", (1,10)), [Move, Push, Pull], "red")
-    
+
     # currentState = client.initial_state
 
     # print(currentState, file=sys.stderr, flush=True)
