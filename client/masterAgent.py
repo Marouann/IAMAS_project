@@ -35,13 +35,21 @@ class MasterAgent:
         #self.agents[0].goal = Atom("BoxAt", "B1", (1, 4))
         #self.agents[1].goal = Atom("BoxAt", "B2", (5,1))
 
-        # PRODUCES NO CONFLICT (Use MAExample.lvl)
+
+        # NO CONFLICT (Use MAExample.lvl)
         #self.agents[0].goal = Atom("BoxAt", "B1", (5, 1))
         #self.agents[1].goal = Atom("BoxAt", "B2", (1,10))
 
-        # PRODUCES CONFLICT (Use MAConflictExample.lvl: goals are switched, nicer to visualize) 
-        self.agents[0].goal = Atom("BoxAt", "B1", (1, 10))
-        self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))
+        # CONFLICT with two agents (Use MAExample.lvl)
+
+        # CONFLICT with two agents and two boxes (Use MAConflictExample.lvl)
+        #self.agents[0].goal = Atom("BoxAt", "B1", (1, 10)) # A goal
+        #self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))  # B goal
+
+        # CONFLICT with two agents and two boxes (Use MAImpardist.lvl)
+        self.agents[0].goal = Atom("BoxAt", "B1", (1, 9))  # A goal
+        self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))  # B goal
+
 
     def solveLevel(self):
         # We need to check the goal.
@@ -49,14 +57,14 @@ class MasterAgent:
         for agt in self.agents:
             agt.plan(self.currentState)
             plans.append(agt.current_plan)
-        # print('I am sending message to the server', file=sys.stderr, flush=True)
+        #print('I am sending message to the server', file=sys.stderr, flush=True)
+        while True:
+            actions = list(zip(*plans))
+            serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
+            # print('I have made a list of actions', file=sys.stderr, flush=True)
 
-        actions = list(zip(*plans))
-        serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
-        # print('I have made a list of actions', file=sys.stderr, flush=True)
-
-        valid = self.executeAction(serverAction) ## keep the response fro mthe server
-
+            valid = self.executeAction(serverAction) ## keep the response from the server
+            print(valid, file=sys.stderr, flush=True)
     '''
     actionList is a 2D array of actions (size number_action_to_execute * number_of_agents).
         - a row corresponds to a joint action
