@@ -21,10 +21,26 @@ class MasterAgent:
             agtAt = initial_state.findAgent(agt['name'])
             agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull], agt['color'])
             self.agents.append(agent)
-
+        
         # Here we need to assign the first goals to the agent
 
-        self.agents[0].goal = Atom('BoxAt', 'B1', (1, 10))
+        # SAExample goal POSITIONS (Use SA.lvl)
+        #self.agents[0].goal = Atom("BoxAt", "B1", (1, 1))
+
+        # BFSLEVEL goal POSITIONS (Use BFStest.lvl)
+        #self.agents[0].goal = Atom("BoxAt", "B1", (1, 4))
+        #self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))
+
+        # BFSLEVEL with conflict goal POSITIONS (Use BFStestConflict.lvl)
+        #self.agents[0].goal = Atom("BoxAt", "B1", (1, 4))
+        #self.agents[1].goal = Atom("BoxAt", "B2", (5,1))
+
+        # PRODUCES NO CONFLICT (Use MAExample.lvl)
+        #self.agents[0].goal = Atom("BoxAt", "B1", (5, 1))
+        #self.agents[1].goal = Atom("BoxAt", "B2", (1,10))
+
+        # PRODUCES CONFLICT (Use MAConflictExample.lvl: goals are switched, nicer to visualize) 
+        self.agents[0].goal = Atom("BoxAt", "B1", (1, 10))
         self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))
 
     def solveLevel(self):
