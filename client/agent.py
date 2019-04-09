@@ -2,10 +2,12 @@ import sys
 from strategy import Strategy
 from random import shuffle
 from state import State
+from atom import *
+from action import *
 
 
 class Agent:
-    def __init__(self, agt, position, goal, actions, color):
+    def __init__(self, agt: 'str', position, goal: 'Atom', actions: '[Action]', color: 'str'):
         self.agt = agt
         self.position = position
         self.goal = goal
@@ -24,12 +26,13 @@ class Agent:
     - new_agt_position is position of agent after executing the action
     '''
 
-    def getPossibleActions(self, s: 'State'):
+    def getPossibleActions(self, s: 'State') -> '[Action]':
         possibleActions = []
         N = (-1, 0, 'N')
         S = (1, 0, 'S')
         E = (0, 1, 'E')
         W = (0, -1, 'W')
+        # NO = (0,0, 'NO')
         agtFrom = s.findAgent(self.agt)
         # print(agtFrom, file=sys.stderr, flush=True)
         for action in self.actions:
@@ -62,6 +65,7 @@ class Agent:
                                                         [self.agt, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                         "Pull(" + dir[2] + "," + second_dir[2] + ")"))
         shuffle(possibleActions)
+
         return possibleActions
 
     def plan(self, state: 'State'):

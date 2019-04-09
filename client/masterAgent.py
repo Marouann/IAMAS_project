@@ -12,7 +12,7 @@ from getLevel import getLevel
 
 
 class MasterAgent:
-    def __init__(self, initial_state: 'State', agents, goal):
+    def __init__(self, initial_state: 'State', agents: '[Agent]', goal: '[Atom]'):
         self.currentState = initial_state
         self.agents = []
         self.goal = goal
@@ -23,8 +23,9 @@ class MasterAgent:
             self.agents.append(agent)
 
         # Here we need to assign the first goals to the agent
-        self.agents[0].goal = Atom('BoxAt', 'B1', (1,10))
-        self.agents[1].goal = Atom("BoxAt","B2", (5,1))
+
+        self.agents[0].goal = Atom('BoxAt', 'B1', (1, 10))
+        self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))
 
     def solveLevel(self):
         # We need to check the goal.
@@ -32,13 +33,13 @@ class MasterAgent:
         for agt in self.agents:
             agt.plan(self.currentState)
             plans.append(agt.current_plan)
-        print('I am sending message to the server', file=sys.stderr, flush=True)
+        # print('I am sending message to the server', file=sys.stderr, flush=True)
 
         actions = list(zip(*plans))
         serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
-        print('I have made a list of actions', file=sys.stderr, flush=True)
+        # print('I have made a list of actions', file=sys.stderr, flush=True)
 
-        valid = self.executeAction(serverAction)
+        valid = self.executeAction(serverAction) ## keep the response fro mthe server
 
     '''
     actionList is a 2D array of actions (size number_action_to_execute * number_of_agents).
@@ -49,7 +50,7 @@ class MasterAgent:
     '''
 
     def executeAction(self, actionsList):
-        print('I am executing actions', file=sys.stderr, flush=True)
+        #print('I am executing actions', file=sys.stderr, flush=True)
 
         server_answer = []
         for jointAction in actionsList:
@@ -62,10 +63,8 @@ class MasterAgent:
             # retrieve answer from server and separate answer for specific action
             # [:-1] is only to remove the '\n' at the end of response
             print(actions_string, flush=True)
-            print('Waiting for server', file=sys.stderr, flush=True)
 
             server_answer.append(sys.stdin.readline()[:-1].split(";"))
-            print(server_answer, file=sys.stderr, flush=True)
 
             # We need to update the masterAgent.currentState in case there is a conflict
 
