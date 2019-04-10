@@ -56,14 +56,15 @@ class MasterAgent:
 
 
     '''
-
-
     def solveLevel(self):
         # We need to check the goal.
         plans = []
         for agt in self.agents:
             agt.plan(self.currentState)
             plans.append(agt.current_plan)
+            #print(agt, file=sys.stderr, flush=True) # agent
+            #print(self.currentState, file=sys.stderr, flush=True) # state, rigid atoms, atoms 
+            #print(agt.current_plan, file=sys.stderr, flush=True) # Current plan of actions for agent [action, param, message(name of action)]
 
         # print('I am sending message to the server', file=sys.stderr, flush=True)
 
@@ -89,12 +90,29 @@ class MasterAgent:
             if conflicting_agents != []:
                 self.solveConflict(conflicting_agents, action_to_execute)
 
-            # Replan after 10 interations (Need a real replan function)
-            if nb_iter % 10 == 0:
+            # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
+            # Change x parameter in order to solve in less states
+            if nb_iter % 10 == 0: 
                 self.agents[1].plan(self.currentState)
 
-    
 
+    
+    def getNextJointAction(self):
+        # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
+        joint_action = ['NoOp'] * len(self.agents)
+
+        for i, agt in enumerate(self.agents):
+            # If there are still actions in current plan pop the first action and
+            # agt.current_plan = agt_x ['Action0', 'Action1', 'Action2', ...]
+            if agt.current_plan != []:
+                # agt.current_plan.pop(0) = 'Action0'
+                # joint_action = ['NoOp', 'NoOp', 'NoOp', ...]
+                # joint_action[0] = ['agt0.Action0', 'NoOp', 'NoOp', ... ]
+                # joint_action[1] = ['agt0.Action0', 'agt1.Action0', 'NoOp', ... ] ...
+                joint_action[i] = agt.current_plan.pop(0)      
+            #print("joint_action: ", file=sys.stderr, flush=True)
+            #print(joint_action, file=sys.stderr, flush=True)
+        return joint_action
 
 
     def solveConflict(self, conflicting_agents, actions):
@@ -105,11 +123,11 @@ class MasterAgent:
         # Set a priority agent (in this cases the first one in the array)
         priority_agent = conflicting_agents.pop(0)
 
-        ###############
-        ###############
+
         action_of_priority_agent = actions[priority_agent]
 
         preconditions = action_of_priority_agent['action'].preconditions(*action_of_priority_agent['params'])
+        # TypeError: string indices must be integers when preconditions gets 'NoOp' I think.#
         unmet_preconditions = []
 
         for atom in preconditions:
@@ -133,27 +151,6 @@ class MasterAgent:
         else:
             self.executeAction([action_of_priority_agent,'NoOp']) # generalize this for more than 2 agents conflicting
 
-    
-
-
-    def getNextJointAction(self):
-        ''' 
-        Gets joint action 
-        
-
-        
-        '''
-        joint_action = []
-        for agt in self.agents:
-            if agt.current_plan != []:
-                joint_action.append(agt.current_plan.pop(0))
-            else:
-                joint_action.append('NoOp')
-        
-        print(joint_action, file=sys.stderr, flush=True)
-
-        return joint_action
-
 
 
 
@@ -164,7 +161,6 @@ class MasterAgent:
 
     return successive result of the server to actions, same size as input
     '''
-
 
 
     def executeAction(self, jointAction):
@@ -194,6 +190,5 @@ class MasterAgent:
             if answer == 'true':
                 if jointAction[i] != 'NoOp':
                     jointAction[i]['action'].execute(self.currentState, jointAction[i]['params'])
-
 
         return server_answer
