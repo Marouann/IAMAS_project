@@ -32,6 +32,7 @@ def main():
     print('Best group', flush=True)
     # Read server messages from stdin.
     server_messages = sys.stdin
+    server_messages = open("../MAExample.lvl")
 
     # Use stderr to print to console through server.
     print('SearchClient initializing. I am sending this using the error output stream.', file=sys.stderr, flush=True)

@@ -2,6 +2,7 @@ import argparse
 import re
 import sys
 import numpy as np
+import copy
 
 from state import State
 from atom import Atom
@@ -16,15 +17,40 @@ class MasterAgent:
         self.currentState = initial_state
         self.agents = []
         self.goal = goal
+        self.availableGoals = [Atom('BoxAt', 'B1', (1, 10)), Atom("BoxAt", "B2", (5, 1))]
 
         for agt in sorted(agents, key=lambda k: k['name']):
             agtAt = initial_state.findAgent(agt['name'])
             agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull], agt['color'])
             self.agents.append(agent)
 
+        self.determineGoals()
+
         # Here we need to assign the first goals to the agent
-        self.agents[0].goal = Atom('BoxAt', 'B1', (1,10))
-        self.agents[1].goal = Atom("BoxAt","B2", (5,1))
+        #self.agents[0].goal = Atom('BoxAt', 'B1', (1,10))
+        #self.agents[1].goal = Atom("BoxAt","B2", (5,1))
+
+        #self.agents[0].goal = Atom('BoxAt', 'B1', (1, 10))
+        #self.agents[1].goal = Atom('BoxAt', 'B1', (1,10))
+
+    def determineGoals(self):
+
+        agents = copy.deepcopy(self.agents)
+        for goal in self.availableGoals:
+            planLen = 99999
+            agtCounter = 0
+            for agt in agents:
+                agt.goal = goal
+                agt.plan(self.currentState)
+
+                if len(agt.current_plan) > 0 & len(agt.current_plan) < planLen:
+                    bestAgtForGoal = agtCounter
+                    planLen = len(agt.current_plan)
+
+                agtCounter = agtCounter + 1
+            self.agents[bestAgtForGoal].goal = goal
+
+
 
     def solveLevel(self):
         # We need to check the goal.
