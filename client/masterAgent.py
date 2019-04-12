@@ -123,7 +123,8 @@ class MasterAgent:
         # Set a priority agent (in this cases the first one in the array)
         priority_agent = conflicting_agents.pop(0)
 
-
+        #####
+        #####
         action_of_priority_agent = actions[priority_agent]
 
         preconditions = action_of_priority_agent['action'].preconditions(*action_of_priority_agent['params'])
@@ -150,8 +151,6 @@ class MasterAgent:
             self.agents[priority_agent].current_plan = [action_of_priority_agent] + self.agents[priority_agent].current_plan
         else:
             self.executeAction([action_of_priority_agent,'NoOp']) # generalize this for more than 2 agents conflicting
-
-
 
 
     '''
