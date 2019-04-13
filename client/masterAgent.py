@@ -12,10 +12,10 @@ from getLevel import getLevel
 
 
 class MasterAgent:
-    def __init__(self, initial_state: 'State', agents: '[Agent]', goal: '[Atom]'):
+    def __init__(self, initial_state: 'State', agents: '[Agent]', boxes: '[dict]'):
         self.currentState = initial_state
         self.agents = []
-        self.goal = goal
+        self.boxes = boxes # List of { 'name': Box, 'letter': char, 'color': color }
 
         for agt in sorted(agents, key=lambda k: k['name']):
             agtAt = initial_state.findAgent(agt['name'])
@@ -47,8 +47,27 @@ class MasterAgent:
         #self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))  # B goal
 
         # CONFLICT with two agents and two boxes (Use MAImpardist.lvl)
-        self.agents[0].goal = Atom("BoxAt", "B1", (1, 10))  # A goal
-        self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))  # B goal
+
+        goalsToAssign = initial_state.getUnmetGoals()
+        goalsAssigned = []
+
+        for agent in self.agents:
+            possibleBoxes = []
+            for box in boxes:
+                if box['color'] == agent.color:
+                    possibleBoxes.append(box)
+            
+            goalNotAssigned = True
+            for goal in goalsToAssign:
+                if goalNotAssigned:
+                    box = next((box for box in possibleBoxes if box['letter'] == goal['letter']), None)
+                    print(str(box), file=sys.stderr, flush=True)
+                    if box != None:
+                        agent.goal = Atom("BoxAt", box['name'], goal['position'])
+                        goalNotAssigned = False
+
+        # self.agents[0].goal = Atom("BoxAt", "B1", (1, 10))  # A goal
+        # self.agents[1].goal = Atom("BoxAt", "B2", (5, 1))  # B goal
 
 
     '''
@@ -118,7 +137,7 @@ class MasterAgent:
     def solveConflict(self, conflicting_agents, actions):
 
         # Function that should return conflicting agents
-        conflicting_agents= [0,1] ## replace this by having function find the conflicting agents
+        conflicting_agents = [0,1] ## replace this by having function find the conflicting agents
 
         # Set a priority agent (in this cases the first one in the array)
         priority_agent = conflicting_agents.pop(0)

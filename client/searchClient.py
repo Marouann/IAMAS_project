@@ -24,7 +24,7 @@ class SearchClient:
         self.levelName = level['levelName']
 
         self.masterAgent = MasterAgent(level['initial_state'], level['agents'],
-                                       level['goals'])  # level['goals'], level['boxes']
+                                       level['boxes'])  # level['goals'], level['boxes']
 
 
 def main():

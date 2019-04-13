@@ -52,6 +52,7 @@ def getLevel(server_messages):
                 goal = True
 
                 row = 0
+                line = server_messages.readline().rstrip()
             elif line == "#end":
                 goal = False
 
@@ -126,7 +127,7 @@ def getLevel(server_messages):
                         GoalAt = Atom('GoalAt', Goal, (row, col))
                         rigidAtoms.update(GoalAt)
 
-                        goals.append({ 'name': Goal, 'letter': char })
+                        goals.append({ 'name': Goal, 'position': (row, col), 'letter': char })
 
                         currentGoal += 1
 
@@ -139,8 +140,10 @@ def getLevel(server_messages):
         print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)
         sys.exit(1)
 
+    print(str(goals), file=sys.stderr, flush=True)
+
     return {
-            'initial_state': State('s0', atoms, rigidAtoms),
+            'initial_state': State('s0', goals, atoms, rigidAtoms),
             'domain': domain,
             'levelName': levelName, 
             'agents': agents,
