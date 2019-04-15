@@ -95,7 +95,9 @@ class State:
         if self.cost > other.cost: return 1
         elif self.cost == other.cost: return 0
         elif self.cost < other.cost: return -1
+
     def __lt__(self, other):
         return self.cost < other.cost
+
     def __gt__(self, other):
         return self.cost > other.cost
