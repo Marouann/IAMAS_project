@@ -61,7 +61,7 @@ class MasterAgent:
             for goal in goalsToAssign:
                 if goalNotAssigned:
                     box = next((box for box in possibleBoxes if box['letter'] == goal['letter']), None)
-                    print(str(box), file=sys.stderr, flush=True)
+                    #print(str(box), file=sys.stderr, flush=True)
                     if box != None:
                         agent.goal = Atom("BoxAt", box['name'], goal['position'])
                         goalNotAssigned = False

@@ -90,3 +90,12 @@ class State:
 
     def __hash__(self):
         return hash(self.atoms)
+
+    def __cmp__(self, other:'State'):
+        if self.cost > other.cost: return 1
+        elif self.cost == other.cost: return 0
+        elif self.cost < other.cost: return -1
+    def __lt__(self, other):
+        return self.cost < other.cost
+    def __gt__(self, other):
+        return self.cost > other.cost
