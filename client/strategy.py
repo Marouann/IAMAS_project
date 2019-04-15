@@ -1,17 +1,20 @@
 from collections import deque
 from state import State
 from heapq import heapify, heappush, heappop
+
+from Heuristics.heuristics import GoalCount
 import sys
 
 
 class Strategy:
 
-    def __init__(self, state, agent, strategy='bfs'):
+    def __init__(self, state, agent, strategy='best-first', heuristics=None):
         self.state = state
         self.explored_states = set()
         self.agent = agent
         self.strategy = strategy
-        self.goalNotFound = True
+        self.heuristics = heuristics
+        self.goal_found = False
         self.expanded = set()
 
     def plan(self):
@@ -22,57 +25,92 @@ class Strategy:
         elif self.strategy == 'uniform':
             self.uniform()
         elif self.strategy == 'best-first':
-            self.bestFirst()
+            self.best_first()
         elif self.strategy == 'astar':
-            self.astar()
+            self.a_star()
 
-    def uniform(self):  #### LETS DISCUSS THIS ! I THINK WE SHOULD RESTRUCTURE ! it is not entoirelly correct
-        frontier = []
-        heappush(frontier, (self.state.cost, self.state))
-        frontier.append(self.state)
-        goalNotFound = True
+    def uniform(self):
+        frontier = list()
+        heappush(frontier, self.state)
 
-        while frontier.__sizeof__() > 0 and goalNotFound:
-            s = heappop(frontier)[1]
+        while len(frontier) > 0 and not self.goal_found:
+            s = heappop(frontier)
             self.expanded.add(s)
             possibleActions = self.agent.getPossibleActions(s)
-            # print(possibleActions, file=sys.stderr, flush=True)
+
             for action in possibleActions:
-                new_state = s.copy()
-                action[0].execute(new_state, action[1])
-                # print(new_state.atoms, file=sys.stderr, flush=True)
-                new_state.parent = s
-                new_state.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
-                if self.agent.goal in new_state.atoms:
-                    self.extract_plan(new_state)
-                    # print('I found a goal state', file=sys.stderr, flush=True)
-                    goalNotFound = False
-                    break
-                elif new_state not in frontier and new_state not in self.expanded and goalNotFound:
-                    # print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
-                    heappush(frontier, (new_state.cost, new_state))
+                state_ = s.copy()
+                action[0].execute(state_, action[1])
+                state_.parent = s
+                state_.cost += 1
+                state_.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
+                self.__is_goal__(self.agent, state_)
+
+                if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
+                    heappush(frontier, state_)
+                    heapify(frontier)
 
     def bfs(self):
         frontier = deque()
         frontier.append(self.state)
-        goalNotFound = True
 
-        while len(frontier) > 0 and goalNotFound:
+        while len(frontier) > 0 and not self.goal_found:
             s = frontier.popleft()
             self.expanded.add(s)
             possibleActions = self.agent.getPossibleActions(s)
-            for action in possibleActions:
-                new_state = s.copy()
-                action[0].execute(new_state, action[1])
-                new_state.parent = s
-                new_state.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
-                if self.agent.goal in new_state.atoms:
-                    self.extract_plan(new_state)
-                    goalNotFound = False
-                    break
 
-                elif new_state not in frontier and new_state not in self.expanded and goalNotFound:  # not efficient at all should be replaced either by a set or by KB ## we should hash states as well
-                    frontier.append(new_state)
+            for action in possibleActions:
+                state_ = s.copy()
+                action[0].execute(state_, action[1])
+                state_.parent = s
+                state_.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
+                self.__is_goal__(self.agent, state_)
+
+                if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
+                    frontier.append(state_)
+
+    def dfs(self):
+        frontier = list()
+        frontier.append(self.state)
+
+        while len(frontier) > 0 and not self.goal_found:
+            s = frontier.pop()
+            self.expanded.add(s)
+            possibleActions = self.agent.getPossibleActions(s)
+
+            for action in possibleActions:
+                state_ = s.copy()
+                action[0].execute(state_, action[1])
+                state_.parent = s
+                state_.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
+                self.__is_goal__(self.agent, state_)
+
+                if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
+                    frontier.append(state_)
+
+    def best_first(self):
+        frontier = list()
+        heappush(frontier, self.state)
+
+        while len(frontier) > 0 and not self.goal_found:
+            s = heappop(frontier)
+            self.expanded.add(s)
+            possibleActions = self.agent.getPossibleActions(s)
+
+            for action in possibleActions:
+                state_ = s.copy()
+                action[0].execute(state_, action[1])
+                state_.parent = s
+                state_.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
+                state_.cost = GoalCount(self.state, self.state.goals).h(state_)
+                self.__is_goal__(self.agent, state_)
+                if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
+                    # print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
+                    heappush(frontier, state_)
+                    heapify(frontier)
+
+    def a_star(self):
+        pass
 
     def extract_plan(self, state):
         if state:
@@ -81,3 +119,8 @@ class Strategy:
         else:
             self.agent.current_plan = self.agent.current_plan[:-1]
             self.agent.current_plan.reverse()
+
+    def __is_goal__(self, agent, state):
+        if agent.goal in state.atoms:
+            self.extract_plan(state)
+            self.goal_found = True
