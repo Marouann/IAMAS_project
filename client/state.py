@@ -53,7 +53,7 @@ class State:
 
     def findBoxLetter(self, boxName):
         for atom in self.rigid_atoms:
-            if atom.name == "Color" and atom.variables[0] == boxName:
+            if atom.name == "Letter" and atom.variables[0] == boxName:
                 return atom
 
     def findAgent(self, agt):

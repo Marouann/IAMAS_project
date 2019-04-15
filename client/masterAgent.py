@@ -61,7 +61,6 @@ class MasterAgent:
             for goal in goalsToAssign:
                 if goalNotAssigned:
                     box = next((box for box in possibleBoxes if box['letter'] == goal['letter']), None)
-                    #print(str(box), file=sys.stderr, flush=True)
                     if box != None:
                         agent.goal = Atom("BoxAt", box['name'], goal['position'])
                         goalNotAssigned = False
@@ -93,7 +92,7 @@ class MasterAgent:
         # counter in while
         nb_iter = 0 
         # stop util reached goal
-        while True:
+        while self.currentState.getUnmetGoals() != []:
             nb_iter += 1 
             
             # Gets the first actions from each agent (joint action on first row)
@@ -140,7 +139,11 @@ class MasterAgent:
         conflicting_agents = [0,1] ## replace this by having function find the conflicting agents
 
         # Set a priority agent (in this cases the first one in the array)
-        priority_agent = conflicting_agents.pop(0)
+        
+        # Previous
+        # priority_agent = conflicting_agents.pop(0)
+
+        priority_agent = 0 # replace with a function that return the agent to prioritize
 
         #####
         #####
@@ -154,7 +157,9 @@ class MasterAgent:
             if atom not in self.currentState.atoms and atom not in self.currentState.rigid_atoms:
                 unmet_preconditions.append(atom)
 
-        conflict_solver = conflicting_agents[0]
+        # Previous
+        # conflict_solver = conflicting_agents[0]
+        conflict_solver = 1 # replace with a function that return the agent that has to change its goal
 
         if unmet_preconditions != []:
             keep_goal = self.agents[conflict_solver].goal
@@ -163,7 +168,10 @@ class MasterAgent:
             self.agents[conflict_solver].plan(self.currentState)
             # print(self.agents[conflict_solver].goal, file=sys.stderr, flush=True)
             # print(len(self.agents[conflict_solver].current_plan), file=sys.stderr, flush=True)
-            self.executeAction(['NoOp', self.agents[conflict_solver].current_plan[0]]) # generalize this for more than 2 agents conflicting
+
+            actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
+            actionsToResolveConflicts[conflict_solver] = self.agents[conflict_solver].current_plan[0]
+            self.executeAction(actionsToResolveConflicts) # generalize this for more than 2 agents conflicting
             self.agents[conflict_solver].goal = keep_goal
             self.agents[conflict_solver].current_plan = []
 
