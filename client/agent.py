@@ -14,6 +14,7 @@ class Agent:
         self.actions = actions
         self.color = color
         self.current_plan = []
+        self.occupied = False
 
     '''
     getPossibleActions return a list of tuple that represents the different actions the agent
@@ -25,6 +26,10 @@ class Agent:
     - primitive_action is the action that we want to send to the server (e.g. "Push(E,E)")
     - new_agt_position is position of agent after executing the action
     '''
+
+    def assignGoal(self, goal):
+        self.goal = goal
+        self.occupied = True
 
     def getPossibleActions(self, s: 'State') -> '[Action]':
         possibleActions = []
