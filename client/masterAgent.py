@@ -56,10 +56,12 @@ class MasterAgent:
         goalsToAssign = self.currentState.getUnmetGoals()
 
         if agents != []:
-            print(agents, file=sys.stderr, flush=True)
+            print([agent.agt for agent in agents], file=sys.stderr, flush=True)
 
         if goalsToAssign != []:
             for agent in agents:
+                if agent.current_plan != []:
+                    print(agent.agt, agent.current_plan[0], file=sys.stderr, flush=True)
                 # print(goalsToAssign, file=sys.stderr, flush=True)
                 if agent.occupied == False:
                     possibleBoxes = []
@@ -71,7 +73,7 @@ class MasterAgent:
                     for goal in goalsToAssign:
                         if goalNotAssigned:
                             box = next((box for box in possibleBoxes if box['letter'] == goal['letter']), None)
-                            if box != None:
+                            if box != None and self.currentState.findBox(goal['position']) == False:
                                 agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
                                 # print(agent.occupied, file=sys.stderr, flush=True)
                                 # print(str(agent.goal), file=sys.stderr, flush=True)
@@ -101,9 +103,11 @@ class MasterAgent:
         # stop util reached goal
         while self.currentState.getUnmetGoals() != []:
             # First we loop over agent to free them if their goal are met
-            for agent in self.agents:
-                if agent.goal in self.currentState.atoms:
-                    agent.occupied = False
+
+            # for agent in self.agents:
+            #     if agent.goal in self.currentState.atoms:
+            #         agent.occupied = False
+
             # Then if at least one agent is free we assign goals
             # The method assign goals, assign goal only to free agent
 
@@ -224,7 +228,6 @@ class MasterAgent:
 
         # retrieve answer from server and separate answer for specific action
         # [:-1] is only to remove the '\n' at the end of response
-        print(jointAction, file=sys.stderr, flush=True) # print out
         print(actions_string, file=sys.stderr, flush=True) # print out
         print(actions_string, flush=True) # send to server
 
@@ -234,5 +237,10 @@ class MasterAgent:
             if answer == 'true':
                 if jointAction[i] != 'NoOp':
                     jointAction[i]['action'].execute(self.currentState, jointAction[i]['params'])
+        
+        for agent in self.agents:
+            if agent.goal in self.currentState.atoms:
+                agent.occupied = False
+                agent.current_plan = []
 
         return server_answer

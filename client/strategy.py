@@ -8,7 +8,7 @@ import sys
 
 class Strategy:
 
-    def __init__(self, state, agent, strategy='best-first', heuristics=None):
+    def __init__(self, state, agent, strategy='bfs', heuristics=None):
         self.state = state
         self.explored_states = set()
         self.agent = agent
@@ -103,7 +103,7 @@ class Strategy:
                 state_.parent = s
                 state_.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
                 state_.cost = GoalCount(self.state, self.state.goals).h(state_)
-                if not self.__is_goal__(self.agent, state_):
+                if not self.goal_found and not self.__is_goal__(self.agent, state_):
                     if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
                         # print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
                         heappush(frontier, state_)
