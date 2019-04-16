@@ -55,25 +55,29 @@ class MasterAgent:
     def assignGoals(self, agents):
         goalsToAssign = self.currentState.getUnmetGoals()
 
-        for agent in agents:
-            print(goalsToAssign, file=sys.stderr, flush=True)
-            if agent.occupied == False:
-                possibleBoxes = []
-                for box in self.boxes:
-                    if box['color'] == agent.color:
-                        possibleBoxes.append(box)
-                
-                goalNotAssigned = True
-                for goal in goalsToAssign:
-                    if goalNotAssigned:
-                        box = next((box for box in possibleBoxes if box['letter'] == goal['letter']), None)
-                        if box != None:
-                            agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
-                            print(agent.occupied, file=sys.stderr, flush=True)
-                            print(str(agent.goal), file=sys.stderr, flush=True)
-                            goalNotAssigned = False
-                            if not agent.goal in self.currentState.atoms:
-                                agent.plan(self.currentState)
+        if agents != []:
+            print(agents, file=sys.stderr, flush=True)
+
+        if goalsToAssign != []:
+            for agent in agents:
+                # print(goalsToAssign, file=sys.stderr, flush=True)
+                if agent.occupied == False:
+                    possibleBoxes = []
+                    for box in self.boxes:
+                        if box['color'] == agent.color:
+                            possibleBoxes.append(box)
+                    
+                    goalNotAssigned = True
+                    for goal in goalsToAssign:
+                        if goalNotAssigned:
+                            box = next((box for box in possibleBoxes if box['letter'] == goal['letter']), None)
+                            if box != None:
+                                agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
+                                # print(agent.occupied, file=sys.stderr, flush=True)
+                                # print(str(agent.goal), file=sys.stderr, flush=True)
+                                goalNotAssigned = False
+                                if not agent.goal in self.currentState.atoms:
+                                    agent.plan(self.currentState)
 
     '''
     What is current_plan?
@@ -111,6 +115,7 @@ class MasterAgent:
 
             # Keep the response from the server ([true, false, ...])
             valid = self.executeAction(action_to_execute)
+            print(valid, file=sys.stderr, flush=True) # agent
 
             # Gets the indexes (agent number) of server response (valid) for when action is not possible ([agt0, agt1, ...])
             conflicting_agents = [i for i in range(len(valid)) if valid[i]=='false']  
@@ -132,6 +137,7 @@ class MasterAgent:
         for i, agt in enumerate(self.agents):
             # If there are still actions in current plan pop the first action and
             # agt.current_plan = agt_x ['Action0', 'Action1', 'Action2', ...]
+
             if agt.current_plan != []:
                 # agt.current_plan.pop(0) = 'Action0'
                 # joint_action = ['NoOp', 'NoOp', 'NoOp', ...]
@@ -144,7 +150,7 @@ class MasterAgent:
 
 
     def solveConflict(self, conflicting_agents, actions):
-
+        print('solve conflict', file=sys.stderr, flush=True)
         # Function that should return conflicting agents
         conflicting_agents = [0,1] ## replace this by having function find the conflicting agents
 
@@ -177,7 +183,7 @@ class MasterAgent:
             self.agents[conflict_solver].current_plan = []
             self.agents[conflict_solver].plan(self.currentState)
             # print(self.agents[conflict_solver].goal, file=sys.stderr, flush=True)
-            # print(len(self.agents[conflict_solver].current_plan), file=sys.stderr, flush=True)
+            print(self.agents[conflict_solver].current_plan, file=sys.stderr, flush=True)
 
             actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
             actionsToResolveConflicts[conflict_solver] = self.agents[conflict_solver].current_plan[0]
@@ -187,7 +193,9 @@ class MasterAgent:
 
             self.agents[priority_agent].current_plan = [action_of_priority_agent] + self.agents[priority_agent].current_plan
         else:
-            self.executeAction([action_of_priority_agent,'NoOp']) # generalize this for more than 2 agents conflicting
+            actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
+            actionsToResolveConflicts[priority_agent] = action_of_priority_agent
+            self.executeAction(actionsToResolveConflicts) # generalize this for more than 2 agents conflicting
 
 
     '''
@@ -216,9 +224,9 @@ class MasterAgent:
 
         # retrieve answer from server and separate answer for specific action
         # [:-1] is only to remove the '\n' at the end of response
-        print(actions_string, flush=True) # send to server
-
+        print(jointAction, file=sys.stderr, flush=True) # print out
         print(actions_string, file=sys.stderr, flush=True) # print out
+        print(actions_string, flush=True) # send to server
 
         server_answer = sys.stdin.readline()[:-1].split(";")
 
