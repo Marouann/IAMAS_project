@@ -23,7 +23,7 @@ class Heuristic(metaclass=ABCMeta):
 
 class GoalCount(Heuristic):
     def h(self, state: 'State') -> 'int':
-        goal_count = len(self.goals)
+        goal_count = self.goals.len()
         for atom in state.atoms:
             if atom in self.goals: # there is no self.goals here right?
                 goal_count -= 1

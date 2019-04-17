@@ -85,9 +85,16 @@ class State:
                      atoms = atoms_copy,
                      rigid_atoms = self.rigid_atoms,
                      parent = self.parent,
-                     cost = self.cost + 1)
+                     cost = self.cost)
 
-    ##RETURN ALL ATOMS
+    def create_child(self, action:'Action', cost = 0):
+        state_ = self.copy()
+        action[0].execute(state_, action[1])
+        state_.parent = self
+        state_.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
+        state_.cost = self.cost + cost
+        return state_
+
     def atoms(self):
         return self.atoms + self.rigid_atoms
 
@@ -99,8 +106,8 @@ class State:
         elif self.cost == other.cost: return 0
         elif self.cost < other.cost: return -1
 
-    def __lt__(self, other):
+    def __lt__(self, other:'State'):
         return self.cost < other.cost
 
-    def __gt__(self, other):
+    def __gt__(self, other:'State'):
         return self.cost > other.cost
