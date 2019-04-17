@@ -53,33 +53,52 @@ class MasterAgent:
         # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))  # B goal
 
     def assignGoals(self, agents):
-        goalsToAssign = self.currentState.getUnmetGoals()
+        (goalsToAssign, goalsMet) = self.currentState.getUnmetGoals()
 
         if agents != []:
-            print([agent.agt for agent in agents], file=sys.stderr, flush=True)
+            print('\nFree agents : ' + str([agent.agt for agent in agents]), file=sys.stderr, flush=True)
+            print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
+            print('Goals already met : ' + str(goalsMet), file=sys.stderr, flush=True)
 
         if goalsToAssign != []:
             for agent in agents:
                 if agent.current_plan != []:
                     print(agent.agt, agent.current_plan[0], file=sys.stderr, flush=True)
-                # print(goalsToAssign, file=sys.stderr, flush=True)
+
                 if agent.occupied == False:
-                    possibleBoxes = []
-                    for box in self.boxes:
-                        if box['color'] == agent.color:
-                            possibleBoxes.append(box)
-                    
-                    goalNotAssigned = True
                     for goal in goalsToAssign:
-                        if goalNotAssigned:
-                            box = next((box for box in possibleBoxes if box['letter'] == goal['letter']), None)
-                            if box != None and self.currentState.findBox(goal['position']) == False:
+                        possibleBoxes = []
+                        for box in self.boxes:
+                            if box['color'] == agent.color and box['letter'] == goal['letter']:
+                                possibleBoxes.append(box)
+                        
+                        goalNotAssigned = True
+                        while goalNotAssigned and possibleBoxes != []:
+                            box = possibleBoxes.pop()
+                            boxAlreadyPlaced = False
+                            for goalmet in goalsMet:
+                                boxPlaced = self.currentState.findBox(goalmet['position'])
+                                if boxPlaced.variables[0] == box['name']:
+                                    boxAlreadyPlaced = True
+                            
+                            if not boxAlreadyPlaced:
                                 agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
-                                # print(agent.occupied, file=sys.stderr, flush=True)
-                                # print(str(agent.goal), file=sys.stderr, flush=True)
                                 goalNotAssigned = False
                                 if not agent.goal in self.currentState.atoms:
                                     agent.plan(self.currentState)
+                            
+
+                    # goalNotAssigned = True
+                    # for goal in goalsToAssign:
+                    #     if goalNotAssigned:
+                    #         box = next((box for box in possibleBoxes if box['letter'] == goal['letter'] and), None)
+                    #         if box != None:
+                    #             agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
+                    #             # print(agent.occupied, file=sys.stderr, flush=True)
+                    #             # print(str(agent.goal), file=sys.stderr, flush=True)
+                    #             goalNotAssigned = False
+                    #             if not agent.goal in self.currentState.atoms:
+                    #                 agent.plan(self.currentState)
 
     '''
     What is current_plan?
@@ -101,7 +120,7 @@ class MasterAgent:
         # counter in while
         nb_iter = 0 
         # stop util reached goal
-        while self.currentState.getUnmetGoals() != []:
+        while self.currentState.getUnmetGoals()[0] != []:
             # First we loop over agent to free them if their goal are met
 
             # for agent in self.agents:

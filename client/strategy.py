@@ -124,7 +124,8 @@ class Strategy:
         if agent.goal in state.atoms:
             self.extract_plan(state)
             self.goal_found = True
-            print(str(agent.agt) + ' : ' + str(agent.goal) + ' ' + str(agent.current_plan) + '\n', file=sys.stderr, flush=True) # print out
+
+            print('Plan found for agent : ' + str(agent.agt) + ' with goal : ' + str(agent.goal) + '\n', file=sys.stderr, flush=True) # print out
 
             return True
         return False
