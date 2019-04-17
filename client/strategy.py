@@ -10,14 +10,14 @@ import sys
 
 class Strategy:
 
-    def __init__(self, state: 'State', agent:'Agent', strategy='uniform', heuristics=None):
+    def __init__(self, state: 'State', agent:'Agent', strategy='bfs', heuristics=None):
         self.state = state
         self.agent = agent
         self.strategy = strategy
         self.heuristics = heuristics
         self.goal_found = False
 
-        self.explored_states = set() #stores visited states
+        #self.explored_states = set() #stores visited states
         self.expanded = set() #stores expanded states
 
     def plan(self):
@@ -106,7 +106,7 @@ class Strategy:
     def a_star(self):
         pass
 
-    def extract_plan(self, state):
+    def extract_plan(self, state:'State'):
         if state:
             self.agent.current_plan.append(state.last_action)
             self.extract_plan(state.parent)
