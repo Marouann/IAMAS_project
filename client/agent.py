@@ -1,14 +1,13 @@
 import sys
 from strategy import Strategy
 from random import shuffle
-from state import State
 from atom import *
 from action import *
 
 
 class Agent:
-    def __init__(self, agt: 'str', position, goal: 'Atom', actions: '[Action]', color: 'str'):
-        self.agt = agt
+    def __init__(self, name: 'str', position, goal: 'Atom', actions: '[Action]', color: 'str'):
+        self.name = name
         self.position = position
         self.goal = goal
         self.actions = actions
@@ -38,14 +37,14 @@ class Agent:
         E = (0, 1, 'E')
         W = (0, -1, 'W')
         # NO = (0,0, 'NO')
-        agtFrom = s.findAgent(self.agt)
+        agtFrom = s.findAgent(self.name)
         # print(agtFrom, file=sys.stderr, flush=True)
         for action in self.actions:
             for dir in [N, S, E, W]:
                 agtTo = (agtFrom[0] + dir[0], agtFrom[1] + dir[1])
                 if action.name == "Move":
-                    if action.checkPreconditions(s, [self.agt, agtFrom, agtTo]):
-                        possibleActions.append((action, [self.agt, agtFrom, agtTo], "Move(" + dir[2] + ")", agtTo))
+                    if action.checkPreconditions(s, [self.name, agtFrom, agtTo]):
+                        possibleActions.append((action, [self.name, agtFrom, agtTo], "Move(" + dir[2] + ")", agtTo))
                 elif action.name == "Push":
                     for second_dir in [N, S, E, W]:
                         boxFrom = agtTo  # the agent will take the place of box
@@ -53,10 +52,10 @@ class Agent:
                         box = s.findBox(boxFrom)
                         if box:
                             boxName = box.variables[0]
-                            if action.checkPreconditions(s, [self.agt, agtFrom, boxName, boxFrom, boxTo,
+                            if action.checkPreconditions(s, [self.name, agtFrom, boxName, boxFrom, boxTo,
                                                              self.color]):  # we also need box somehow
                                 possibleActions.append((action,
-                                                        [self.agt, agtFrom, boxName, boxFrom, boxTo, self.color],
+                                                        [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
                                                         "Push(" + dir[2] + "," + second_dir[2] + ")"))
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
@@ -64,10 +63,10 @@ class Agent:
                         box = s.findBox(boxFrom)
                         if box:
                             boxName = box.variables[0]
-                            if action.checkPreconditions(s, [self.agt, agtFrom, agtTo, boxName, boxFrom,
+                            if action.checkPreconditions(s, [self.name, agtFrom, agtTo, boxName, boxFrom,
                                                              self.color]):  # we also need box somehow
                                 possibleActions.append((action,
-                                                        [self.agt, agtFrom, agtTo, boxName, boxFrom, self.color],
+                                                        [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                         "Pull(" + dir[2] + "," + second_dir[2] + ")"))
         shuffle(possibleActions)
 

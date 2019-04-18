@@ -10,7 +10,7 @@ class State:
                  rigid_atoms: 'KnowledgeBase',
                  cost=0,
                  parent=None,
-                 last_action="NoOp"):
+                 last_action="[NoOp]"):
         self.name = name
         self.goals = goals
         self.atoms = atoms
@@ -80,27 +80,43 @@ class State:
     def copy(self):
         atoms_copy = KnowledgeBase("Atoms")
         atoms_copy.copy(self.atoms)
-        return State(name = self.name,
-                     goals = self.goals,
-                     atoms = atoms_copy,
-                     rigid_atoms = self.rigid_atoms,
-                     parent = self.parent,
-                     cost = self.cost + 1)
+        return State(name=self.name,
+                     goals=self.goals,
+                     atoms=atoms_copy,
+                     rigid_atoms=self.rigid_atoms,
+                     parent=self.parent,
+                     cost=self.cost)
 
-    ##RETURN ALL ATOMS
+    def create_child(self, action, cost=0):
+        atoms_copy = KnowledgeBase("Atoms")
+        atoms_copy.copy(self.atoms)
+
+        state = State(name=self.name,
+                      goals=self.goals,
+                      atoms=atoms_copy,
+                      rigid_atoms=self.rigid_atoms,
+                      parent=self,
+                      last_action={'action': action[0], 'params': action[1], 'message': action[2]},
+                      cost=self.cost + cost)
+        action[0].execute(state, action[1])
+        return state
+
     def atoms(self):
         return self.atoms + self.rigid_atoms
 
     def __hash__(self):
         return hash(self.atoms)
 
-    def __cmp__(self, other:'State'):
-        if self.cost > other.cost: return 1
-        elif self.cost == other.cost: return 0
-        elif self.cost < other.cost: return -1
+    def __cmp__(self, other: 'State'):
+        if self.cost > other.cost:
+            return 1
+        elif self.cost == other.cost:
+            return 0
+        elif self.cost < other.cost:
+            return -1
 
-    def __lt__(self, other):
+    def __lt__(self, other: 'State'):
         return self.cost < other.cost
 
-    def __gt__(self, other):
+    def __gt__(self, other: 'State'):
         return self.cost > other.cost

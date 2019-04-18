@@ -72,5 +72,4 @@ class KnowledgeBase:
         hash_value = 0
         for item in self.__kb:
             hash_value += hash(item) % 13
-
         return int(hash_value)
