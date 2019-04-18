@@ -140,8 +140,6 @@ def getLevel(server_messages):
         print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)
         sys.exit(1)
 
-    print(str(goals), file=sys.stderr, flush=True)
-
     return {
             'initial_state': State('s0', goals, atoms, rigidAtoms),
             'domain': domain,
