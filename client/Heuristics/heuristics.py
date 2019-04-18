@@ -26,7 +26,7 @@ class GoalCount(Heuristic):
     def h(self, state: 'State') -> 'int':
         goal_count = len(self.goals)
         for atom in state.atoms:
-            if atom in self.goals: # there is no self.goals here right?
+            if atom in self.goals:  # there is no self.goals here right?
                 goal_count -= 1
         return goal_count
 
@@ -36,27 +36,28 @@ class GoalCount(Heuristic):
     def __repr__(self):
         pass
 
+
 class DistanceBased(Heuristic):
-    def h(self, state:'State', metrics='Manhatthan'):
+    def h(self, state: 'State', metrics='Manhattan'):
         distance = 0
-        if metrics == 'Manhatthan':
+        if metrics == 'Manhattan':
             for atom in state.atoms:
                 if atom.name == 'BoxAt':
                     coords = atom.variables[1]
-                    dist_min = np.inf
+                    distance_min = np.inf
                     for goal in state.goals:
-                        #print(goal['position'])
-                        if np.abs(coords[0] - goal['position'][0]) + np.abs(coords[1] - goal['position'][1]) < dist_temp:
-                            dist_temp =  np.abs(coords[0] - goal['position'][0]) + np.abs(coords[1] - goal['position'][1])
-                    distance += dist_temp
+                        distance_current = np.abs(coords[0] - goal['position'][0]) + np.abs(
+                            coords[1] - goal['position'][1])
+                        if distance_current < distance_min:
+                            distance_min = distance_current
+                    distance += distance_min
         return distance
 
-    def f(self, state:'State'):
+    def f(self, state: 'State'):
         pass
+
     def __repr__(self):
         pass
-
-
 
 # class AdditiveHeuristics(Heuristic):
 #     def h(self, state: 'State') -> 'int':
