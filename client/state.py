@@ -53,7 +53,7 @@ class State:
 
     def findBoxLetter(self, boxName):
         for atom in self.rigid_atoms:
-            if atom.name == "Color" and atom.variables[0] == boxName:
+            if atom.name == "Letter" and atom.variables[0] == boxName:
                 return atom
 
     def findAgent(self, agt):
@@ -62,17 +62,20 @@ class State:
                 return atom.variables[1]
 
     def getUnmetGoals(self):
-        result = []
+        metGoals = []
+        unmetGoals = []
         for goal in self.goals:
             box = self.findBox(goal['position'])
             if False == box:
-                result.append(goal)
+                unmetGoals.append(goal)
             else:
                 boxLetter = self.findBoxLetter(box.variables[0])
                 letter = boxLetter.variables[1]
                 if letter != goal['letter']:
-                    result.append(goal)
-        return result
+                    unmetGoals.append(goal)
+                else:
+                    metGoals.append(goal)
+        return [unmetGoals, metGoals]
 
     def copy(self):
         atoms_copy = KnowledgeBase("Atoms")
