@@ -11,7 +11,8 @@ class State:
                  cost=0,
                  h_cost=0,
                  parent=None,
-                 last_action="[NoOp]"):
+                 last_action=  {'action': 'NoOp', 'params': [], 'message': []}
+                 ):
         self.name = name
         self.goals = goals
         self.atoms = atoms
@@ -98,31 +99,33 @@ class State:
                       atoms=atoms_copy,
                       rigid_atoms=self.rigid_atoms,
                       parent=self,
-                      last_action={'action': action[0], 'params': action[1], 'message': action[2]},
                       cost=self.cost + cost,
                       h_cost=h_cost)
+        state.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
+        #print(action,file=sys.stderr, flush=True)
         action[0].execute(state, action[1])
         return state
 
-    def total_cost(self) -> 'int':
+    def __total_cost__(self) -> 'int':
         return self.cost + self.h_cost
 
     def atoms(self):
         return self.atoms + self.rigid_atoms
 
     def __hash__(self):
+        #print(self.last_action)
         return hash(self.atoms)
 
     def __cmp__(self, other: 'State'):
-        if self.total_cost() > other.total_cost():
+        if self.__total_cost__() > other.__total_cost__():
             return 1
-        elif self.total_cost() == other.total_cost():
+        elif self.__total_cost__() == other.__total_cost__():
             return 0
-        elif self.total_cost() < other.total_cost():
+        elif self.__total_cost__() < other.__total_cost__():
             return -1
 
     def __lt__(self, other: 'State'):
-        return self.total_cost() < other.total_cost()
+        return self.__total_cost__() < other.__total_cost__()
 
     def __gt__(self, other: 'State'):
-        return self.total_cost() > other.total_cost()
+        return self.__total_cost__() > other.__total_cost__()

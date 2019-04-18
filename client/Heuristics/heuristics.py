@@ -35,6 +35,25 @@ class GoalCount(Heuristic):
     def __repr__(self):
         pass
 
+class DistanceBased(Heuristic):
+    def h(self, state:'State', metrics='Manhatthan'):
+        distance = 0
+        if metrics == 'Manhatthan':
+            for atom in state.atoms:
+                if atom.name == 'Box':
+                    print(atom.name)
+
+
+        else:
+            pass
+
+    def f(self, state:'State'):
+        pass
+    def __repr__(self):
+        pass
+
+
+
 # class AdditiveHeuristics(Heuristic):
 #     def h(self, state: 'State') -> 'int':
 #         goal_count = self.goals.len()

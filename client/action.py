@@ -70,3 +70,10 @@ Pull = Action(
     lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', agt, agtFrom), Atom('Free', agtTo),
                                                       Atom('BoxAt', box, boxFrom)],
 )
+
+NoOp = Action(
+    'NoOp',
+    lambda agt, agtFrom: [Atom('AgentAt', agt, agtFrom)],
+    lambda agt, agtFrom: [Atom('AgentAt', agt, agtFrom)],
+    lambda agt, agtFrom: [Atom('AgentAt', agt, agtFrom)],
+)

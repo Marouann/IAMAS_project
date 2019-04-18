@@ -36,7 +36,7 @@ class Agent:
         S = (1, 0, 'S')
         E = (0, 1, 'E')
         W = (0, -1, 'W')
-        # NO = (0,0, 'NO')
+        #NO = (0,0, 'NO')
         agtFrom = s.findAgent(self.name)
         # print(agtFrom, file=sys.stderr, flush=True)
         for action in self.actions:
@@ -68,6 +68,8 @@ class Agent:
                                 possibleActions.append((action,
                                                         [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                         "Pull(" + dir[2] + "," + second_dir[2] + ")"))
+                elif action.name == 'NoOp':
+                                possibleActions.append((action, [self.name, agtFrom], 'NoOp'))
         shuffle(possibleActions)
 
         return possibleActions

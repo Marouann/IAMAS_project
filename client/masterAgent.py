@@ -20,7 +20,7 @@ class MasterAgent:
 
         for agt in sorted(agents, key=lambda k: k['name']):
             agtAt = initial_state.findAgent(agt['name'])
-            agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull], agt['color'])
+            agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull, NoOp], agt['color'])
             self.agents.append(agent)
 
         # Here we need to assign the first goals to the agent

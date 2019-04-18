@@ -10,15 +10,15 @@ import sys
 
 class Strategy:
 
-    def __init__(self, state: 'State', agent:'Agent', strategy='astar', heuristics=None):
+    def __init__(self, state: 'State', agent: 'Agent', strategy='uniform', heuristics=None):
         self.state = state
         self.agent = agent
         self.strategy = strategy
         self.heuristics = heuristics
         self.goal_found = False
 
-        #self.explored_states = set() #stores visited states
-        self.expanded = set() #stores expanded states
+        # self.explored_states = set() #stores visited states
+        self.expanded = set()  # stores expanded states
 
     def plan(self):
         if self.strategy == 'bfs':
@@ -42,7 +42,7 @@ class Strategy:
             possible_actions = self.agent.getPossibleActions(s)
 
             for action in possible_actions:
-                state_ = s.create_child(action, cost = 1)
+                state_ = s.create_child(action, cost=1)
                 self.__is_goal__(self.agent, state_)
 
                 if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
@@ -72,16 +72,16 @@ class Strategy:
         while len(frontier) > 0 and not self.goal_found:
             s = frontier.pop()
             self.expanded.add(s)
-            possibleActions = self.agent.getPossibleActions(s)
+            possible_actions = self.agent.getPossibleActions(s)
 
-            for action in possibleActions:
+            for action in possible_actions:
                 state_ = s.create_child(action)
                 self.__is_goal__(self.agent, state_)
 
                 if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
                     frontier.append(state_)
 
-    def best_first(self):
+    def best_first(self, heuristics = 'GoalCount', metrics = None):
         self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)
         frontier = list()
         heappush(frontier, self.state)
@@ -101,8 +101,14 @@ class Strategy:
                         heappush(frontier, state_)
                         heapify(frontier)
 
-    def a_star(self):
-        self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)
+    def a_star(self, heuristics = 'GoalCount', metrics = None):
+        if heuristics == 'GoalCount':
+            self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)
+        elif heuristics == 'Distance':
+            pass
+        else:
+            pass
+
         frontier = list()
         heappush(frontier, self.state)
 
@@ -112,8 +118,11 @@ class Strategy:
             possible_actions = self.agent.getPossibleActions(s)
 
             for action in possible_actions:
-                state_ = s.create_child(action, cost = 1)
-                state_.h_cost = GoalCount(self.state, self.state.goals).h(state_)
+                state_ = s.create_child(action, cost=1)
+                if heuristics == 'GoalCount':
+                    state_.h_cost = GoalCount(self.state, self.state.goals).h(state_)
+                else:
+                    pass
                 self.__is_goal__(self.agent, state_)
                 if not self.goal_found and not self.__is_goal__(self.agent, state_):
                     if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
@@ -121,7 +130,7 @@ class Strategy:
                         heappush(frontier, state_)
                         heapify(frontier)
 
-    def extract_plan(self, state:'State'):
+    def extract_plan(self, state: 'State'):
         if state:
             self.agent.current_plan.append(state.last_action)
             self.extract_plan(state.parent)
@@ -129,11 +138,12 @@ class Strategy:
             self.agent.current_plan = self.agent.current_plan[:-1]
             self.agent.current_plan.reverse()
 
-    def __is_goal__(self, agent: 'Agent', state:'State') -> 'bool':
+    def __is_goal__(self, agent: 'Agent', state: 'State') -> 'bool':
         if agent.goal in state.atoms:
             self.extract_plan(state)
             self.goal_found = True
-            print('Plan found for agent : ' + str(agent.name) + ' with goal : ' + str(agent.goal) + '\n', file=sys.stderr, flush=True) # print out
+            print('Plan found for agent : ' + str(agent.name) + ' with goal : ' + str(agent.goal) + '\n',
+                  file=sys.stderr, flush=True)  # print out
 
             return True
         return False
