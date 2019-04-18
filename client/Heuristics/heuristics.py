@@ -3,6 +3,7 @@ import inspect
 from state import *
 from action import *
 from agent import *
+import numpy as np
 
 
 class Heuristic(metaclass=ABCMeta):
@@ -40,12 +41,15 @@ class DistanceBased(Heuristic):
         distance = 0
         if metrics == 'Manhatthan':
             for atom in state.atoms:
-                if atom.name == 'Box':
-                    print(atom.name)
-
-
-        else:
-            pass
+                if atom.name == 'BoxAt':
+                    coords = atom.variables[1]
+                    dist_min = np.inf
+                    for goal in state.goals:
+                        #print(goal['position'])
+                        if np.abs(coords[0] - goal['position'][0]) + np.abs(coords[1] - goal['position'][1]) < dist_temp:
+                            dist_temp =  np.abs(coords[0] - goal['position'][0]) + np.abs(coords[1] - goal['position'][1])
+                    distance += dist_temp
+        return distance
 
     def f(self, state:'State'):
         pass
