@@ -169,36 +169,41 @@ class MasterAgent:
 
         # Return list of conflicting agents                                                    
         conflicting_agents = self.getConflictingAgents(agents_with_conflit, actions)
-        print('conflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
-
 
         # Set a priority agent (in this cases the first one in the array)
-
         '''
         things to add:
             - if agent is conflicting with other agent and not vice-versa, set priority to agent in conflict: e.g [[0, 1], [2, 3]]
             priority agents 0 and 2
             - if both agents are conflicting with each other, find a good way to set priority (may shortast distance): e.g [[0, 1], [1, 0]]
         '''
-        
+
+        # for conflicting_agent in conflicting_agents:
+        #     for i, conflicting_agent1 in conflicting_agents:
+        #         if conflicting_agent[0] == conflicting_agent1[1] and conflicting_agent[1] == conflicting_agent1[0]:
+        #             conflicting_agent.pop(i)
+
+        #     print('conflicting_agents rm vicev.: ' + str(conflicting_agents), file=sys.stderr, flush=True)
+
         # Previous
-        priority_agent = conflicting_agents[0][0]
-        #priority_agent = 0                                     # replace with a function that return the agent to prioritize
+        #priority_agent = conflicting_agents[0][1]   # flip agents (doesnt work)
+        priority_agent = conflicting_agents[0][0] # works
+        #priority_agent = 0                                    # replace with a function that return the agent to prioritize
 
         action_of_priority_agent = actions[priority_agent]
 
         preconditions = action_of_priority_agent['action'].preconditions(*action_of_priority_agent['params'])
+
         # TypeError: string indices must be integers when preconditions gets 'NoOp' I think.#
         unmet_preconditions = []
-
         for atom in preconditions:
             if atom not in self.currentState.atoms and atom not in self.currentState.rigid_atoms:
                 unmet_preconditions.append(atom)
 
-
         # Previous
-        conflict_solver = conflicting_agents[0][1]
-        #conflict_solver = 1                                # replace with a function that return the agent that has to change its goal
+        #conflict_solver = conflicting_agents[0][0]  # flip agents (doesnt work)
+        conflict_solver = conflicting_agents[0][1] # works
+        #conflict_solver = 1                                     # replace with a function that return the agent that has to change its goal
 
         if unmet_preconditions != []:
             keep_goal = self.agents[conflict_solver].goal
@@ -220,7 +225,8 @@ class MasterAgent:
             actionsToResolveConflicts[priority_agent] = action_of_priority_agent
             self.executeAction(actionsToResolveConflicts) # generalize this for more than 2 agents conflicting
 
-            '''
+
+    '''
 
     Return's "conflicting_agents": which is a list containing pairs of agents: 
     "[[0, x], [1, x], [2, x],...,[n, x]]"
@@ -252,6 +258,8 @@ class MasterAgent:
                     conflicting_agent = int(agent.agt)
                     #print('conflicting_agent : ' + str(conflicting_agent), file=sys.stderr, flush=True)
             conflicting_agents.append([current_agent, conflicting_agent])
+
+            print('conflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
 
         return conflicting_agents
 
