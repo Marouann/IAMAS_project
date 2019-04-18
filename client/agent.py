@@ -8,7 +8,7 @@ from action import *
 class Agent:
     def __init__(self, name: 'str', position, goal: 'Atom', actions: '[Action]', color: 'str'):
         self.name = name
-        self.position = position
+        #self.position = position
         self.goal = goal
         self.actions = actions
         self.color = color

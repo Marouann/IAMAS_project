@@ -9,6 +9,7 @@ class State:
                  atoms: 'KnowledgeBase',
                  rigid_atoms: 'KnowledgeBase',
                  cost=0,
+                 h_cost = 0,
                  parent=None,
                  last_action="[NoOp]"):
         self.name = name
@@ -19,6 +20,7 @@ class State:
         self.last_action = last_action
 
         self.cost = cost
+        self.h_cost = h_cost # cost based on heuristics
 
     def removeAtom(self, atom: 'Atom'):
         # if atom not in s then do nothing
@@ -87,7 +89,7 @@ class State:
                      parent=self.parent,
                      cost=self.cost)
 
-    def create_child(self, action, cost=0):
+    def create_child(self, action, cost=0, h_cost= 0):
         atoms_copy = KnowledgeBase("Atoms")
         atoms_copy.copy(self.atoms)
 
@@ -97,9 +99,13 @@ class State:
                       rigid_atoms=self.rigid_atoms,
                       parent=self,
                       last_action={'action': action[0], 'params': action[1], 'message': action[2]},
-                      cost=self.cost + cost)
+                      cost=self.cost + cost,
+                      h_cost = h_cost)
         action[0].execute(state, action[1])
         return state
+
+    def total_cost(self) -> 'int':
+        return self.cost + self.h_cost
 
     def atoms(self):
         return self.atoms + self.rigid_atoms
@@ -108,15 +114,15 @@ class State:
         return hash(self.atoms)
 
     def __cmp__(self, other: 'State'):
-        if self.cost > other.cost:
+        if self.total_cost() > other.total_cost():
             return 1
-        elif self.cost == other.cost:
+        elif self.total_cost() == other.total_cost():
             return 0
-        elif self.cost < other.cost:
+        elif self.total_cost() < other.total_cost():
             return -1
 
     def __lt__(self, other: 'State'):
-        return self.cost < other.cost
+        return self.total_cost() < other.total_cost()
 
     def __gt__(self, other: 'State'):
-        return self.cost > other.cost
+        return self.total_cost() > other.total_cost()
