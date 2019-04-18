@@ -162,50 +162,27 @@ class MasterAgent:
             # print(joint_action, file=sys.stderr, flush=True)
         return joint_action
 
+
     def solveConflict(self, agents_with_conflit, actions):
         print('solve conflict', file=sys.stderr, flush=True)
-        print('actions : ' + str(actions), file=sys.stderr, flush=True)
-        # Function that should return conflicting agents
-                                                                # replace this by having function find the conflicting agents #
-        # two agents in conflict with each other                                  
-        agents_in_conflict = agents_with_conflit
+        # print('actions : ' + str(actions), file=sys.stderr, flush=True)
 
-        # choose an agent with a conflict
-        agent_with_conflit = agents_with_conflit[0]
-
-        # get action from that chosen agent
-        action_agent_with_conflict = actions[0]
-        
-        # get location were he wanted to go
-        location_agt_to = action_agent_with_conflict['params'][2] # were they want to go locations
-        print('location_agt_to : ' + str(location_agt_to), file=sys.stderr, flush=True)
-
-        conflicting_agent = []
-        # goes through all existing 
-        # get location from agent
-
-        # find what is in that location which is conficting with with chosen agent
-        for agent in self.agents:
-            
-            # get agent current location
-            location_agt_from = self.currentState.findAgent(agent.agt)
-            print('location_agt_from : ' + str(location_agt_from), file=sys.stderr, flush=True)
-
-            # compare location_agt_to with location_agt_from 
-            if location_agt_to == location_agt_from:
-                # stores agent conflicting with chosen agent
-                conflicting_agent = int(agent.agt)
-                #print('conflicting_agent : ' + str(conflicting_agent), file=sys.stderr, flush=True)
-
-        # two agents in conflict with each other
-        agents_in_conflict = [agent_with_conflit, conflicting_agent]
-        print('agents_in_conflict : ' + str(agents_in_conflict), file=sys.stderr, flush=True)
+        # Return list of conflicting agents                                                    
+        conflicting_agents = self.getConflictingAgents(agents_with_conflit, actions)
+        print('conflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
 
 
         # Set a priority agent (in this cases the first one in the array)
+
+        '''
+        things to add:
+            - if agent is conflicting with other agent and not vice-versa, set priority to agent in conflict: e.g [[0, 1], [2, 3]]
+            priority agents 0 and 2
+            - if both agents are conflicting with each other, find a good way to set priority (may shortast distance): e.g [[0, 1], [1, 0]]
+        '''
         
         # Previous
-        priority_agent = agents_in_conflict.pop(0)
+        priority_agent = conflicting_agents[0][0]
         #priority_agent = 0                                     # replace with a function that return the agent to prioritize
 
         action_of_priority_agent = actions[priority_agent]
@@ -220,8 +197,8 @@ class MasterAgent:
 
 
         # Previous
-        conflict_solver = agents_in_conflict[0]
-        #conflict_solver = 1                             # replace with a function that return the agent that has to change its goal
+        conflict_solver = conflicting_agents[0][1]
+        #conflict_solver = 1                                # replace with a function that return the agent that has to change its goal
 
         if unmet_preconditions != []:
             keep_goal = self.agents[conflict_solver].goal
@@ -243,6 +220,43 @@ class MasterAgent:
             actionsToResolveConflicts[priority_agent] = action_of_priority_agent
             self.executeAction(actionsToResolveConflicts) # generalize this for more than 2 agents conflicting
 
+            '''
+
+    Return's "conflicting_agents": which is a list containing pairs of agents: 
+    "[[0, x], [1, x], [2, x],...,[n, x]]"
+
+    Pair of agents: [A, B] (effect of agent A is inconsisten with the preconditions of B)
+
+    or A->B (agent A wants to move to location where agent B is located)
+
+    e.g 0->x; 1->x; 2->x; ... n->x;
+
+    '''
+
+    def getConflictingAgents(self, agents_with_conflit, actions):
+        conflicting_agents = []
+        # goes through agents with a conflit
+        for current_agent in agents_with_conflit:
+            # get location were current_agent wanted to go
+            curr_agt_to_location = actions[current_agent]['params'][2]
+            # print('curr_agt_to_location : ' + str(curr_agt_to_location), file=sys.stderr, flush=True)
+
+            # goes through all agents in state
+            for agent in self.agents:
+                # gets an agent location
+                agt_location = self.currentState.findAgent(agent.agt)
+                # print('agt_location : ' + str(agt_location), file=sys.stderr, flush=True)
+
+                # when an agent is in location where current agent wants to move
+                if curr_agt_to_location == agt_location:
+                    conflicting_agent = int(agent.agt)
+                    #print('conflicting_agent : ' + str(conflicting_agent), file=sys.stderr, flush=True)
+            conflicting_agents.append([current_agent, conflicting_agent])
+
+        return conflicting_agents
+
+
+
 
     '''
     actionList is a 2D array of actions (size number_action_to_execute * number_of_agents).
@@ -251,7 +265,6 @@ class MasterAgent:
 
     return successive result of the server to actions, same size as input
     '''
-
 
     def executeAction(self, jointAction):
         #print('I am executing actions', file=sys.stderr, flush=True)
