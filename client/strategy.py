@@ -83,7 +83,12 @@ class Strategy:
                     frontier.append(state_)
 
     def best_first(self):
-        self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)
+        print('Solving with A*', self.heuristics, self.metrics, file=sys.stderr, flush=True)
+        if self.heuristics == 'GoalCount':
+            self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)
+        elif self.heuristics == 'Distance':
+            self.state.h_cost = DistanceBased(self.state, self.state.goals).h(self.state, metrics=self.metrics)
+
         frontier = list()
         heappush(frontier, self.state)
 
@@ -94,7 +99,12 @@ class Strategy:
 
             for action in possible_actions:
                 state_ = s.create_child(action)
-                state_.h_cost = GoalCount(self.state, self.state.goals).h(state_)
+                
+                if self.heuristics == 'GoalCount':
+                    state_.h_cost = GoalCount(self.state, self.state.goals).h(state_)
+                elif self.heuristics == 'Distance':
+                    state_.h_cost = DistanceBased(self.state, self.state.goals).h(state_, metrics=self.metrics)
+
                 self.__is_goal__(self.agent, state_)
                 if not self.goal_found and not self.__is_goal__(self.agent, state_):
                     if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
