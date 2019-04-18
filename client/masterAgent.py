@@ -26,6 +26,7 @@ class MasterAgent:
         # Here we need to assign the first goals to the agent
 
         # SAExample goal POSITIONS (Use SA.lvl)
+
         # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 1)))
 
         # BFSLEVEL goal POSITIONS (Use BFStest.lvl)
@@ -40,9 +41,11 @@ class MasterAgent:
         # self.agents[0].assignGoal(Atom("BoxAt", "B1", (5, 1)))
         # self.agents[1].assignGoal(Atom("BoxAt", "B2", (1,10)))
 
+
         # CONFLICT with two agents (Use MAExample.lvl)
 
         # CONFLICT with two agents and two boxes (Use MAConflictExample.lvl)
+
         # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 10)) # A goal
         # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))  # B goal
 
@@ -62,6 +65,7 @@ class MasterAgent:
         if goalsToAssign != []:
             for agent in agents:
                 if agent.current_plan != []:
+
                     print(agent.name, agent.current_plan[0], file=sys.stderr, flush=True)
                 else:
                     print('Agent', agent.name ,'has no plan!', file=sys.stderr, flush=True)
@@ -90,6 +94,7 @@ class MasterAgent:
                                 if not agent.goal in self.currentState.atoms:
                                     agent.plan(self.currentState)
 
+
                     # goalNotAssigned = True
                     # for goal in goalsToAssign:
                     #     if goalNotAssigned:
@@ -102,11 +107,11 @@ class MasterAgent:
                     #             if not agent.goal in self.currentState.atoms:
                     #                 agent.plan(self.currentState)
 
-    '''
-    What is current_plan?
+    
+    ##What is current_plan?
 
 
-    '''
+
 
     def solveLevel(self):
         # We need to check the goal.
@@ -114,6 +119,7 @@ class MasterAgent:
         # print(agt, file=sys.stderr, flush=True) # agent
         # print(self.currentState, file=sys.stderr, flush=True) # state, rigid atoms, atoms
         # print(agt.current_plan, file=sys.stderr, flush=True) # Current plan of actions for agent [action, param, message(name of action)]
+
 
         # print('I am sending message to the server', file=sys.stderr, flush=True)
 
@@ -136,12 +142,15 @@ class MasterAgent:
             self.assignGoals([agent for agent in self.agents if agent.occupied == False])
             nb_iter += 1
 
+
             # Gets the first actions from each agent (joint action on first row)
             action_to_execute = self.getNextJointAction()
 
             # Keep the response from the server ([true, false, ...])
             valid = self.executeAction(action_to_execute)
+
             print(valid, file=sys.stderr, flush=True)  # agent
+
 
             # Gets the indexes (agent number) of server response (valid) for when action is not possible ([agt0, agt1, ...])
             conflicting_agents = [i for i in range(len(valid)) if valid[i] == 'false']
@@ -185,6 +194,7 @@ class MasterAgent:
 
         priority_agent = 0  # replace with a function that return the agent to prioritize
 
+
         #####
         #####
         action_of_priority_agent = actions[priority_agent]
@@ -199,7 +209,9 @@ class MasterAgent:
 
         # Previous
         # conflict_solver = conflicting_agents[0]
+
         conflict_solver = 1  # replace with a function that return the agent that has to change its goal
+
 
         if unmet_preconditions != []:
             keep_goal = self.agents[conflict_solver].goal
@@ -212,6 +224,7 @@ class MasterAgent:
             actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
             actionsToResolveConflicts[conflict_solver] = self.agents[conflict_solver].current_plan[0]
             self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
+
             self.agents[conflict_solver].assignGoal(keep_goal)
             self.agents[conflict_solver].current_plan = []
 
@@ -220,7 +233,9 @@ class MasterAgent:
         else:
             actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
             actionsToResolveConflicts[priority_agent] = action_of_priority_agent
+
             self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
+
 
     '''
     actionList is a 2D array of actions (size number_action_to_execute * number_of_agents).
@@ -256,6 +271,11 @@ class MasterAgent:
             if answer == 'true':
                 if jointAction[i] != 'NoOp':
                     jointAction[i]['action'].execute(self.currentState, jointAction[i]['params'])
+        
+        for agent in self.agents:
+            if agent.goal in self.currentState.atoms:
+                agent.occupied = False
+                agent.current_plan = []
 
         for agent in self.agents:
             if agent.goal in self.currentState.atoms:
