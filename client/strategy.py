@@ -99,7 +99,7 @@ class Strategy:
 
             for action in possible_actions:
                 state_ = s.create_child(action)
-                
+
                 if self.heuristics == 'GoalCount':
                     state_.h_cost = GoalCount(self.state, self.state.goals).h(state_)
                 elif self.heuristics == 'Distance':
