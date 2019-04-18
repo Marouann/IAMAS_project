@@ -100,11 +100,7 @@ class MasterAgent:
                     #             if not agent.goal in self.currentState.atoms:
                     #                 agent.plan(self.currentState)
 
-    '''
-    What is current_plan?
 
-
-    '''    
     def solveLevel(self):
         # We need to check the goal.
         self.assignGoals(self.agents)
@@ -134,59 +130,80 @@ class MasterAgent:
             nb_iter += 1 
             
             # Gets the first actions from each agent (joint action on first row)
-            action_to_execute = self.getNextJointAction()
+            actions_to_execute = self.getNextJointAction()
 
             # Keep the response from the server ([true, false, ...])
-            valid = self.executeAction(action_to_execute)
-            print(valid, file=sys.stderr, flush=True) # agent
+            valid = self.executeAction(actions_to_execute)
+            print('Server response : ' + str(valid), file=sys.stderr, flush=True)
 
-            # Gets the indexes (agent number) of server response (valid) for when action is not possible ([agt0, agt1, ...])
-            conflicting_agents = [i for i in range(len(valid)) if valid[i]=='false']  
+            # 'agents_with_conflit': List of agents which cannot execute their actions (e.g [agt0, agt1, agt6])
+            agents_with_conflit = [i for i in range(len(valid)) if valid[i]=='false']  
+            print('agents_with_conflit : ' + str(agents_with_conflit),file=sys.stderr, flush=True)
 
-            # If there exists conflicts (false in valid array) then run solveConflict function with the conflicting agents
-            if conflicting_agents != []:
-                self.solveConflict(conflicting_agents, action_to_execute)
+            # If 'agents_with_conflit' not empty then solve conflict
+            if agents_with_conflit != []:
+                self.solveConflict(agents_with_conflit, actions_to_execute)
 
             # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
             # Change x parameter in order to solve in less states
-            if nb_iter % 10 == 0: 
+            if nb_iter % 10 == 0:                                             # make dinamic replanner #
                 self.agents[1].plan(self.currentState)
 
-    
+    '''
+    Returns joint_action: the next actions to be executed for each agent
+    '''
     def getNextJointAction(self):
         # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
         joint_action = ['NoOp'] * len(self.agents)
-
         for i, agt in enumerate(self.agents):
             # If there are still actions in current plan pop the first action and
-            # agt.current_plan = agt_x ['Action0', 'Action1', 'Action2', ...]
-
             if agt.current_plan != []:
-                # agt.current_plan.pop(0) = 'Action0'
-                # joint_action = ['NoOp', 'NoOp', 'NoOp', ...]
-                # joint_action[0] = ['agt0.Action0', 'NoOp', 'NoOp', ... ]
-                # joint_action[1] = ['agt0.Action0', 'agt1.Action0', 'NoOp', ... ] ...
                 joint_action[i] = agt.current_plan.pop(0)      
-            #print("joint_action: ", file=sys.stderr, flush=True)
-            #print(joint_action, file=sys.stderr, flush=True)
+            # print(joint_action, file=sys.stderr, flush=True)
         return joint_action
 
-
-    def solveConflict(self, conflicting_agents, actions):
+    def solveConflict(self, agents_with_conflit, actions_agents_with_conflict):
         print('solve conflict', file=sys.stderr, flush=True)
+        print('actions_agents_with_conflict : ' + str(actions_agents_with_conflict), file=sys.stderr, flush=True)
         # Function that should return conflicting agents
-        conflicting_agents = [0,1] ## replace this by having function find the conflicting agents
+                                                                # replace this by having function find the conflicting agents #
+        conflicting_agents = agents_with_conflit
+
+        # choose an agent with a conflict
+        agent_with_conflit0 = agents_with_conflit[0]
+
+        # get action from that chosen agent
+        action_agent_with_conflict = actions_agents_with_conflict[0]
+        
+        # get location were he wanted to go
+        location_agt_to = action_agent_with_conflict['params'][2]
+        print('location_agt_to : ' + str(location_agt_to), file=sys.stderr, flush=True)
+
+        # find what is in that location which is conficting with with chosen agent
+        for agent in agents_with_conflit:
+            # gets location for each agent
+            location_agt_from = actions_agents_with_conflict[agent]['params'][2]
+            print('location_agt_from : ' + str(location_agt_from), file=sys.stderr, flush=True)
+
+            # compare location_agt_to with location_agt_from 
+            if location_agt_to == location_agt_from:
+                # stores agent conflicting with chosen agent
+                agent_in_conflit1 = agent
+
+        conflicting_agents = [agent_with_conflit0, agent_in_conflit1]
+
+        print('conflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
+
+
 
         # Set a priority agent (in this cases the first one in the array)
         
         # Previous
         # priority_agent = conflicting_agents.pop(0)
 
-        priority_agent = 0 # replace with a function that return the agent to prioritize
+        priority_agent = 0                                     # replace with a function that return the agent to prioritize
 
-        #####
-        #####
-        action_of_priority_agent = actions[priority_agent]
+        action_of_priority_agent = actions_agents_with_conflict[priority_agent]
 
         preconditions = action_of_priority_agent['action'].preconditions(*action_of_priority_agent['params'])
         # TypeError: string indices must be integers when preconditions gets 'NoOp' I think.#
@@ -196,9 +213,10 @@ class MasterAgent:
             if atom not in self.currentState.atoms and atom not in self.currentState.rigid_atoms:
                 unmet_preconditions.append(atom)
 
+
         # Previous
         # conflict_solver = conflicting_agents[0]
-        conflict_solver = 1 # replace with a function that return the agent that has to change its goal
+        conflict_solver = 1                             # replace with a function that return the agent that has to change its goal
 
         if unmet_preconditions != []:
             keep_goal = self.agents[conflict_solver].goal
@@ -206,7 +224,7 @@ class MasterAgent:
             self.agents[conflict_solver].current_plan = []
             self.agents[conflict_solver].plan(self.currentState)
             # print(self.agents[conflict_solver].goal, file=sys.stderr, flush=True)
-            print(self.agents[conflict_solver].current_plan, file=sys.stderr, flush=True)
+            # print(self.agents[conflict_solver].current_plan, file=sys.stderr, flush=True)
 
             actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
             actionsToResolveConflicts[conflict_solver] = self.agents[conflict_solver].current_plan[0]
