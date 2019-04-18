@@ -162,48 +162,53 @@ class MasterAgent:
             # print(joint_action, file=sys.stderr, flush=True)
         return joint_action
 
-    def solveConflict(self, agents_with_conflit, actions_agents_with_conflict):
+    def solveConflict(self, agents_with_conflit, actions):
         print('solve conflict', file=sys.stderr, flush=True)
-        print('actions_agents_with_conflict : ' + str(actions_agents_with_conflict), file=sys.stderr, flush=True)
+        print('actions : ' + str(actions), file=sys.stderr, flush=True)
         # Function that should return conflicting agents
                                                                 # replace this by having function find the conflicting agents #
-        conflicting_agents = agents_with_conflit
+        # two agents in conflict with each other                                  
+        agents_in_conflict = agents_with_conflit
 
         # choose an agent with a conflict
-        agent_with_conflit0 = agents_with_conflit[0]
+        agent_with_conflit = agents_with_conflit[0]
 
         # get action from that chosen agent
-        action_agent_with_conflict = actions_agents_with_conflict[0]
+        action_agent_with_conflict = actions[0]
         
         # get location were he wanted to go
-        location_agt_to = action_agent_with_conflict['params'][2]
+        location_agt_to = action_agent_with_conflict['params'][2] # were they want to go locations
         print('location_agt_to : ' + str(location_agt_to), file=sys.stderr, flush=True)
 
+        conflicting_agent = []
+        # goes through all existing 
+        # get location from agent
+
         # find what is in that location which is conficting with with chosen agent
-        for agent in agents_with_conflit:
-            # gets location for each agent
-            location_agt_from = actions_agents_with_conflict[agent]['params'][2]
+        for agent in self.agents:
+            
+            # get agent current location
+            location_agt_from = self.currentState.findAgent(agent.agt)
             print('location_agt_from : ' + str(location_agt_from), file=sys.stderr, flush=True)
 
             # compare location_agt_to with location_agt_from 
             if location_agt_to == location_agt_from:
                 # stores agent conflicting with chosen agent
-                agent_in_conflit1 = agent
+                conflicting_agent = int(agent.agt)
+                #print('conflicting_agent : ' + str(conflicting_agent), file=sys.stderr, flush=True)
 
-        conflicting_agents = [agent_with_conflit0, agent_in_conflit1]
-
-        print('conflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
-
+        # two agents in conflict with each other
+        agents_in_conflict = [agent_with_conflit, conflicting_agent]
+        print('agents_in_conflict : ' + str(agents_in_conflict), file=sys.stderr, flush=True)
 
 
         # Set a priority agent (in this cases the first one in the array)
         
         # Previous
-        # priority_agent = conflicting_agents.pop(0)
+        priority_agent = agents_in_conflict.pop(0)
+        #priority_agent = 0                                     # replace with a function that return the agent to prioritize
 
-        priority_agent = 0                                     # replace with a function that return the agent to prioritize
-
-        action_of_priority_agent = actions_agents_with_conflict[priority_agent]
+        action_of_priority_agent = actions[priority_agent]
 
         preconditions = action_of_priority_agent['action'].preconditions(*action_of_priority_agent['params'])
         # TypeError: string indices must be integers when preconditions gets 'NoOp' I think.#
@@ -215,8 +220,8 @@ class MasterAgent:
 
 
         # Previous
-        # conflict_solver = conflicting_agents[0]
-        conflict_solver = 1                             # replace with a function that return the agent that has to change its goal
+        conflict_solver = agents_in_conflict[0]
+        #conflict_solver = 1                             # replace with a function that return the agent that has to change its goal
 
         if unmet_preconditions != []:
             keep_goal = self.agents[conflict_solver].goal
