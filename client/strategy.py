@@ -10,7 +10,7 @@ import sys
 
 class Strategy:
 
-    def __init__(self, state: 'State', agent: 'Agent', strategy='astar', heuristics='Distance', metrics = 'Manhatthan'):
+    def __init__(self, state: 'State', agent: 'Agent', strategy='astar', heuristics='Distance', metrics='Manhattan'):
         self.state = state
         self.agent = agent
         self.strategy = strategy
@@ -107,7 +107,7 @@ class Strategy:
         if self.heuristics == 'GoalCount':
             self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)
         elif self.heuristics == 'Distance':
-            self.state.h_cost = DistanceBased(self.state,self.state.goals).h(self.state)
+            self.state.h_cost = DistanceBased(self.state, self.state.goals).h(self.state, metrics=self.metrics)
 
         frontier = list()
         heappush(frontier, self.state)
@@ -123,7 +123,7 @@ class Strategy:
                 if self.heuristics == 'GoalCount':
                     state_.h_cost = GoalCount(self.state, self.state.goals).h(state_)
                 elif self.heuristics == 'Distance':
-                    state_.h_cost = DistanceBased(self.state, self.state.goals).h(state_)
+                    state_.h_cost = DistanceBased(self.state, self.state.goals).h(state_, metrics=self.metrics)
 
                 self.__is_goal__(self.agent, state_)
                 if not self.goal_found and not self.__is_goal__(self.agent, state_):

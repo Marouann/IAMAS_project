@@ -51,6 +51,20 @@ class DistanceBased(Heuristic):
                         if distance_current < distance_min:
                             distance_min = distance_current
                     distance += distance_min
+
+
+        elif metrics=='Euclidean':
+            for atom in state.atoms:
+                if atom.name == 'BoxAt':
+                    coords = atom.variables[1]
+                    distance_min = np.inf
+                    for goal in state.goals:
+                        distance_current = np.sqrt(np.power(coords[0] - goal['position'][0],2) + np.power(
+                            coords[1] - goal['position'][1],2))
+                        if distance_current < distance_min:
+                            distance_min = distance_current
+
+                    distance += distance_min
         return distance
 
     def f(self, state: 'State'):
