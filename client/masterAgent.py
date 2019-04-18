@@ -16,7 +16,6 @@ class MasterAgent:
         self.currentState = initial_state
         self.agents = []
         self.boxes = boxes # List of { 'name': Box, 'letter': char, 'color': color }
-        self.goalsAssigned = []
 
         for agt in sorted(agents, key=lambda k: k['name']):
             agtAt = initial_state.findAgent(agt['name'])
@@ -54,11 +53,23 @@ class MasterAgent:
 
     def assignGoals(self, agents):
         (goalsToAssign, goalsMet) = self.currentState.getUnmetGoals()
-
         if agents != []:
             print('\nFree agents : ' + str([agent.agt for agent in agents]), file=sys.stderr, flush=True)
             print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
             print('Goals already met : ' + str(goalsMet), file=sys.stderr, flush=True)
+
+
+        goalsInAction = []
+        for agent in self.agents:
+            if agent.goal is not None:
+                goalsInAction.append(agent.goal)
+
+        for goal in goalsInAction:
+            if goal in goalsToAssign:
+                goalsToAssign.remove(goal)
+
+        for agent in agents:
+            agent.goal = None
 
         if goalsToAssign != []:
             for agent in agents:
@@ -67,6 +78,12 @@ class MasterAgent:
 
                 if agent.occupied == False:
                     for goal in goalsToAssign:
+                        if agent.goal is not None:
+                            print('Agent already has a goal, continue: ' + str(goal), file=sys.stderr, flush=True)
+                            continue
+                        if goal in goalsInAction:
+                            print('Goal has already been assigned : ' + str(goal), file=sys.stderr, flush=True)
+                            continue
                         possibleBoxes = []
                         for box in self.boxes:
                             if box['color'] == agent.color and box['letter'] == goal['letter']:
@@ -83,9 +100,14 @@ class MasterAgent:
                             
                             if not boxAlreadyPlaced:
                                 agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
+                                goalsInAction.append(goal)
                                 goalNotAssigned = False
                                 if not agent.goal in self.currentState.atoms:
                                     agent.plan(self.currentState)
+
+        for agent in agents:
+            print('agent: ' + str(agent.agt) + 'has goal: ' + str(agent.goal), file=sys.stderr, flush=True)
+
                             
 
                     # goalNotAssigned = True
@@ -149,8 +171,8 @@ class MasterAgent:
 
             # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
             # Change x parameter in order to solve in less states
-            if nb_iter % 10 == 0: 
-                self.agents[1].plan(self.currentState)
+            #if nb_iter % 10 == 0:
+             #   self.agents[1].plan(self.currentState)
 
     
     def getNextJointAction(self):
