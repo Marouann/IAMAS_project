@@ -16,7 +16,7 @@ class MasterAgent:
         self.currentState = initial_state
         self.agents = []
         self.boxes = boxes  # List of { 'name': Box, 'letter': char, 'color': color }
-        self.goalsAssigned = []
+        self.goalsInAction = []
 
         for agt in sorted(agents, key=lambda k: k['name']):
             agtAt = initial_state.findAgent(agt['name'])
@@ -61,18 +61,15 @@ class MasterAgent:
             print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
             print('Goals already met : ' + str(goalsMet), file=sys.stderr, flush=True)
 
+        # Each agent that is passed to assignGoals either finished doing its job, or it's his 1st one
+        # Hence we if self.goalsInAction contains agent.goal this job has been finished so we need to remove it
+        for agent in agents:
+            if agent.goal in self.goalsInAction:
+                self.goalsInAction.remove(agent.goal)
 
-        goalsInAction = []
-        for agent in self.agents:
-            if agent.goal is not None:
-                goalsInAction.append(agent.goal)
-
-        for goal in goalsInAction:
+        for goal in self.goalsInAction:
             if goal in goalsToAssign:
                 goalsToAssign.remove(goal)
-
-        for agent in agents:
-            agent.goal = None
 
         if goalsToAssign != []:
             for agent in agents:
@@ -89,7 +86,7 @@ class MasterAgent:
                         if agent.goal is not None:
                             print('Agent already has a goal, continue: ' + str(goal), file=sys.stderr, flush=True)
                             continue
-                        if goal in goalsInAction:
+                        if goal in self.goalsInAction:
                             print('Goal has already been assigned : ' + str(goal), file=sys.stderr, flush=True)
                             continue
                         possibleBoxes = []
@@ -108,13 +105,13 @@ class MasterAgent:
 
                             if not boxAlreadyPlaced:
                                 agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
-                                goalsInAction.append(goal)
+                                self.goalsInAction.append(goal)
                                 goalNotAssigned = False
                                 if not agent.goal in self.currentState.atoms:
                                     agent.plan(self.currentState)
 
         for agent in agents:
-            print('agent: ' + str(agent.agt) + 'has goal: ' + str(agent.goal), file=sys.stderr, flush=True)
+            print('agent: ' + str(agent.name) + ', has goal: ' + str(agent.goal), file=sys.stderr, flush=True)
 
                             
 
@@ -305,5 +302,6 @@ class MasterAgent:
             if agent.goal in self.currentState.atoms:
                 agent.occupied = False
                 agent.current_plan = []
+                agent.goal = None
 
         return server_answer
