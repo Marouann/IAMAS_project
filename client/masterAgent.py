@@ -77,8 +77,6 @@ class MasterAgent:
             if agent.goal in self.goalsInAction:
                 self.goalsInAction.remove(agent.goal)
 
-        print('boxes that are taken or busy are: ' + str(boxesHandled), file=sys.stderr, flush=True)
-
         for goal in self.goalsInAction:
             if goal in goalsToAssign:
                 goalsToAssign.remove(goal)
@@ -109,7 +107,6 @@ class MasterAgent:
 
                         goalNotAssigned = True
                         while goalNotAssigned and possibleBoxes != []:
-                            print('boxes to choice from: ' + str(possibleBoxes), file=sys.stderr, flush=True)
                             box = possibleBoxes.pop()
                             boxAlreadyPlaced = False
                             for goalmet in goalsMet:
