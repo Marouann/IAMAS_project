@@ -41,7 +41,6 @@ class MasterAgent:
         # self.agents[0].assignGoal(Atom("BoxAt", "B1", (5, 1)))
         # self.agents[1].assignGoal(Atom("BoxAt", "B2", (1,10)))
 
-
         # CONFLICT with two agents (Use MAExample.lvl)
 
         # CONFLICT with two agents and two boxes (Use MAConflictExample.lvl)
@@ -54,34 +53,46 @@ class MasterAgent:
         # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 10)))  # A goal
         # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))  # B goal
 
-    def assignGoals(self, agents):
+    def assignGoals(self, agentsToReplan):
         (goalsToAssign, goalsMet) = self.currentState.getUnmetGoals()
-        if agents != []:
-            print('\nFree agents : ' + str([agent.name for agent in agents]), file=sys.stderr, flush=True)
+        if agentsToReplan != []:
+            print('\nFree agents : ' + str([agent.name for agent in agentsToReplan]), file=sys.stderr, flush=True)
             print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
             print('Goals already met : ' + str(goalsMet), file=sys.stderr, flush=True)
+        
+        boxesHandled = []
+        # Boxes already placed on the goal
+        for goal in goalsMet:
+            boxOnGoal = self.currentState.findBox(goal['position'])
+            boxesHandled.append(boxOnGoal.variables[0])
 
+        # Boxes that are currently hadnled by agents
+        for agent in self.agents:
+            if agent.goal is not None:
+                boxesHandled.append(agent.goal.variables[0])
+                
         # Each agent that is passed to assignGoals either finished doing its job, or it's his 1st one
         # Hence we if self.goalsInAction contains agent.goal this job has been finished so we need to remove it
-        for agent in agents:
+        for agent in agentsToReplan:
             if agent.goal in self.goalsInAction:
                 self.goalsInAction.remove(agent.goal)
+
+        print('boxes that are taken or busy are: ' + str(boxesHandled), file=sys.stderr, flush=True)
 
         for goal in self.goalsInAction:
             if goal in goalsToAssign:
                 goalsToAssign.remove(goal)
 
         if goalsToAssign != []:
-            for agent in agents:
+            for agent in agentsToReplan:
                 if agent.current_plan != []:
 
                     print(agent.name, agent.current_plan[0], file=sys.stderr, flush=True)
                 else:
-                    print('Agent', agent.name ,'has no plan!', file=sys.stderr, flush=True)
-
+                    print('Agent', agent.name, 'has no plan!', file=sys.stderr, flush=True)
 
                 if agent.occupied == False:
-                    print('Agent', agent.name ,'is not occupied!', file=sys.stderr, flush=True)
+                    print('Agent', agent.name, 'is not occupied!', file=sys.stderr, flush=True)
                     for goal in goalsToAssign:
                         if agent.goal is not None:
                             print('Agent already has a goal, continue: ' + str(goal), file=sys.stderr, flush=True)
@@ -91,11 +102,14 @@ class MasterAgent:
                             continue
                         possibleBoxes = []
                         for box in self.boxes:
-                            if box['color'] == agent.color and box['letter'] == goal['letter']:
+                            if box['color'] == agent.color and \
+                                    box['letter'] == goal['letter'] and \
+                                    box['name'] not in boxesHandled:
                                 possibleBoxes.append(box)
 
                         goalNotAssigned = True
                         while goalNotAssigned and possibleBoxes != []:
+                            print('boxes to choice from: ' + str(possibleBoxes), file=sys.stderr, flush=True)
                             box = possibleBoxes.pop()
                             boxAlreadyPlaced = False
                             for goalmet in goalsMet:
@@ -106,33 +120,27 @@ class MasterAgent:
                             if not boxAlreadyPlaced:
                                 agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
                                 self.goalsInAction.append(goal)
+                                boxesHandled.append(box['name'])
                                 goalNotAssigned = False
                                 if not agent.goal in self.currentState.atoms:
                                     agent.plan(self.currentState)
 
-        for agent in agents:
+        for agent in agentsToReplan:
             print('agent: ' + str(agent.name) + ', has goal: ' + str(agent.goal), file=sys.stderr, flush=True)
 
-                            
+            # goalNotAssigned = True
+            # for goal in goalsToAssign:
+            #     if goalNotAssigned:
+            #         box = next((box for box in possibleBoxes if box['letter'] == goal['letter'] and), None)
+            #         if box != None:
+            #             agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
+            #             # print(agent.occupied, file=sys.stderr, flush=True)
+            #             # print(str(agent.goal), file=sys.stderr, flush=True)
+            #             goalNotAssigned = False
+            #             if not agent.goal in self.currentState.atoms:
+            #                 agent.plan(self.currentState)
 
-
-                    # goalNotAssigned = True
-                    # for goal in goalsToAssign:
-                    #     if goalNotAssigned:
-                    #         box = next((box for box in possibleBoxes if box['letter'] == goal['letter'] and), None)
-                    #         if box != None:
-                    #             agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
-                    #             # print(agent.occupied, file=sys.stderr, flush=True)
-                    #             # print(str(agent.goal), file=sys.stderr, flush=True)
-                    #             goalNotAssigned = False
-                    #             if not agent.goal in self.currentState.atoms:
-                    #                 agent.plan(self.currentState)
-
-    
     ##What is current_plan?
-
-
-
 
     def solveLevel(self):
         # We need to check the goal.
@@ -140,7 +148,6 @@ class MasterAgent:
         # print(agt, file=sys.stderr, flush=True) # agent
         # print(self.currentState, file=sys.stderr, flush=True) # state, rigid atoms, atoms
         # print(agt.current_plan, file=sys.stderr, flush=True) # Current plan of actions for agent [action, param, message(name of action)]
-
 
         # print('I am sending message to the server', file=sys.stderr, flush=True)
 
@@ -163,7 +170,6 @@ class MasterAgent:
             self.assignGoals([agent for agent in self.agents if agent.occupied == False])
             nb_iter += 1
 
-
             # Gets the first actions from each agent (joint action on first row)
             action_to_execute = self.getNextJointAction()
 
@@ -171,7 +177,6 @@ class MasterAgent:
             valid = self.executeAction(action_to_execute)
 
             print(valid, file=sys.stderr, flush=True)  # agent
-
 
             # Gets the indexes (agent number) of server response (valid) for when action is not possible ([agt0, agt1, ...])
             conflicting_agents = [i for i in range(len(valid)) if valid[i] == 'false']
@@ -215,7 +220,6 @@ class MasterAgent:
 
         priority_agent = 0  # replace with a function that return the agent to prioritize
 
-
         #####
         #####
         action_of_priority_agent = actions[priority_agent]
@@ -232,7 +236,6 @@ class MasterAgent:
         # conflict_solver = conflicting_agents[0]
 
         conflict_solver = 1  # replace with a function that return the agent that has to change its goal
-
 
         if unmet_preconditions != []:
             keep_goal = self.agents[conflict_solver].goal
@@ -256,7 +259,6 @@ class MasterAgent:
             actionsToResolveConflicts[priority_agent] = action_of_priority_agent
 
             self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
-
 
     '''
     actionList is a 2D array of actions (size number_action_to_execute * number_of_agents).
@@ -292,7 +294,7 @@ class MasterAgent:
             if answer == 'true':
                 if jointAction[i] != 'NoOp':
                     jointAction[i]['action'].execute(self.currentState, jointAction[i]['params'])
-        
+
         for agent in self.agents:
             if agent.goal in self.currentState.atoms:
                 agent.occupied = False
