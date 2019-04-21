@@ -59,7 +59,7 @@ class MasterAgent:
             print('\nFree agents : ' + str([agent.name for agent in agentsToReplan]), file=sys.stderr, flush=True)
             print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
             print('Goals already met : ' + str(goalsMet), file=sys.stderr, flush=True)
-        
+
         boxesHandled = []
         # Boxes already placed on the goal
         for goal in goalsMet:
@@ -70,7 +70,7 @@ class MasterAgent:
         for agent in self.agents:
             if agent.goal is not None:
                 boxesHandled.append(agent.goal.variables[0])
-                
+
         # Each agent that is passed to assignGoals either finished doing its job, or it's his 1st one
         # Hence we if self.goalsInAction contains agent.goal this job has been finished so we need to remove it
         for agent in agentsToReplan:
@@ -115,7 +115,7 @@ class MasterAgent:
                                     boxAlreadyPlaced = True
 
                             if not boxAlreadyPlaced:
-                                agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
+                                agent.assignGoal(Atom("BoxAt", box['name'], goal['position']), goal)
                                 self.goalsInAction.append(goal)
                                 boxesHandled.append(box['name'])
                                 goalNotAssigned = False
@@ -184,8 +184,8 @@ class MasterAgent:
 
             # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
             # Change x parameter in order to solve in less states
-            if nb_iter % 10 == 0:
-                self.agents[1].plan(self.currentState)
+            # if nb_iter % 10 == 0:
+            #     self.agents[0].plan(self.currentState)
 
     def getNextJointAction(self):
         # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
