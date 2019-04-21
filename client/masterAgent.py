@@ -60,6 +60,7 @@ class MasterAgent:
             print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
             print('Goals already met : ' + str(goalsMet), file=sys.stderr, flush=True)
 
+
         boxesHandled = []
         # Boxes already placed on the goal
         for goal in goalsMet:
@@ -71,24 +72,28 @@ class MasterAgent:
             if agent.goal is not None:
                 boxesHandled.append(agent.goal.variables[0])
 
+        print('Box handled:', boxesHandled, file = sys.stderr)
+
         # Each agent that is passed to assignGoals either finished doing its job, or it's his 1st one
         # Hence we if self.goalsInAction contains agent.goal this job has been finished so we need to remove it
         for agent in agentsToReplan:
-            if agent.goal in self.goalsInAction:
-                self.goalsInAction.remove(agent.goal)
+            if agent.goal_details in self.goalsInAction:
+                self.goalsInAction.remove(agent.goal_details)
 
         for goal in self.goalsInAction:
             if goal in goalsToAssign:
                 goalsToAssign.remove(goal)
 
+        print('Agents to replan:',agentsToReplan, file=sys.stderr)
         if goalsToAssign != []:
+
             for agent in agentsToReplan:
                 if agent.current_plan != []:
 
                     print(agent.name, agent.current_plan[0], file=sys.stderr, flush=True)
                 else:
                     print('Agent', agent.name, 'has no plan!', file=sys.stderr, flush=True)
-
+                print(agent.occupied, file=sys.stderr)
                 if agent.occupied == False:
                     print('Agent', agent.name, 'is not occupied!', file=sys.stderr, flush=True)
                     for goal in goalsToAssign:
@@ -104,7 +109,7 @@ class MasterAgent:
                                     box['letter'] == goal['letter'] and \
                                     box['name'] not in boxesHandled:
                                 possibleBoxes.append(box)
-
+                        print('Possible boxes:', possibleBoxes, file=sys.stderr)
                         goalNotAssigned = True
                         while goalNotAssigned and possibleBoxes != []:
                             box = possibleBoxes.pop()
