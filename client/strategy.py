@@ -83,7 +83,7 @@ class Strategy:
                     frontier.append(state_)
 
     def best_first(self):
-        print('Solving with A*', self.heuristics, self.metrics, file=sys.stderr, flush=True)
+        print('Solving with best-first', self.heuristics, self.metrics, file=sys.stderr, flush=True)
         if self.heuristics == 'GoalCount':
             self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)
         elif self.heuristics == 'Distance':
