@@ -72,7 +72,7 @@ class MasterAgent:
             if agent.goal is not None:
                 boxesHandled.append(agent.goal.variables[0])
 
-        print('Box handled:', boxesHandled, file = sys.stderr)
+        # print('Box handled:', boxesHandled, file = sys.stderr)
 
         # Each agent that is passed to assignGoals either finished doing its job, or it's his 1st one
         # Hence we if self.goalsInAction contains agent.goal this job has been finished so we need to remove it
@@ -84,7 +84,7 @@ class MasterAgent:
             if goal in goalsToAssign:
                 goalsToAssign.remove(goal)
 
-        print('Agents to replan:',agentsToReplan, file=sys.stderr)
+        # print('Agents to replan:',agentsToReplan, file=sys.stderr)
         if goalsToAssign != []:
 
             for agent in agentsToReplan:
@@ -93,7 +93,7 @@ class MasterAgent:
                     print(agent.name, agent.current_plan[0], file=sys.stderr, flush=True)
                 else:
                     print('Agent', agent.name, 'has no plan!', file=sys.stderr, flush=True)
-                print(agent.occupied, file=sys.stderr)
+                # print(agent.occupied, file=sys.stderr)
                 if agent.occupied == False:
                     print('Agent', agent.name, 'is not occupied!', file=sys.stderr, flush=True)
                     for goal in goalsToAssign:
@@ -109,7 +109,7 @@ class MasterAgent:
                                     box['letter'] == goal['letter'] and \
                                     box['name'] not in boxesHandled:
                                 possibleBoxes.append(box)
-                        print('Possible boxes:', possibleBoxes, file=sys.stderr)
+                        # print('Possible boxes:', possibleBoxes, file=sys.stderr)
                         goalNotAssigned = True
                         while goalNotAssigned and possibleBoxes != []:
                             box = possibleBoxes.pop()
@@ -130,19 +130,7 @@ class MasterAgent:
         for agent in agentsToReplan:
             print('agent: ' + str(agent.name) + ', has goal: ' + str(agent.goal), file=sys.stderr, flush=True)
 
-            # goalNotAssigned = True
-            # for goal in goalsToAssign:
-            #     if goalNotAssigned:
-            #         box = next((box for box in possibleBoxes if box['letter'] == goal['letter'] and), None)
-            #         if box != None:
-            #             agent.assignGoal(Atom("BoxAt", box['name'], goal['position']))
-            #             # print(agent.occupied, file=sys.stderr, flush=True)
-            #             # print(str(agent.goal), file=sys.stderr, flush=True)
-            #             goalNotAssigned = False
-            #             if not agent.goal in self.currentState.atoms:
-            #                 agent.plan(self.currentState)
 
-    ##What is current_plan?
 
     def solveLevel(self):
         # We need to check the goal.
