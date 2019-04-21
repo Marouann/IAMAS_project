@@ -138,9 +138,9 @@ class Strategy:
                 self.__is_goal__(self.agent, state_)
                 if not self.goal_found and not self.__is_goal__(self.agent, state_):
                     if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
-                        print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
+                        # print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
                         print(state_.h_cost, file=sys.stderr, flush=True)
-                        print(state_.cost, file=sys.stderr, flush=True)
+                        # print(state_.cost, file=sys.stderr, flush=True)
                         heappush(frontier, state_)
                         heapify(frontier)
 
