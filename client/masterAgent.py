@@ -188,9 +188,10 @@ class MasterAgent:
         if unmet_preconditions != []:
             keep_goal = self.agents[conflict_solver].goal
             keep_goal_details = self.agents[conflict_solver].goal_details
-            self.agents[conflict_solver].assignGoal(unmet_preconditions[0], {})
+            self.agents[conflict_solver].assignGoal(unmet_preconditions[0], None)
             self.agents[conflict_solver].current_plan = []
-            self.agents[conflict_solver].plan(self.currentState)
+            self.agents[conflict_solver].plan(self.currentState, strategy='bfs') #don't use heuristic for solving conflicts
+            # print(self.agents[conflict_solver].goal, file=sys.stderr, flush=True)
             print(self.agents[conflict_solver].current_plan, file=sys.stderr, flush=True)
 
             actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
