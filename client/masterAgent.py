@@ -23,36 +23,6 @@ class MasterAgent:
             agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull, NoOp], agt['color'])
             self.agents.append(agent)
 
-        # Here we need to assign the first goals to the agent
-
-        # SAExample goal POSITIONS (Use SA.lvl)
-
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 1)))
-
-        # BFSLEVEL goal POSITIONS (Use BFStest.lvl)
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 4)))
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))
-
-        # BFSLEVEL with conflict goal POSITIONS (Use BFStestConflict.lvl)
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 4)))
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5,1)))
-
-        # NO CONFLICT (Use MAExample.lvl)
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (5, 1)))
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (1,10)))
-
-        # CONFLICT with two agents (Use MAExample.lvl)
-
-        # CONFLICT with two agents and two boxes (Use MAConflictExample.lvl)
-
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 10)) # A goal
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))  # B goal
-
-        # CONFLICT with two agents and two boxes (Use MAImpardist.lvl)
-
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 10)))  # A goal
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))  # B goal
-
     def assignGoals(self, agentsToReplan):
         (goalsToAssign, goalsMet) = self.currentState.getUnmetGoals()
         if agentsToReplan != []:
@@ -211,24 +181,21 @@ class MasterAgent:
         things to add:
             - if agent is conflicting with other agent and not vice-versa, set priority to agent in conflict: e.g [[0, 1], [2, 3]]
             priority agents 0 and 2
-            - if both agents are conflicting with each other, find a good way to set priority (may shortast distance): e.g [[0, 1], [1, 0]]
+            - if both agents are conflicting with each other (e.g [[0, 1], [1, 0]]) which one should get priority
         '''
 
         # Previous
-        #priority_agent = conflicting_agents[0][1]   # flip agents (doesnt work)
-        #priority_agent = conflicting_agents[0][0] # works
+        #priority_agent = conflicting_agents[0][0] 
         priority_agent = 0                                    # replace with a function that return the agent to prioritize
 
         # Previous
-        #conflict_solver = conflicting_agents[0][0]  # flip agents (doesnt work)
-        #conflict_solver = conflicting_agents[0][1]  # works
+        #conflict_solver = conflicting_agents[0][1]  
         conflict_solver = 1                                     # replace with a function that return the agent that has to change its goal
-
 
         action_of_priority_agent = actions[priority_agent]
         preconditions = action_of_priority_agent['action'].preconditions(*action_of_priority_agent['params'])
-
         # TypeError: string indices must be integers when preconditions gets 'NoOp' I think.#
+
         unmet_preconditions = []
         for atom in preconditions:
             if atom not in self.currentState.atoms and atom not in self.currentState.rigid_atoms:
@@ -307,6 +274,10 @@ class MasterAgent:
                 # gets an agent location
                 # agt_location = self.currentState.findAgent(agent.agt)
                 # print('agt_location : ' + str(agt_location), file=sys.stderr, flush=True)
+
+                #self.currentState.last_action
+
+                #last_action = {'action': 'NoOp', 'params': [], 'message': []}
                            
                 # get effect of the agents for a given action
                 action_of_agent = actions[int(agent.name)]                                        # need to get action from previous state #
