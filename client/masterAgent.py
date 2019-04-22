@@ -2,6 +2,7 @@ import argparse
 import re
 import sys
 import numpy as np
+#from collections import deque
 
 from state import State
 from atom import Atom
@@ -121,6 +122,10 @@ class MasterAgent:
         # actions = list(zip(*plans)) #won't work if plan are not the same length
         # serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
 
+                   
+        # Store previous and current actions to execute
+        previous_action = ['NoOp'] * 2    # [ popleft <-[Previous joint action], [Current joint action] <- append]
+
         # counter in while
         nb_iter = 0
         # stop util reached goal
@@ -140,6 +145,12 @@ class MasterAgent:
             # Gets the first actions from each agent (joint action on first row)
             actions_to_execute = self.getNextJointAction()
 
+            # update previous joint action                  
+            previous_action.append(actions_to_execute)
+            previous_action.pop(0)
+            # print('Previous actions : ' + str(previous_action), file=sys.stderr, flush=True)
+
+
             # Keep the response from the server ([true, false, ...])
             valid = self.executeAction(actions_to_execute)
             print('Server response : ' + str(valid), file=sys.stderr, flush=True)
@@ -149,7 +160,7 @@ class MasterAgent:
 
             # If 'agents_with_conflit' not empty then solve conflict
             if agents_with_conflit != []:
-                self.solveConflict(agents_with_conflit, actions_to_execute)
+                self.solveConflict(agents_with_conflit,actions_to_execute, previous_action)
 
             # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
             # Change x parameter in order to solve in less states
@@ -166,15 +177,17 @@ class MasterAgent:
             # print(joint_action, file=sys.stderr, flush=True)
         return joint_action
 
-
-    def solveConflict(self, agents_with_conflit, actions):
+    def solveConflict(self, agents_with_conflit, actions, previous_action):
         print('solve conflict', file=sys.stderr, flush=True)
         # print('actions : ' + str(actions), file=sys.stderr, flush=True)
 
         # Return list of conflicting agents                                                    
-        conflicting_agents = self.getConflictingAgents(agents_with_conflit, actions)
+        conflicting_agents = self.getConflictingAgents(agents_with_conflit, actions, previous_action)
 
-        print('conflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
+        print('\nOUT', file=sys.stderr, flush=True)
+
+
+        # print('conflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
 
         # Set a priority agent (in this cases the first one in the array)
         '''
@@ -218,38 +231,36 @@ class MasterAgent:
 
             self.agents[priority_agent].current_plan = [action_of_priority_agent] + self.agents[
                 priority_agent].current_plan
+
+            # update previous joint action                              # CHECK #
+            previous_action.append(actionsToResolveConflicts)
+            previous_action.pop(0)
+
         else:
             actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
             actionsToResolveConflicts[priority_agent] = action_of_priority_agent
 
             self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
 
-    '''
+            # update previous joint action                               # CHECk #
+            previous_action.append(actionsToResolveConflicts)
+            previous_action.pop(0)
 
+
+    '''
     Return's "conflicting_agents": which is a list containing pairs of agents: 
+
     "[[0, x], [1, x], [2, x],...,[n, x]]"
 
-    Pair of agents: [A, B] (effect of agent A is inconsisten with the preconditions of B)
+    A pair of agents: [A, B] (precondition of agent A is conflicts with negative effect of B)
 
-    or A->B (agent A wants to move to location where agent B is located)
-
-    e.g 0->x; 1->x; 2->x; ... n->x;
-
-    For each current_agent in agents_with_conflit:
-        For each agent in self.agents:
-            - check which agent has and effect that is conflicting with current_agent precondition
-            - agent_effect != current_agent_precondition
-            - get list of agent conflicting with the specific agent
     '''
 
-    def getConflictingAgents(self, agents_with_conflit, actions):
+    def getConflictingAgents(self, agents_with_conflit, actions, previous_action):
         
         conflicting_agents = []
         # goes through agents with a conflit
         for current_agent in agents_with_conflit:
-            # get location were current_agent wanted to go
-            # curr_agt_to_location = actions[current_agent]['params'][2]
-            # print('curr_agt_to_location : ' + str(curr_agt_to_location), file=sys.stderr, flush=True
 
             # get preconditions
             action_of_current_agent = actions[current_agent]
@@ -269,53 +280,47 @@ class MasterAgent:
             for i in range(len(unmet_preconditions)):
                 print(str(unmet_preconditions[i]), file=sys.stderr, flush=True)
 
-            # goes through all agents in state
             for agent in self.agents:
-                # gets an agent location
-                # agt_location = self.currentState.findAgent(agent.agt)
-                # print('agt_location : ' + str(agt_location), file=sys.stderr, flush=True)
 
-                #self.currentState.last_action
+                # This is to not repeat the current agent (agent cannot conflict with himslef).
+                if int(agent.name) != current_agent:
 
-                #last_action = {'action': 'NoOp', 'params': [], 'message': []}
-                           
-                # get effect of the agents for a given action
-                action_of_agent = actions[int(agent.name)].                                         # need to get action from previous state #
+                    # get agent's previous action
+                    prev_action_of_agent = previous_action[0][int(agent.name)] 
 
-                if action_of_agent != 'NoOp':  # solves TypeError: string indices must be integers
-                    negative_effects_of_agent = action_of_agent['action'].negative_effects(*action_of_agent['params'])
-                    positive_effects_of_agent = action_of_agent['action'].positive_effects(*action_of_agent['params'])
+                    # print('\nPrevious actions : ' + str(previous_action), file=sys.stderr, flush=True)
 
-                print('\nagent[' + agent.name + '] negative_effects_of_agent : ', file=sys.stderr, flush=True)
-                for i in range(len(negative_effects_of_agent)):
-                    print(str(negative_effects_of_agent[i]), file=sys.stderr, flush=True)
+                    if prev_action_of_agent != 'NoOp':  # solves TypeError: string indices must be integers
+                        negative_effects_of_agent = prev_action_of_agent['action'].negative_effects(*prev_action_of_agent['params'])
+                    else:    
+                        negative_effects_of_agent = unmet_preconditions                                # CHANGE: set this one to the free(agent location) #
+                        #negative_effects_of_agent = Atom('Free', [(x, y)])
 
-                print('\nagent[' + agent.name + '] positive_effects_of_agent : ', file=sys.stderr, flush=True)
-                for i in range(len(positive_effects_of_agent)):
-                    print(str(positive_effects_of_agent[i]), file=sys.stderr, flush=True)
+                    # print('\nagent[' + agent.name + '] negative_effects_of_agent : ', file=sys.stderr, flush=True)
+                    # for i in range(len(negative_effects_of_agent)):
+                    #     print(str(negative_effects_of_agent[i]), file=sys.stderr, flush=True)
 
-                # when the unmet precondition of one agent is in the positive effect of another agent that means they are conflicting
-                # if int(agent.name) != current_agent:   # This is to not repeat the current agent (agent cannot conflict with himslef).
-                print('\nchecking effect and precondition:', file=sys.stderr, flush=True)
+                    print('\nchecking effect and precondition:', file=sys.stderr, flush=True)
 
-                print('agent[' + agent.name + '] neg effect : ', file=sys.stderr, flush=True)
-                for i in range(len(negative_effects_of_agent)):
-                    print(str(i) + ': ' + str(negative_effects_of_agent[i]), file=sys.stderr, flush=True)
+                    print('agent[' + agent.name + '] neg effect : ', file=sys.stderr, flush=True)
+                    for i in range(len(negative_effects_of_agent)):
+                        print(str(negative_effects_of_agent[i]), file=sys.stderr, flush=True)
 
-                print('agent[' + str(current_agent) + '] unmet pre. : ', file=sys.stderr, flush=True)
-                for i in range(len(unmet_preconditions)):
-                    print(str(i) + ': ' + str(unmet_preconditions[i]), file=sys.stderr, flush=True)
+                    print('agent[' + str(current_agent) + '] unmet pre. : ', file=sys.stderr, flush=True)
+                    for i in range(len(unmet_preconditions)):
+                        print(str(unmet_preconditions[i]), file=sys.stderr, flush=True)
 
 
-                for atoms in unmet_preconditions:
-                    if atoms in negative_effects_of_agent:
-                        print('HELLO!', file=sys.stderr, flush=True)
+                    for atoms in unmet_preconditions:
+                        if atoms in negative_effects_of_agent:
 
-                        agent_in_conlfict = int(agent.name)
-                        print('\nAgent in conflict : ' + str(agent_in_conlfict), file=sys.stderr, flush=True)
+                            print('\nHELLO!', file=sys.stderr, flush=True)
 
-                        conflicting_agents.append([current_agent, agent_in_conlfict])
-                        print('\nconflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
+                            agent_in_conlfict = int(agent.name)
+                            print('\nAgent in conflict : ' + str(agent_in_conlfict), file=sys.stderr, flush=True)
+
+                            conflicting_agents.append([current_agent, agent_in_conlfict])
+                            print('\nconflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
 
         return conflicting_agents
 
