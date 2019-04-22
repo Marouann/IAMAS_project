@@ -280,10 +280,11 @@ class MasterAgent:
                 #last_action = {'action': 'NoOp', 'params': [], 'message': []}
                            
                 # get effect of the agents for a given action
-                action_of_agent = actions[int(agent.name)]                                        # need to get action from previous state #
-                negative_effects_of_agent = action_of_agent['action'].negative_effects(*action_of_agent['params'])
-                positive_effects_of_agent = action_of_agent['action'].positive_effects(*action_of_agent['params'])
+                action_of_agent = actions[int(agent.name)].                                         # need to get action from previous state #
 
+                if action_of_agent != 'NoOp':  # solves TypeError: string indices must be integers
+                    negative_effects_of_agent = action_of_agent['action'].negative_effects(*action_of_agent['params'])
+                    positive_effects_of_agent = action_of_agent['action'].positive_effects(*action_of_agent['params'])
 
                 print('\nagent[' + agent.name + '] negative_effects_of_agent : ', file=sys.stderr, flush=True)
                 for i in range(len(negative_effects_of_agent)):
@@ -295,26 +296,26 @@ class MasterAgent:
 
                 # when the unmet precondition of one agent is in the positive effect of another agent that means they are conflicting
                 # if int(agent.name) != current_agent:   # This is to not repeat the current agent (agent cannot conflict with himslef).
-                    print('\nchecking effect and precondition:', file=sys.stderr, flush=True)
+                print('\nchecking effect and precondition:', file=sys.stderr, flush=True)
 
-                    print('agent[' + agent.name + '] neg effect : ', file=sys.stderr, flush=True)
-                    for i in range(len(negative_effects_of_agent)):
-                        print(str(i) + ': ' + str(negative_effects_of_agent[i]), file=sys.stderr, flush=True)
+                print('agent[' + agent.name + '] neg effect : ', file=sys.stderr, flush=True)
+                for i in range(len(negative_effects_of_agent)):
+                    print(str(i) + ': ' + str(negative_effects_of_agent[i]), file=sys.stderr, flush=True)
 
-                    print('agent[' + str(current_agent) + '] unmet pre. : ', file=sys.stderr, flush=True)
-                    for i in range(len(unmet_preconditions)):
-                        print(str(i) + ': ' + str(unmet_preconditions[i]), file=sys.stderr, flush=True)
+                print('agent[' + str(current_agent) + '] unmet pre. : ', file=sys.stderr, flush=True)
+                for i in range(len(unmet_preconditions)):
+                    print(str(i) + ': ' + str(unmet_preconditions[i]), file=sys.stderr, flush=True)
 
 
-                    for atoms in unmet_preconditions:
-                        if atoms in negative_effects_of_agent:
-                            print('HELLO!', file=sys.stderr, flush=True)
+                for atoms in unmet_preconditions:
+                    if atoms in negative_effects_of_agent:
+                        print('HELLO!', file=sys.stderr, flush=True)
 
-                            agent_in_conlfict = int(agent.name)
-                            print('\nAgent in conflict : ' + str(agent_in_conlfict), file=sys.stderr, flush=True)
+                        agent_in_conlfict = int(agent.name)
+                        print('\nAgent in conflict : ' + str(agent_in_conlfict), file=sys.stderr, flush=True)
 
-                            conflicting_agents.append([current_agent, agent_in_conlfict])
-                            print('\nconflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
+                        conflicting_agents.append([current_agent, agent_in_conlfict])
+                        print('\nconflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
 
         return conflicting_agents
 
