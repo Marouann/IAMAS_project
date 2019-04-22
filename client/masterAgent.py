@@ -183,25 +183,15 @@ class MasterAgent:
 
             # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
             # Change x parameter in order to solve in less states
-<<<<<<< HEAD
-            if nb_iter % 10 == 0:                                             # make dinamic replanner #
-                self.agents[1].plan(self.currentState)
-
-    '''
-    Returns joint_action: the next actions to be executed for each agent
-    '''
-=======
             if nb_iter % 10 == 0:
                 self.agents[1].plan(self.currentState)
 
->>>>>>> master
     def getNextJointAction(self):
         # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
         joint_action = ['NoOp'] * len(self.agents)
         for i, agt in enumerate(self.agents):
             # If there are still actions in current plan pop the first action and
             if agt.current_plan != []:
-<<<<<<< HEAD
                 joint_action[i] = agt.current_plan.pop(0)      
             # print(joint_action, file=sys.stderr, flush=True)
         return joint_action
@@ -226,35 +216,14 @@ class MasterAgent:
 
         # Previous
         #priority_agent = conflicting_agents[0][1]   # flip agents (doesnt work)
-        priority_agent = conflicting_agents[0][0] # works
-        #priority_agent = 0                                    # replace with a function that return the agent to prioritize
-=======
-                # agt.current_plan.pop(0) = 'Action0'
-                # joint_action = ['NoOp', 'NoOp', 'NoOp', ...]
-                # joint_action[0] = ['agt0.Action0', 'NoOp', 'NoOp', ... ]
-                # joint_action[1] = ['agt0.Action0', 'agt1.Action0', 'NoOp', ... ] ...
-                joint_action[i] = agt.current_plan.pop(0)
-                # print("joint_action: ", file=sys.stderr, flush=True)
-            # print(joint_action, file=sys.stderr, flush=True)
-        return joint_action
-
-    def solveConflict(self, conflicting_agents, actions):
-        print('solve conflict', file=sys.stderr, flush=True)
-        # Function that should return conflicting agents
-        conflicting_agents = [0, 1]  ## replace this by having function find the conflicting agents
-
-        # Set a priority agent (in this cases the first one in the array)
->>>>>>> master
+        #priority_agent = conflicting_agents[0][0] # works
+        priority_agent = 0                                    # replace with a function that return the agent to prioritize
 
         # Previous
         #conflict_solver = conflicting_agents[0][0]  # flip agents (doesnt work)
-        conflict_solver = conflicting_agents[0][1]  # works
-        #conflict_solver = 1                                     # replace with a function that return the agent that has to change its goal
+        #conflict_solver = conflicting_agents[0][1]  # works
+        conflict_solver = 1                                     # replace with a function that return the agent that has to change its goal
 
-<<<<<<< HEAD
-=======
-        priority_agent = 0  # replace with a function that return the agent to prioritize
->>>>>>> master
 
         action_of_priority_agent = actions[priority_agent]
         preconditions = action_of_priority_agent['action'].preconditions(*action_of_priority_agent['params'])
@@ -265,14 +234,6 @@ class MasterAgent:
             if atom not in self.currentState.atoms and atom not in self.currentState.rigid_atoms:
                 unmet_preconditions.append(atom)
 
-<<<<<<< HEAD
-=======
-        # Previous
-        # conflict_solver = conflicting_agents[0]
-
-        conflict_solver = 1  # replace with a function that return the agent that has to change its goal
-
->>>>>>> master
         if unmet_preconditions != []:
             keep_goal = self.agents[conflict_solver].goal
             self.agents[conflict_solver].assignGoal(unmet_preconditions[0])
@@ -347,16 +308,15 @@ class MasterAgent:
                 # agt_location = self.currentState.findAgent(agent.agt)
                 # print('agt_location : ' + str(agt_location), file=sys.stderr, flush=True)
 
-                agent_number = int(agent.agt) # converting agent number to int
+                agent_number = int(agent.name) # converting agent number to int
                 
                 # get effect of the agents for a given action
-                action_of_agent = actions[agent_number]                                                           # need to get action from previous state #
+                action_of_agent = actions[agent_number]                                            # need to get action from previous state #
                 negative_effects_of_agent = action_of_agent['action'].negative_effects(*action_of_agent['params'])
                 # positive_effects_of_agent = action_of_agent['action'].positive_effects(*action_of_agent['params'])
 
-           
 
-                print('\nagent[' + agent.agt + '] negative_effects_of_agent : ', file=sys.stderr, flush=True)
+                print('\nagent[' + agent.name + '] negative_effects_of_agent : ', file=sys.stderr, flush=True)
                 for i in range(len(negative_effects_of_agent)):
                     print(str(negative_effects_of_agent[i]), file=sys.stderr, flush=True)
 
@@ -368,7 +328,7 @@ class MasterAgent:
                 # if int(agent.agt) != current_agent:                                                                   #This is to not repeat the current agent, uncomment#
                     print('\nchecking effect and precondition:', file=sys.stderr, flush=True)
                     for i in range(len(negative_effects_of_agent)):
-                        print('agent[' + agent.agt + '] effect : ' + str(negative_effects_of_agent[i]), file=sys.stderr, flush=True)
+                        print('agent[' + agent.name + '] effect : ' + str(negative_effects_of_agent[i]), file=sys.stderr, flush=True)
 
                         for i in range(len(unmet_preconditions)):
                             print('agent[' + str(current_agent) + '] precond : ' + str(unmet_preconditions[i]), file=sys.stderr, flush=True)
