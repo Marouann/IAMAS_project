@@ -123,8 +123,8 @@ class MasterAgent:
         # serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
 
                    
-        # Store previous and current actions to execute
-        previous_action = ['NoOp'] * 2    # [ popleft <-[Previous joint action], [Current joint action] <- append]
+        # Store previous and current joint actions to execute
+        previous_action = ['NoOp'] * 2    # [ pop(0) <-[Previous joint action], [Current joint action] <- append(jointaction)]
 
         # counter in while
         nb_iter = 0
@@ -232,20 +232,11 @@ class MasterAgent:
             self.agents[priority_agent].current_plan = [action_of_priority_agent] + self.agents[
                 priority_agent].current_plan
 
-            # update previous joint action                              # CHECK #
-            previous_action.append(actionsToResolveConflicts)
-            previous_action.pop(0)
-
         else:
             actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
             actionsToResolveConflicts[priority_agent] = action_of_priority_agent
 
             self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
-
-            # update previous joint action                               # CHECk #
-            previous_action.append(actionsToResolveConflicts)
-            previous_action.pop(0)
-
 
     '''
     Return's "conflicting_agents": which is a list containing pairs of agents: 
@@ -287,14 +278,19 @@ class MasterAgent:
 
                     # get agent's previous action
                     prev_action_of_agent = previous_action[0][int(agent.name)] 
-
-                    # print('\nPrevious actions : ' + str(previous_action), file=sys.stderr, flush=True)
-
+                    
                     if prev_action_of_agent != 'NoOp':  # solves TypeError: string indices must be integers
                         negative_effects_of_agent = prev_action_of_agent['action'].negative_effects(*prev_action_of_agent['params'])
+                        
+                        print('\nPrevious actions : ' + str(prev_action_of_agent['message']), file=sys.stderr, flush=True)
+
                     else:    
-                        negative_effects_of_agent = unmet_preconditions                                # CHANGE: set this one to the free(agent location) #
+                        negative_effects_of_agent = unmet_preconditions         # CHANGE: set this one to the free(agent location) #
+
                         #negative_effects_of_agent = Atom('Free', [(x, y)])
+
+                        print('\nPrevious actions : ' + str(prev_action_of_agent), file=sys.stderr, flush=True)
+
 
                     # print('\nagent[' + agent.name + '] negative_effects_of_agent : ', file=sys.stderr, flush=True)
                     # for i in range(len(negative_effects_of_agent)):
@@ -310,16 +306,12 @@ class MasterAgent:
                     for i in range(len(unmet_preconditions)):
                         print(str(unmet_preconditions[i]), file=sys.stderr, flush=True)
 
-
                     for atoms in unmet_preconditions:
                         if atoms in negative_effects_of_agent:
-
-                            print('\nHELLO!', file=sys.stderr, flush=True)
-
                             agent_in_conlfict = int(agent.name)
-                            print('\nAgent in conflict : ' + str(agent_in_conlfict), file=sys.stderr, flush=True)
-
                             conflicting_agents.append([current_agent, agent_in_conlfict])
+
+                            print('\nAgent in conflict : ' + str(agent_in_conlfict), file=sys.stderr, flush=True)
                             print('\nconflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
 
         return conflicting_agents
