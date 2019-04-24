@@ -229,7 +229,7 @@ class MasterAgent:
 
         if unmet_preconditions != []:
             keep_goal = self.agents[conflict_solver].goal
-            self.agents[conflict_solver].assignGoal(unmet_preconditions[0])
+            self.agents[conflict_solver].assignGoal(unmet_preconditions[0], {})
             self.agents[conflict_solver].current_plan = []
             self.agents[conflict_solver].plan(self.currentState)
             # print(self.agents[conflict_solver].goal, file=sys.stderr, flush=True)
@@ -239,7 +239,7 @@ class MasterAgent:
             actionsToResolveConflicts[conflict_solver] = self.agents[conflict_solver].current_plan[0]
             self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
 
-            self.agents[conflict_solver].assignGoal(keep_goal)
+            self.agents[conflict_solver].assignGoal(keep_goal, {})
             self.agents[conflict_solver].current_plan = []
 
             self.agents[priority_agent].current_plan = [action_of_priority_agent] + self.agents[
