@@ -1,35 +1,30 @@
-from agent import Agent
-from atom import Atom
-from state import State
-
-class ReachableArea():
-    def __init__(self, object_):
-        if isinstance(object_, Agent):
-            self.agent = object_
+from atom import *
+from state import *
 
 
-    def estimate(self, state: 'State'):
-        reachable = set()
+class AccessCheck(object):
+    def __init__(self, coords: '(int,int)'):
+        self.reachable = set()
+        self.current_cell = coords ##tuple
+        #self.estimate(state)
+
+    def estimate(self, state: 'State'):  # estimates reachable cells
+        self.reachable = set()
         frontier = set()
+        self.reachable.add(self.current_cell)
+        frontier.add(self.current_cell)
 
-
-        current_cell = state.find_agent(self.agent.name)
-        reachable.add(current_cell)
-        frontier = set()
-        frontier.add(current_cell)
-        possible_directions = []
         while frontier:
-            for cell in frontier:
-                state.find_neighbour()
+            cell = frontier.pop()
+            for neighbour in state.find_neighbours(cell):
+                if Atom('Free', neighbour) in state.atoms and neighbour not in self.reachable:
+                    self.reachable.add(neighbour)
+                    frontier.add(neighbour)
+        return self.reachable
 
-
-
-
-
-
-
-    def union(self) -> 'bool':
-        pass
-
-
-    def comp
+    def intersection(self, other_reachable: 'AccessCheck') -> 'bool':
+        if self.reachable & other_reachable.reachable:
+            return True
+        else:
+            return False
+# (1,1) , (2,1), (2,2)

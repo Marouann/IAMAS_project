@@ -77,5 +77,5 @@ class Agent:
         return possibleActions
 
     def plan(self, state: 'State'):
-        strategy = Strategy(state, self, strategy='best-first')
+        strategy = Strategy(state, self)
         strategy.plan()

@@ -1,6 +1,7 @@
 from collections import deque
 from state import State
 from heapq import heapify, heappush, heappop
+from ReachableArea import AccessCheck
 
 from agent import *
 
@@ -51,6 +52,9 @@ class Strategy:
                     heapify(frontier)
 
     def bfs(self):
+        access = AccessCheck(self.state.find_agent(self.agent.name))
+        print(access.estimate(self.state),file=sys.stderr, flush=True)
+        #print( self.state.find_neighbours((6,2)))
         frontier = deque()
         frontier.append(self.state)
 

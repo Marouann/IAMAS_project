@@ -24,23 +24,26 @@ class State:
         self.h_cost = h_cost  # cost based on heuristics
 
     def remove_atom(self, atom: 'Atom'):
-        # if atom not in s then do nothing
-        try:
-            self.atoms.delete(atom)
-        except ValueError:
-            pass
+        self.atoms.delete(atom)
 
     def add_atom(self, atom: 'Atom'):
         self.atoms.update(atom)
 
-    # def __len__(self):
-    #     return self.atoms.kb.length
+    def contain(self, atom: 'Atom') -> 'bool':
+        if atom in self.atoms:
+            return True
+        elif atom in self.rigid_atoms:
+            return True
+        else:
+            return False
 
-    def find_atom(self, name, *vars):
-        pass
+    def find_neighbours(self, coords):
+        neighbours = set()
+        for atom in self.rigid_atoms:
+            if atom.name == 'Neighbour' and atom.variables[0] == coords:
+                neighbours.add(atom.variables[1])
 
-    def find_neighbour(self, atom):
-        pass
+        return neighbours
 
     def find_box(self, position):
         for atom in self.atoms:
@@ -99,6 +102,7 @@ class State:
         # print(action,file=sys.stderr, flush=True)
         action[0].execute(state, action[1])
         return state
+
     def atoms(self):
         return self.atoms + self.rigid_atoms
 
