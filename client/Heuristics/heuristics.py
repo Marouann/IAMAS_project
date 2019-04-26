@@ -59,7 +59,7 @@ class DistanceBased(Heuristic):
                 min_distance = np.inf
                 for atom in state.atoms:
                     # print(state.findBoxLetter(atom.variables[0]).variables[1], file=sys.stderr)
-                    if atom.name == 'BoxAt' and  goal['letter']== state.findBoxLetter(atom.variables[0]).variables[1]:
+                    if atom.name == 'BoxAt' and  goal['letter']== state.find_box_letter(atom.variables[0]).variables[1]:
                         coords = atom.variables[1]
                         agent_pos = state.find_agent(agent.name)
                         d = 0

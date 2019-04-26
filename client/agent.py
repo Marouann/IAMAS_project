@@ -51,7 +51,7 @@ class Agent:
                     for second_dir in [N, S, E, W]:
                         boxFrom = agtTo  # the agent will take the place of box
                         boxTo = (boxFrom[0] + second_dir[0], boxFrom[1] + second_dir[1])
-                        box = s.findBox(boxFrom)
+                        box = s.find_box(boxFrom)
                         if box:
                             boxName = box.variables[0]
                             if action.checkPreconditions(s, [self.name, agtFrom, boxName, boxFrom, boxTo,
@@ -62,7 +62,7 @@ class Agent:
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
-                        box = s.findBox(boxFrom)
+                        box = s.find_box(boxFrom)
                         if box:
                             boxName = box.variables[0]
                             if action.checkPreconditions(s, [self.name, agtFrom, agtTo, boxName, boxFrom,

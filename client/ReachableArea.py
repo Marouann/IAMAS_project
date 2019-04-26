@@ -9,11 +9,27 @@ class ReachableArea():
 
 
     def estimate(self, state: 'State'):
-        agt_at = state.find_agent(self.agent.name)
+        reachable = set()
+        frontier = set()
+
+
+        current_cell = state.find_agent(self.agent.name)
+        reachable.add(current_cell)
+        frontier = set()
+        frontier.add(current_cell)
+        possible_directions = []
+        while frontier:
+            for cell in frontier:
+                state.find_neighbour()
+
+
+
+
+
 
 
     def union(self) -> 'bool':
         pass
 
 
-
+    def comp

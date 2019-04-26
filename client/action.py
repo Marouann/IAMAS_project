@@ -29,10 +29,10 @@ class Action:
         if self.checkPreconditions(s, variables):
 
             for effect in self.negative_effects(*variables):
-                s.removeAtom(effect)
+                s.remove_atom(effect)
 
             for effect in self.positive_effects(*variables):
-                s.addAtom(effect)
+                s.add_atom(effect)
         else:
             print("This action is not applicable here.")
 

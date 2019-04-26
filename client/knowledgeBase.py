@@ -71,5 +71,5 @@ class KnowledgeBase:
     def __hash__(self) -> 'int':
         hash_value = 0
         for item in self.__kb:
-            hash_value += hash(item) % 13
+            hash_value += hash(item) / 17
         return int(hash_value)

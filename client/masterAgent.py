@@ -14,6 +14,8 @@ from getLevel import getLevel
 class MasterAgent:
     def __init__(self, initial_state: 'State', agents: '[Agent]', boxes: '[dict]'):
         self.currentState = initial_state
+        ##print(initial_state, file=sys.stderr, flush=True)
+
         self.agents = []
         self.boxes = boxes  # List of { 'name': Box, 'letter': char, 'color': color }
         self.goalsInAction = []
@@ -64,7 +66,7 @@ class MasterAgent:
         boxesHandled = []
         # Boxes already placed on the goal
         for goal in goalsMet:
-            boxOnGoal = self.currentState.findBox(goal['position'])
+            boxOnGoal = self.currentState.find_box(goal['position'])
             boxesHandled.append(boxOnGoal.variables[0])
 
         # Boxes that are currently hadnled by agents
@@ -115,7 +117,7 @@ class MasterAgent:
                             box = possibleBoxes.pop()
                             boxAlreadyPlaced = False
                             for goalmet in goalsMet:
-                                boxPlaced = self.currentState.findBox(goalmet['position'])
+                                boxPlaced = self.currentState.find_box(goalmet['position'])
                                 if boxPlaced.variables[0] == box['name']:
                                     boxAlreadyPlaced = True
 

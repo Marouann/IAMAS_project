@@ -10,7 +10,7 @@ import sys
 
 class Strategy:
 
-    def __init__(self, state: 'State', agent: 'Agent', strategy='astar', heuristics='Distance', metrics='Manhattan'):
+    def __init__(self, state: 'State', agent: 'Agent', strategy='bfs', heuristics='Distance', metrics='Manhattan'):
         self.state = state
         self.agent = agent
         self.strategy = strategy

@@ -11,7 +11,7 @@ class State:
                  cost=0,
                  h_cost=0,
                  parent=None,
-                 last_action=  {'action': 'NoOp', 'params': [], 'message': []}
+                 last_action={'action': 'NoOp', 'params': [], 'message': []}
                  ):
         self.name = name
         self.goals = goals
@@ -23,40 +23,34 @@ class State:
         self.cost = cost
         self.h_cost = h_cost  # cost based on heuristics
 
-    def removeAtom(self, atom: 'Atom'):
+    def remove_atom(self, atom: 'Atom'):
         # if atom not in s then do nothing
         try:
             self.atoms.delete(atom)
         except ValueError:
             pass
 
-    def addAtom(self, atom: 'Atom'):
+    def add_atom(self, atom: 'Atom'):
         self.atoms.update(atom)
 
     # def __len__(self):
     #     return self.atoms.kb.length
 
-    def __eq__(self, other: 'State'):
-        return self.atoms == other.atoms  # and self.parent == other.parent and self.last_action == other.last_action
+    def find_atom(self, name, *vars):
+        pass
 
-    def __str__(self):
-        state_str = "State " + self.name + "\n"
+    def find_neighbour(self, atom):
+        pass
 
-        state_str += str(self.rigid_atoms)
-
-        state_str += str(self.atoms)
-
-        return (state_str)
-
-    def findBox(self, position):
+    def find_box(self, position):
         for atom in self.atoms:
             if atom.name == "BoxAt" and atom.variables[1] == position:
                 return atom
         return False
 
-    def findBoxLetter(self, boxName):
+    def find_box_letter(self, box_name):
         for atom in self.rigid_atoms:
-            if atom.name == "Letter" and atom.variables[0] == boxName:
+            if atom.name == "Letter" and atom.variables[0] == box_name:
                 return atom
 
     def find_agent(self, agt: 'str'):
@@ -68,11 +62,11 @@ class State:
         metGoals = []
         unmetGoals = []
         for goal in self.goals:
-            box = self.findBox(goal['position'])
+            box = self.find_box(goal['position'])
             if False == box:
                 unmetGoals.append(goal)
             else:
-                boxLetter = self.findBoxLetter(box.variables[0])
+                boxLetter = self.find_box_letter(box.variables[0])
                 letter = boxLetter.variables[1]
                 if letter != goal['letter']:
                     unmetGoals.append(goal)
@@ -102,18 +96,29 @@ class State:
                       cost=self.cost + cost,
                       h_cost=h_cost)
         state.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
-        #print(action,file=sys.stderr, flush=True)
+        # print(action,file=sys.stderr, flush=True)
         action[0].execute(state, action[1])
         return state
+    def atoms(self):
+        return self.atoms + self.rigid_atoms
+
+    ############################
+    ##Private or implicit methods
 
     def __total_cost__(self) -> 'int':
         return self.cost + self.h_cost
 
-    def atoms(self):
-        return self.atoms + self.rigid_atoms
+    def __eq__(self, other: 'State'):
+        return self.atoms == other.atoms  # and self.parent == other.parent and self.last_action == other.last_action
+
+    def __str__(self):
+        state_str = "State " + self.name + "\n"
+        state_str += str(self.rigid_atoms)
+        state_str += str(self.atoms)
+
+        return (state_str)
 
     def __hash__(self):
-        #print(self.last_action)
         return hash(self.atoms)
 
     def __cmp__(self, other: 'State'):
