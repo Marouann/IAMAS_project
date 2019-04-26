@@ -59,7 +59,7 @@ class State:
             if atom.name == "Letter" and atom.variables[0] == boxName:
                 return atom
 
-    def findAgent(self, agt):
+    def find_agent(self, agt: 'str'):
         for atom in self.atoms:
             if atom.name == "AgentAt" and atom.variables[0] == agt:
                 return atom.variables[1]

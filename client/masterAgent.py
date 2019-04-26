@@ -19,7 +19,7 @@ class MasterAgent:
         self.goalsInAction = []
 
         for agt in sorted(agents, key=lambda k: k['name']):
-            agtAt = initial_state.findAgent(agt['name'])
+            agtAt = initial_state.find_agent(agt['name'])
             agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull, NoOp], agt['color'])
             self.agents.append(agent)
 

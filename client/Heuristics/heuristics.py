@@ -61,7 +61,7 @@ class DistanceBased(Heuristic):
                     # print(state.findBoxLetter(atom.variables[0]).variables[1], file=sys.stderr)
                     if atom.name == 'BoxAt' and  goal['letter']== state.findBoxLetter(atom.variables[0]).variables[1]:
                         coords = atom.variables[1]
-                        agent_pos = state.findAgent(agent.name)
+                        agent_pos = state.find_agent(agent.name)
                         d = 0
                         d += np.abs(coords[0] - goal['position'][0]) + np.abs(
                             coords[1] - goal['position'][1])
