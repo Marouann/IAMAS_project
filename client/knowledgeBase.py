@@ -74,6 +74,7 @@ class KnowledgeBase:
         return {**self.__kb, **other.kb()}
 
     def items(self):
+        """"Returns items(values) that are stored in the KB's dictionary"""
         return self.__kb.items()
 
     def __hash__(self) -> 'int':
