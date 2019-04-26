@@ -123,7 +123,7 @@ class MasterAgent:
         # serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
 
                    
-        # Store previous and current joint actions to execute
+        # Store previous and current joint actions
         previous_action = ['NoOp'] * 2    # [ pop(0) <-[Previous joint action], [Current joint action] <- append(jointaction)]
 
         # counter in while
@@ -219,10 +219,11 @@ class MasterAgent:
             self.agents[conflict_solver].assignGoal(unmet_preconditions[0])
             self.agents[conflict_solver].current_plan = []
             self.agents[conflict_solver].plan(self.currentState)
+            # self.agents[conflict_solver].plan(self.currentState, strategy='bfs')
             # print(self.agents[conflict_solver].goal, file=sys.stderr, flush=True)
             # print(self.agents[conflict_solver].current_plan, file=sys.stderr, flush=True)
 
-            actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
+            actionsToResolveConflicts = [NoOp for i in range(len(self.agents))]
             actionsToResolveConflicts[conflict_solver] = self.agents[conflict_solver].current_plan[0]
             self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
 
@@ -233,7 +234,7 @@ class MasterAgent:
                 priority_agent].current_plan
 
         else:
-            actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
+            actionsToResolveConflicts = [NoOp for i in range(len(self.agents))]
             actionsToResolveConflicts[priority_agent] = action_of_priority_agent
 
             self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
@@ -272,7 +273,6 @@ class MasterAgent:
                 print(str(unmet_preconditions[i]), file=sys.stderr, flush=True)
 
             for agent in self.agents:
-
                 # This is to not repeat the current agent (agent cannot conflict with himslef).
                 if int(agent.name) != current_agent:
 
@@ -286,8 +286,10 @@ class MasterAgent:
 
                     else:    
                         negative_effects_of_agent = unmet_preconditions         # CHANGE: set this one to the free(agent location) #
-
-                        #negative_effects_of_agent = Atom('Free', [(x, y)])
+                        
+                        # get x and y location of precious action
+                        # prev_action_of_agent['action'].precondition(*prev_action_of_agent['params'])
+                        # negative_effects_of_agent = Atom('Free', [(x, y)])
 
                         print('\nPrevious actions : ' + str(prev_action_of_agent), file=sys.stderr, flush=True)
 
@@ -334,12 +336,20 @@ class MasterAgent:
 
         actions_string = ''
         for agent_action in jointAction:
-            if agent_action != 'NoOp':
-                actions_string += agent_action['message']
-                actions_string += ';'
-            else:
-                actions_string += agent_action
-                actions_string += ';'
+
+            print('agent action : ' + str(agent_action), file=sys.stderr, flush=True)
+
+            actions_string += agent_action['message']
+            actions_string += ';'
+
+
+            # if agent_action['action'].name != 'NoOp':
+            #     actions_string += agent_action['message']
+            #     actions_string += ';'
+            # else:
+            #     actions_string += agent_action
+            #     actions_string += ';'
+
         actions_string = actions_string[:-1]  # remove last ';' from the string
 
         # retrieve answer from server and separate answer for specific action
@@ -351,7 +361,7 @@ class MasterAgent:
 
         for i, answer in enumerate(server_answer):
             if answer == 'true':
-                if jointAction[i] != 'NoOp':
+                if jointAction[i]['action'].name != 'NoOp':
                     jointAction[i]['action'].execute(self.currentState, jointAction[i]['params'])
 
         for agent in self.agents:
