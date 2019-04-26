@@ -1,4 +1,4 @@
 from state import State
 
-def AdjacencyTable(state:State):
+def AdjacencyTable(state:'State'):
     pass

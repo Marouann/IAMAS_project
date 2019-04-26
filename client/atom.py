@@ -27,3 +27,6 @@ class Atom:
 
     def __hash__(self):
         return int(hash(self.name) + hash(self.variables))
+
+class ComplexAtom(Atom):
+    pass
