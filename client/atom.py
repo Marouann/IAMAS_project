@@ -8,12 +8,14 @@
 # The free cells : Atom('Free', [(x, y)])
 
 class Atom:
+    """" Data Structure to keep a logical representation of the State"""
     def __init__(self, name: 'str', *variables):
         self.name = name
         self.variables = variables
         self.arity = len(variables)
 
     def __eq__(self, other):
+        """" Comparison of Atoms"""
         if not isinstance(other, Atom): return False
         return self.name == other.name and self.arity == other.arity and self.variables == other.variables
 
@@ -26,7 +28,8 @@ class Atom:
         return "Atom: " + self.name + "(" + var_string + ")"
 
     def __hash__(self):
+        """" Defines the hashing function for the Atom Object"""
         return int(hash(self.name) + hash(self.variables))
 
-class ComplexAtom(Atom):
+class DynamicAtom(Atom):
     pass

@@ -10,7 +10,7 @@ import sys
 
 
 class Strategy:
-
+    """"Strategy class is responsible for the planning and searching strategies"""
     def __init__(self, state: 'State', agent: 'Agent', strategy='bfs', heuristics='Distance', metrics='Manhattan'):
         self.state = state
         self.agent = agent
@@ -19,7 +19,6 @@ class Strategy:
         self.metrics = metrics
         self.goal_found = False
 
-        # self.explored_states = set() #stores visited states
         self.expanded = set()  # stores expanded states
 
     def plan(self):
