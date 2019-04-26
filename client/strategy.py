@@ -58,6 +58,8 @@ class Strategy:
         access_goal.estimate(self.state)
         #print( access.intersection(access_goal), file=sys.stderr, flush=True)
         #print(access.check_if_reachable((3,3)), file= sys.stderr, flush=True)
+        print(access.intersection_members(access_goal), file= sys.stderr, flush=True)
+
         frontier = deque()
         frontier.append(self.state)
 

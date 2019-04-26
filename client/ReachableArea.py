@@ -29,5 +29,8 @@ class Access(object):
         else:
             return False
 
+    def intersection_members(self, other_reachable: 'Access') -> '{}':
+        return self.reachable & other_reachable.reachable
+
     def check_if_reachable(self, coords: '(int,int)'):
         return coords in self.reachable
