@@ -80,6 +80,37 @@ class State:
                     metGoals.append(goal)
         return [unmetGoals, metGoals]
 
+    def getNeithbourGoals(self, position):
+        neighbourLocations = []
+        for atom in self.rigid_atoms:
+            if atom.name == "Neighbour" and position == atom.variables[0]:
+                neighbourLocations.append(atom.variables[1])
+
+        neighbourGoals = []
+        for atom in self.rigid_atoms:
+            if atom.name == "GoalAt":
+                for location in neighbourLocations:
+                    if location == atom.variables[1]:
+                        neighbourGoals.append(atom)
+
+        return neighbourGoals
+
+    def getNeithbourFieldsWithoutGoals(self, position):
+        neighbourLocations = []
+        for atom in self.rigid_atoms:
+            if atom.name == "Neighbour" and position == atom.variables[0]:
+                neighbourLocations.append(atom.variables[1])
+
+        result = neighbourLocations
+
+        for atom in self.rigid_atoms:
+            if atom.name == "GoalAt":
+                for location in neighbourLocations:
+                    if location == atom.variables[1]:
+                        result.remove(location)
+
+        return result
+
     def copy(self):
         atoms_copy = KnowledgeBase("Atoms")
         atoms_copy.copy(self.atoms)

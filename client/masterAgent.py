@@ -81,7 +81,9 @@ class MasterAgent:
             if goal in goalsToAssign:
                 goalsToAssign.remove(goal)
 
-        if goalsToAssign != []:
+        sortedGoals = self.priorytazeGoals(goalsToAssign)
+
+        if sortedGoals != []:
             for agent in agentsToReplan:
                 if agent.current_plan != []:
 
@@ -91,7 +93,7 @@ class MasterAgent:
 
                 if agent.occupied == False:
                     print('Agent', agent.name, 'is not occupied!', file=sys.stderr, flush=True)
-                    for goal in goalsToAssign:
+                    for goal in sortedGoals:
                         if agent.goal is not None:
                             print('Agent already has a goal, continue: ' + str(goal), file=sys.stderr, flush=True)
                             continue
@@ -204,6 +206,14 @@ class MasterAgent:
                 # print("joint_action: ", file=sys.stderr, flush=True)
             # print(joint_action, file=sys.stderr, flush=True)
         return joint_action
+
+    def priorytazeGoals(self, goals):
+        # Sort goals 1st by number of free neighbour fields, then by number of neighbour goals)
+        sortedGoals = sorted(goals,
+                                key=lambda x: (self.currentState.getNeithbourFieldsWithoutGoals(x["position"]).__len__(),
+                                self.currentState.getNeithbourGoals(x["position"]).__len__()))
+
+        return sortedGoals
 
     def solveConflict(self, conflicting_agents, actions):
         print('solve conflict', file=sys.stderr, flush=True)
