@@ -10,6 +10,7 @@ class Agent:
         self.name = name
         #self.position = position
         self.goal = goal
+        self.goal_details = None
         self.actions = actions
         self.color = color
         self.current_plan = []
@@ -26,8 +27,9 @@ class Agent:
     - new_agt_position is position of agent after executing the action
     '''
 
-    def assignGoal(self, goal):
+    def assignGoal(self, goal, goal_details):
         self.goal = goal
+        self.goal_details = goal_details
         self.occupied = True
 
     def getPossibleActions(self, s: 'State') -> '[Action]':
@@ -74,6 +76,6 @@ class Agent:
 
         return possibleActions
 
-    def plan(self, state: 'State'):
-        strategy = Strategy(state, self)
+    def plan(self, state: 'State', strategy = 'best-first'):
+        strategy = Strategy(state, self, strategy)
         strategy.plan()
