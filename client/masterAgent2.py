@@ -320,7 +320,7 @@ class MasterAgent:
                             print('Hello', file=sys.stderr)
                             agent.goal = Atom('AgentAt', agent.name, unmet_agent['position'])
                             
-                    #agent.plan(self.currentState)
+                        agent.plan(self.currentState)
 
 
             
