@@ -74,6 +74,6 @@ class Agent:
 
         return possibleActions
 
-    def plan(self, state: 'State'):
+    async def plan(self, state: 'State'):
         strategy = Strategy(state, self)
-        strategy.plan()
+        await strategy.plan()

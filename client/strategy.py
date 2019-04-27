@@ -21,19 +21,19 @@ class Strategy:
         # self.explored_states = set() #stores visited states
         self.expanded = set()  # stores expanded states
 
-    def plan(self):
+    async def plan(self):
         if self.strategy == 'bfs':
-            self.bfs()
+             await self.bfs()
         elif self.strategy == 'dfs':
-            self.dfs()
+            await self.dfs()
         elif self.strategy == 'uniform':
-            self.uniform()
+            await self.uniform()
         elif self.strategy == 'best-first':
-            self.best_first()
+            await self.best_first()
         elif self.strategy == 'astar':
-            self.a_star()
+            await self.a_star()
 
-    def uniform(self):
+    async def uniform(self):
         frontier = list()
         heappush(frontier, self.state)
 
@@ -50,7 +50,7 @@ class Strategy:
                     heappush(frontier, state_)
                     heapify(frontier)
 
-    def bfs(self):
+    async def bfs(self):
         frontier = deque()
         frontier.append(self.state)
 
@@ -66,7 +66,7 @@ class Strategy:
                 if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
                     frontier.append(state_)
 
-    def dfs(self):
+    async def dfs(self):
         frontier = list()
         frontier.append(self.state)
 
@@ -82,7 +82,7 @@ class Strategy:
                 if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
                     frontier.append(state_)
 
-    def best_first(self):
+    async def best_first(self):
         print('Solving with A*', self.heuristics, self.metrics, file=sys.stderr, flush=True)
         if self.heuristics == 'GoalCount':
             self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)
@@ -112,7 +112,7 @@ class Strategy:
                         heappush(frontier, state_)
                         heapify(frontier)
 
-    def a_star(self):
+    async def a_star(self):
         print('Solving with A*', self.heuristics, self.metrics, file=sys.stderr, flush=True)
         if self.heuristics == 'GoalCount':
             self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)

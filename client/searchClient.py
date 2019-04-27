@@ -2,6 +2,7 @@ import argparse
 import re
 import sys
 import numpy as np
+import asyncio
 
 from state import State
 from atom import Atom
@@ -27,7 +28,7 @@ class SearchClient:
                                        level['boxes'])  # level['goals'], level['boxes']
 
 
-def main():
+async def main():
     # We first declare our name. The server will receive it and be ready to start with us.
     print('Best group', flush=True)
     # Read server messages from stdin.
@@ -40,9 +41,9 @@ def main():
     # Read level and create the initial state of the problem.
     client = SearchClient(server_messages)
 
-    client.masterAgent.solveLevel()
+    await client.masterAgent.solveLevel()
 
 
 if __name__ == '__main__':
     # Run client.
-    main()
+    asyncio.run(main())

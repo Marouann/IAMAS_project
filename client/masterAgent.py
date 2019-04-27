@@ -53,7 +53,7 @@ class MasterAgent:
         # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 10)))  # A goal
         # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))  # B goal
 
-    def assignGoals(self, agentsToReplan):
+    async def assignGoals(self, agentsToReplan):
         (goalsToAssign, goalsMet) = self.currentState.getUnmetGoals()
         if agentsToReplan != []:
             print('\nFree agents : ' + str([agent.name for agent in agentsToReplan]), file=sys.stderr, flush=True)
@@ -120,7 +120,7 @@ class MasterAgent:
                                 boxesHandled.append(box['name'])
                                 goalNotAssigned = False
                                 if not agent.goal in self.currentState.atoms:
-                                    agent.plan(self.currentState)
+                                    await agent.plan(self.currentState)
 
         for agent in agentsToReplan:
             print('agent: ' + str(agent.name) + ', has goal: ' + str(agent.goal), file=sys.stderr, flush=True)
@@ -139,9 +139,9 @@ class MasterAgent:
 
     ##What is current_plan?
 
-    def solveLevel(self):
+    async def solveLevel(self):
         # We need to check the goal.
-        self.assignGoals(self.agents)
+        await self.assignGoals(self.agents)
         # print(agt, file=sys.stderr, flush=True) # agent
         # print(self.currentState, file=sys.stderr, flush=True) # state, rigid atoms, atoms
         # print(agt.current_plan, file=sys.stderr, flush=True) # Current plan of actions for agent [action, param, message(name of action)]
@@ -164,7 +164,7 @@ class MasterAgent:
             # Then if at least one agent is free we assign goals
             # The method assign goals, assign goal only to free agent
 
-            self.assignGoals([agent for agent in self.agents if agent.occupied == False])
+            await self.assignGoals([agent for agent in self.agents if agent.occupied == False])
             nb_iter += 1
 
             # Gets the first actions from each agent (joint action on first row)
@@ -180,12 +180,12 @@ class MasterAgent:
 
             # If there exists conflicts (false in valid array) then run solveConflict function with the conflicting agents
             if conflicting_agents != []:
-                self.solveConflict(conflicting_agents, action_to_execute)
+                await self.solveConflict(conflicting_agents, action_to_execute)
 
             # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
             # Change x parameter in order to solve in less states
             if nb_iter % 10 == 0:
-                self.agents[1].plan(self.currentState)
+                await self.agents[1].plan(self.currentState)
 
     def getNextJointAction(self):
         # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
@@ -205,7 +205,7 @@ class MasterAgent:
             # print(joint_action, file=sys.stderr, flush=True)
         return joint_action
 
-    def solveConflict(self, conflicting_agents, actions):
+    async def solveConflict(self, conflicting_agents, actions):
         print('solve conflict', file=sys.stderr, flush=True)
         # Function that should return conflicting agents
         conflicting_agents = [0, 1]  ## replace this by having function find the conflicting agents
@@ -238,7 +238,7 @@ class MasterAgent:
             keep_goal = self.agents[conflict_solver].goal
             self.agents[conflict_solver].assignGoal(unmet_preconditions[0])
             self.agents[conflict_solver].current_plan = []
-            self.agents[conflict_solver].plan(self.currentState)
+            await self.agents[conflict_solver].plan(self.currentState)
             # print(self.agents[conflict_solver].goal, file=sys.stderr, flush=True)
             print(self.agents[conflict_solver].current_plan, file=sys.stderr, flush=True)
 
