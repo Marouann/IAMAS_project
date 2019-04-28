@@ -1,4 +1,5 @@
 import sys
+import math
 from knowledgeBase import KnowledgeBase
 from atom import *
 
@@ -53,6 +54,20 @@ class State:
             if atom.name == "BoxAt" and atom.variables[1] == position:
                 return atom
         return False
+
+    def findBoxGoalDistance(self, name, goalAtom):
+        boxAtom = Atom
+        for atom in self.atoms:
+            if atom.name == "BoxAt" and atom.variables[0] == name:
+                boxAtom = atom
+                break
+        distance = self.getDistance(boxAtom.variables[1], goalAtom["position"])
+        return distance
+
+    def getDistance(self, firstLocation, secondLocation):
+        distance = math.sqrt(math.pow(secondLocation[0] - firstLocation[0], 2) +
+                             math.pow(secondLocation[1] - firstLocation[1], 2))
+        return distance
 
     def findBoxLetter(self, boxName):
         for atom in self.rigid_atoms:

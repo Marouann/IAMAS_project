@@ -110,9 +110,12 @@ class MasterAgent:
                                     box['name'] not in boxesHandled:
                                 possibleBoxes.append(box)
                         # print('Possible boxes:', possibleBoxes, file=sys.stderr)
+
+                        prioritizedBoxes = sorted (possibleBoxes,
+                                                   key=lambda x: self.currentState.findBoxGoalDistance(x["name"], goal))
                         goalNotAssigned = True
-                        while goalNotAssigned and possibleBoxes != []:
-                            box = possibleBoxes.pop()
+                        while goalNotAssigned and prioritizedBoxes != []:
+                            box = prioritizedBoxes.pop(0)
                             boxAlreadyPlaced = False
                             for goalmet in goalsMet:
                                 boxPlaced = self.currentState.findBox(goalmet['position'])
