@@ -41,3 +41,6 @@ class DynamicAtom(Atom):
 
     def assign_property(self, *properties):
         self.properties = properties
+
+    def property(self):
+        return self.properties

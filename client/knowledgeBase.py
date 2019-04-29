@@ -1,4 +1,4 @@
-from atom import Atom
+from atom import Atom, DynamicAtom
 
 
 # Knowledge Base contain the literals for the state
@@ -44,6 +44,10 @@ class KnowledgeBase:
     def kb(self) -> 'dict':
         """"Ŗeturn the dictionary with Atoms"""
         return self.__kb
+
+    def return_properties(self, atom:'DynamicAtom'):
+        if atom in self.__kb:
+            return self.__kb[atom].property()
 
     def __contains__(self, key) -> 'bool':
         """"Check if the key (hashed version of the object) is contained in the Knowledge Base"""
