@@ -107,7 +107,7 @@ class MasterAgent:
         # We need to check the goal.
         self.assignGoals(self.agents)
 
-                   
+
         # Store previous and current joint actions
         previous_action = ['NoOp'] * 2    # [ pop(0) <-[Previous joint action], [Current joint action] <- append(jointaction)]
 
@@ -123,7 +123,7 @@ class MasterAgent:
             # Gets the first actions from each agent (joint action on first row)
             actions_to_execute = self.getNextJointAction()
 
-            # update previous joint action                  
+            # update previous joint action
             previous_action.append(actions_to_execute)
             previous_action.pop(0)
             # print('Previous actions : ' + str(previous_action), file=sys.stderr, flush=True)
@@ -134,7 +134,7 @@ class MasterAgent:
             print('Server response : ' + str(valid), file=sys.stderr, flush=True)
 
             # 'agents_with_conflit': List of agents which cannot execute their actions (e.g [agt0, agt1, agt6])
-            agents_with_conflit = [i for i in range(len(valid)) if valid[i]=='false']  
+            agents_with_conflit = [i for i in range(len(valid)) if valid[i]=='false']
 
             # If 'agents_with_conflit' not empty then solve conflict
             if agents_with_conflit != []:
@@ -143,7 +143,8 @@ class MasterAgent:
             # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
             # Change x parameter in order to solve in less states
             if nb_iter % 10 == 0:
-                self.agents[1].plan(self.currentState)
+                for agent in self.agents:
+                    agent.plan(self.currentState)
 
     def getNextJointAction(self):
         # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
@@ -151,7 +152,7 @@ class MasterAgent:
         for i, agt in enumerate(self.agents):
             # If there are still actions in current plan pop the first action and
             if agt.current_plan != []:
-                joint_action[i] = agt.current_plan.pop(0)      
+                joint_action[i] = agt.current_plan.pop(0)
             # print(joint_action, file=sys.stderr, flush=True)
         return joint_action
 
@@ -160,7 +161,7 @@ class MasterAgent:
         print('\n************* Solve conflict ***************************************\n', file=sys.stderr, flush=True)
         # print('actions : ' + str(actions), file=sys.stderr, flush=True)
 
-        # Return list of conflicting agents                                                    
+        # Return list of conflicting agents
         conflicting_agents = self.getConflictingAgents(agents_with_conflit, actions, previous_action)
 
         print('\nFINAL OUTPUT conflicting_agents : ' + str(conflicting_agents), file=sys.stderr, flush=True)
@@ -173,7 +174,7 @@ class MasterAgent:
         conflicting_agents = self.removeViceVersaConflicts(conflicting_agents)
 
         print('\nRemoving vice-versa conflicts : ' + str(conflicting_agents), file=sys.stderr, flush=True)
-      
+
         for conflict in conflicting_agents:
             # Prioritize first agent:  [1st agent, 2nd agent]
             priority_agent = conflict[0]   # 1st agent in conflict
@@ -230,7 +231,7 @@ class MasterAgent:
         return conflicting_agents
 
     '''
-    Return's "conflicting_agents": which is a list containing pairs of agents: 
+    Return's "conflicting_agents": which is a list containing pairs of agents:
 
     "[[0, x], [1, x], [2, x],...,[n, x]]"
 
@@ -238,7 +239,7 @@ class MasterAgent:
 
     '''
     def getConflictingAgents(self, agents_with_conflit, actions, previous_action):
-        
+
         conflicting_agents = []
         # goes through agents with a conflit
         for current_agent in agents_with_conflit:
@@ -246,7 +247,7 @@ class MasterAgent:
             # get preconditions
             action_of_current_agent = actions[current_agent]
             preconditions_of_current_agent = action_of_current_agent['action'].preconditions(*action_of_current_agent['params'])
-            
+
             # get unmet_preconditions
             unmet_preconditions = []
             for atom in preconditions_of_current_agent:
@@ -256,7 +257,7 @@ class MasterAgent:
             # print('\nagent[' + str(current_agent) +'] preconditions of current agent : ', file=sys.stderr, flush=True)
             # for i in range(len(preconditions_of_current_agent)):
             #     print(str(preconditions_of_current_agent[i]), file=sys.stderr, flush=True)
-            
+
             # print('\nagent[' + str(current_agent) +'] unmet preconditions : ', file=sys.stderr, flush=True)
             # for i in range(len(unmet_preconditions)):
             #     print(str(unmet_preconditions[i]), file=sys.stderr, flush=True)
@@ -266,14 +267,14 @@ class MasterAgent:
                 if int(agent.name) != current_agent:
 
                     # get agent's previous action
-                    prev_action_of_agent = previous_action[0][int(agent.name)] 
-                    
+                    prev_action_of_agent = previous_action[0][int(agent.name)]
+
                     if prev_action_of_agent != 'NoOp':  # solves TypeError: string indices must be integers
                         negative_effects_of_agent = prev_action_of_agent['action'].negative_effects(*prev_action_of_agent['params'])
-                        
+
                         # print('\nagent[' + agent.name + '] Previous actions: ' + str(prev_action_of_agent['message']), file = sys.stderr, flush = True)
 
-                    else:   
+                    else:
                         agent_location = self.currentState.findAgent(agent.name)
 
                         print('\n Find Agent : ' + str(agent_location), file=sys.stderr, flush=True)
@@ -283,7 +284,7 @@ class MasterAgent:
 
                         print('\n TEST2 : ' + str(negative_effects_Atom),
                               file=sys.stderr, flush=True)
-                        
+
                         if str(negative_effects_Atom) == str(unmet_preconditions[0]):
                             print('\n EQUAL', file=sys.stderr, flush=True)
 
@@ -294,10 +295,10 @@ class MasterAgent:
                         # print('\nagent[' + agent.name + '] preconditions of prev action : ', file=sys.stderr, flush=True)
                         # for i in range(len(preconditions_of_prev_action)):
                         #     print(str(preconditions_of_prev_action[i]), file=sys.stderr, flush=True)
-                        
-                        # get x and y location 
+
+                        # get x and y location
                         # prev_action_of_agent['action'].precondition(*prev_action_of_agent['params'])
-                        
+
 
                         print('\nagent[' + agent.name + '] Previous actions: ' + str(prev_action_of_agent), file=sys.stderr, flush=True)
 
@@ -321,10 +322,10 @@ class MasterAgent:
                             print('\n+++++++++++++++++++++++++++', file=sys.stderr, flush=True)
 
                         # just for the sake of the print statement (should be removed)
-                        elif atoms not in negative_effects_of_agent:       
+                        elif atoms not in negative_effects_of_agent:
                             print('\nNO CONFLICT', file=sys.stderr, flush=True)
                             print('\n+++++++++++++++++++++++++++', file=sys.stderr, flush=True)
-                            
+
         return conflicting_agents
 
 
@@ -364,7 +365,7 @@ class MasterAgent:
 
         for i, answer in enumerate(server_answer):
             if answer == 'true':
-                #if jointAction[i]['action'].name != 'NoOp': 
+                #if jointAction[i]['action'].name != 'NoOp':
                 if jointAction[i] != 'NoOp':
                     jointAction[i]['action'].execute(self.currentState, jointAction[i]['params'])
 
