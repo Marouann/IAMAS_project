@@ -19,6 +19,7 @@ class State:
         self.rigid_atoms = rigid_atoms
         self.parent = parent
         self.last_action = last_action
+        self.distances = KnowledgeBase()
 
         self.cost = cost
         self.h_cost = h_cost  # cost based on heuristics
@@ -37,7 +38,7 @@ class State:
         else:
             return False
 
-    def find_neighbours(self, coords):
+    def find_neighbours(self, coords: ('int', 'int')):
         neighbours = set()
         for atom in self.rigid_atoms:
             if atom.name == 'Neighbour' and atom.variables[0] == coords:
@@ -45,6 +46,9 @@ class State:
 
         return neighbours
 
+    def find_distance(self, start: ('int', 'int'), end:('int', 'int')):
+        if DynamicAtom('Distance', start, end) in self.distances:
+            return  1
     def find_box(self, position):
         for atom in self.atoms:
             if atom.name == "BoxAt" and atom.variables[1] == position:
@@ -61,7 +65,7 @@ class State:
             if atom.name == "AgentAt" and atom.variables[0] == agt:
                 return atom.variables[1]
 
-    def getUnmetGoals(self):
+    def get_unmet_goals(self):
         metGoals = []
         unmetGoals = []
         for goal in self.goals:
@@ -119,6 +123,7 @@ class State:
         state_str = "State " + self.name + "\n"
         state_str += str(self.rigid_atoms)
         state_str += str(self.atoms)
+        state_str += str(self.distances)
 
         return (state_str)
 

@@ -8,9 +8,9 @@
 # The free cells : Atom('Free', [(x, y)])
 
 
-
 class Atom:
     """" Data Structure to keep a logical representation of the State"""
+
     def __init__(self, name: 'str', *variables):
         self.name = name
         self.variables = variables
@@ -33,7 +33,11 @@ class Atom:
         """" Defines the hashing function for the Atom Object"""
         return int(hash(self.name) + hash(self.variables))
 
-class DistanceAtom(Atom):
-    def __init__(self, name: 'str', distance,*variables):
-        super().__init__(name, *variables)
-        self.distance = distance
+
+class DynamicAtom(Atom):
+    def __init__(self, name: 'str', *variables):
+        self.properties = None
+        super(Atom).__init__(name, *variables)
+
+    def assign_property(self, *properties):
+        self.properties = properties

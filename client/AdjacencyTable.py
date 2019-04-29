@@ -1,6 +1,6 @@
 from state import State
 import numpy as np
-from atom import Atom, DistanceAtom
+from atom import Atom, DynamicAtom
 from knowledgeBase import KnowledgeBase
 from heapq import heapify, heappush, heappop
 
@@ -33,5 +33,7 @@ def level_adjacency(state: 'State', row: 'int', col: 'int'):
                 for c1 in range(col):
                     distance = distance_calculator((r, c), (r1, c1))
                     if distance > 0 and not (r == r1 and c == c1):
-                        adjacency.update(Atom('Distance', (r, c), (r1, c1), distance))
+                        atom = DynamicAtom('Distance', (r, c), (r1, c1))
+                        atom.assign_property(distance)
+                        adjacency.update(atom)
     return adjacency

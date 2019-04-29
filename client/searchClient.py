@@ -10,6 +10,7 @@ from action import *
 from knowledgeBase import KnowledgeBase
 from getLevel import getLevel
 from masterAgent import *
+from AdjacencyTable import *
 
 
 class SearchClient:
@@ -20,6 +21,7 @@ class SearchClient:
 
         # We get the level information from the incoming stream.
         level = getLevel(server_messages)
+        level['initial_state'].distances = level_adjacency(level['initial_state'], 12, 7)
         self.domain = level['domain']
         self.levelName = level['levelName']
 

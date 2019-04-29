@@ -4,6 +4,7 @@ import sys
 from state import State
 from atom import Atom
 from knowledgeBase import KnowledgeBase
+from AdjacencyTable import *
 
 def getLevel(server_messages):
     initial_state = None
@@ -113,7 +114,6 @@ def getLevel(server_messages):
                                 rigidAtoms.update(Atom('Neighbour', (row, col), (row, col - 1)))
                                 rigidAtoms.update(Atom('Neighbour', (row, col - 1), (row, col)))
 
-
                 row += 1
 
             if goal:
@@ -135,6 +135,7 @@ def getLevel(server_messages):
 
             previousLine = line
             line = server_messages.readline().rstrip()
+
 
     except Exception as ex:
         print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)

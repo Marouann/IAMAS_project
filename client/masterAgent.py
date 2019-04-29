@@ -14,7 +14,6 @@ from getLevel import getLevel
 class MasterAgent:
     def __init__(self, initial_state: 'State', agents: '[Agent]', boxes: '[dict]'):
         self.currentState = initial_state
-        ##print(initial_state, file=sys.stderr, flush=True)
 
         self.agents = []
         self.boxes = boxes  # List of { 'name': Box, 'letter': char, 'color': color }
@@ -56,7 +55,7 @@ class MasterAgent:
         # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))  # B goal
 
     def assignGoals(self, agentsToReplan):
-        (goalsToAssign, goalsMet) = self.currentState.getUnmetGoals()
+        (goalsToAssign, goalsMet) = self.currentState.get_unmet_goals()
         if agentsToReplan != []:
             print('\nFree agents : ' + str([agent.name for agent in agentsToReplan]), file=sys.stderr, flush=True)
             print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
@@ -149,7 +148,7 @@ class MasterAgent:
         # counter in while
         nb_iter = 0
         # stop util reached goal
-        while self.currentState.getUnmetGoals()[0] != []:
+        while self.currentState.get_unmet_goals()[0] != []:
             # First we loop over agent to free them if their goal are met
 
             # for agent in self.agents:
