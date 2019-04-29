@@ -1,7 +1,7 @@
 from collections import deque
 from state import State
 from heapq import heapify, heappush, heappop
-from Tracker import Access
+from Tracker import *
 
 from agent import *
 
@@ -51,9 +51,9 @@ class Strategy:
                     heapify(frontier)
 
     def bfs(self):
-        access = Access(self.state.find_agent(self.agent.name))
+        access = Tracker(self.state.find_agent(self.agent.name))
         access.estimate(self.state)
-        access_goal = Access( (1,1))
+        access_goal = Tracker( (1,1))
         access_goal.estimate(self.state)
         #print( access.intersection(access_goal), file=sys.stderr, flush=True)
         #print(access.check_if_reachable((3,3)), file= sys.stderr, flush=True)
@@ -100,7 +100,7 @@ class Strategy:
         frontier = list()
         heappush(frontier, self.state)
 
-        while len(frontier) > 0 and not self.goal_found:
+        while frontier and not self.goal_found:
             s = heappop(frontier)
             self.expanded.add(s)
             possible_actions = self.agent.getPossibleActions(s)

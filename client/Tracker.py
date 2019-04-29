@@ -1,5 +1,4 @@
-from atom import *
-from state import *
+from atom import Atom
 
 
 class Tracker(object):

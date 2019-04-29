@@ -7,7 +7,7 @@
 # The position of goals: Atom('GoalAt', [i, (x, y)])
 # The free cells : Atom('Free', [(x, y)])
 
-from Tracker import *
+
 
 class Atom:
     """" Data Structure to keep a logical representation of the State"""
@@ -33,6 +33,7 @@ class Atom:
         """" Defines the hashing function for the Atom Object"""
         return int(hash(self.name) + hash(self.variables))
 
-class DynamicAtom(Atom):
-    def __init__(self, name: 'str', *variables):
+class DistanceAtom(Atom):
+    def __init__(self, name: 'str', distance,*variables):
         super().__init__(name, *variables)
+        self.distance = distance
