@@ -146,5 +146,5 @@ def getLevel(server_messages):
             'levelName': levelName, 
             'agents': agents,
             'goals': goals,
-            'boxes': boxes,
+            'boxes': boxes
         }

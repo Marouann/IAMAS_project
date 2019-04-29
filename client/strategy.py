@@ -2,6 +2,7 @@ from collections import deque
 from state import State
 from heapq import heapify, heappush, heappop
 from Tracker import *
+from AdjacencyTable import *
 
 from agent import *
 
@@ -51,13 +52,14 @@ class Strategy:
                     heapify(frontier)
 
     def bfs(self):
-        access = Tracker(self.state.find_agent(self.agent.name))
-        access.estimate(self.state)
-        access_goal = Tracker( (1,1))
-        access_goal.estimate(self.state)
+        print('level', level_adjacency(self.state, 12,12), file=sys.stderr, flush=True)
+        #access = Tracker(self.state.find_agent(self.agent.name))
+        #access.estimate(self.state)
+        #access_goal = Tracker( (1,1))
+        #access_goal.estimate(self.state)
         #print( access.intersection(access_goal), file=sys.stderr, flush=True)
         #print(access.check_if_reachable((3,3)), file= sys.stderr, flush=True)
-        print(access.intersection_members(access_goal), file= sys.stderr, flush=True)
+        #print(access.intersection_members(access_goal), file= sys.stderr, flush=True)
 
         frontier = deque()
         frontier.append(self.state)
