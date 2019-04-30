@@ -15,6 +15,7 @@ class Agent:
         self.color = color
         self.current_plan = []
         self.occupied = False
+        self.status = None
 
     '''
     getPossibleActions return a list of tuple that represents the different actions the agent
@@ -85,5 +86,7 @@ class Agent:
         return possibleActions
 
     def plan(self, state: 'State'):
+        print("Agent:", self.name, file=sys.stderr)
+        print("Planning for goal:", self.goal_details, file=sys.stderr)
         strategy = Strategy(state, self)
         strategy.plan()

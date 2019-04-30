@@ -9,6 +9,7 @@ from atom import Atom
 from agent import *
 from action import *
 from knowledgeBase import KnowledgeBase
+from utils import STATUS_WAIT_REPLAN
 
 
 class MasterAgent:
@@ -143,11 +144,13 @@ class MasterAgent:
             if agents_with_conflit != []:
                 self.solveConflict(agents_with_conflit,actions_to_execute, previous_action)
 
-            # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
-            # Change x parameter in order to solve in less states
-            if nb_iter % 10 == 0:
-                for agent in self.agents:
+            # Replan for agents that have goals but no plan (i.e. status "W")
+            for agent in self.agents:
+                if agent.status == STATUS_WAIT_REPLAN:
                     agent.plan(self.currentState)
+                    if agent.current_plan != []:
+                        agent.status = None
+
 
     def getNextJointAction(self):
         # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
@@ -212,8 +215,10 @@ class MasterAgent:
                 self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
 
                 # self.agents[conflict_solver].assignGoal(keep_goal)
+                print(keep_goal, keep_goal_details, file=sys.stderr)
                 self.agents[conflict_solver].assignGoal(keep_goal, keep_goal_details)
-                self.agents[conflict_solver].current_plan = []
+                self.agents[conflict_solver].status = STATUS_WAIT_REPLAN
+
 
                 self.agents[priority_agent].current_plan = [action_of_priority_agent] + self.agents[
                     priority_agent].current_plan
@@ -224,6 +229,7 @@ class MasterAgent:
                 actionsToResolveConflicts[priority_agent] = action_of_priority_agent
 
                 self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
+
 
     '''
     Remove vice-versa conflicts:
