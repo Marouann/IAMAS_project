@@ -135,8 +135,8 @@ class MasterAgent:
 
             # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
             # Change x parameter in order to solve in less states
-            if nb_iter % 10 == 0:
-                self.agents[1].plan(self.currentState)
+            # if nb_iter % 10 == 0:
+            #     self.agents[0].plan(self.currentState)
 
     def getNextJointAction(self):
         # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
@@ -234,7 +234,7 @@ class MasterAgent:
 
         # retrieve answer from server and separate answer for specific action
         # [:-1] is only to remove the '\n' at the end of response
-        print(actions_string, file=sys.stderr, flush=True)  # print out
+        # print(actions_string, file=sys.stderr, flush=True)  # print out
         print(actions_string, flush=True)  # send to server
 
         server_answer = sys.stdin.readline()[:-1].split(";")

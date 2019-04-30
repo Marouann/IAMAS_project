@@ -5,14 +5,14 @@ from Tracker import *
 from utils import level_adjacency
 
 from agent import *
-
-from Heuristics.heuristics import GoalCount, DistanceBased
+from atom import Atom
+from Heuristics.heuristics import GoalCount, DistanceBased, AdditiveHeuristics
 import sys
 
 
 class Strategy:
-    """"Strategy class is responsible for the planning and searching strategies"""
-    def __init__(self, state: 'State', agent: 'Agent', strategy='bfs', heuristics='Distance', metrics='Manhattan'):
+
+    def __init__(self, state: 'State', agent: 'Agent', strategy='best-first', heuristics='Additive', metrics='Manhattan'):
         self.state = state
         self.agent = agent
         self.strategy = strategy
@@ -99,7 +99,10 @@ class Strategy:
             self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)
         elif self.heuristics == 'Distance':
             self.state.h_cost = DistanceBased(self.state, self.state.goals).h(self.state, self.agent, metrics=self.metrics)
-
+        elif self.heuristics == 'Additive':
+            self.state.h_cost = AdditiveHeuristics(self.state, self.state.goals).h(self.state, self.agent, self.agent.goal, set(), {})
+            print("State cost:", self.state.h_cost, file=sys.stderr)
+            sys.exit()
         frontier = list()
         heappush(frontier, self.state)
 
@@ -107,14 +110,20 @@ class Strategy:
             s = heappop(frontier)
             self.expanded.add(s)
             possible_actions = self.agent.getPossibleActions(s)
-
+            print("Number of possible actions:",len(possible_actions), file=sys.stderr)
             for action in possible_actions:
                 state_ = s.create_child(action)
-
-                if self.heuristics == 'GoalCount':
-                    state_.h_cost = GoalCount(self.state, self.state.goals).h(state_)
-                elif self.heuristics == 'Distance':
-                    state_.h_cost = DistanceBased(self.state, self.state.goals).h(state_, self.agent, metrics=self.metrics)
+                if action[0].name == 'NoOp':
+                    state_.h_cost = self.state.h_cost
+                else:
+                    if self.heuristics == 'GoalCount':
+                        state_.h_cost = GoalCount(self.state, self.state.goals).h(state_)
+                    elif self.heuristics == 'Distance':
+                        state_.h_cost = DistanceBased(self.state, self.state.goals).h(state_, self.agent, metrics=self.metrics)
+                    elif self.heuristics == 'Additive':
+                        # state_.h_cost = AdditiveHeuristics(self.state, self.state.goals).h(state_, self.agent, self.agent.goal, set())
+                        print(action[0].name, file=sys.stderr)
+                        # print(state_.h_cost, file=sys.stderr)
 
                 self.__is_goal__(self.agent, state_)
                 if not self.goal_found and not self.__is_goal__(self.agent, state_):

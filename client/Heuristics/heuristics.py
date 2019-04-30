@@ -4,6 +4,7 @@ from state import *
 from action import *
 from agent import *
 import numpy as np
+from random import shuffle
 
 
 class Heuristic(metaclass=ABCMeta):
@@ -94,100 +95,145 @@ class DistanceBased(Heuristic):
     def __repr__(self):
         pass
 
-# class AdditiveHeuristics(Heuristic):
-#     def h(self, state: 'State') -> 'int':
-#         goal_count = self.goals.len()
-#         for atom in state.atoms:
-#             if atom in self.goals: # there is no self.goals here right?
-#                 goal_count -= 1
-#         return goal_count
-#
-#     def f(self, state: 'State') -> 'int':
-#         return self.h(state) + state.cost
-#
-#     def getActions(self, state:'State', goal, agent: 'Agent'): # goal must be one atom only
-#         possibleActions = []
-#         for action in [Move, Push, Pull]:
-#             positive_effects_function = action[1] # retrieve positive effect of action
-#             args = inspect.getargspec(positive_effects_function)[0] # get list of argument of that function
-#             effects = positive_effects_function(*args)
-#             for effect in effects:
-#                 if action.name == "Move" and effect.name="AgentAt":
-#                     agt = agent.agt
-#                     agtFrom = effect.variables[1]
-#                     possibleAgtTo = findNeighbour(agtFrom)
-#                     for agtTo in possibleAgtTo:
-#                         possibleActions.append(action, (agt, agtFrom, agtTo))
-#
-#                 elif action.name == "Move" and effect.name="Free":
-#                     agt = agent.agt
-#                     agtTo = effect.variables[0]
-#                     possibleAgtFrom = findNeighbour(agtTo)
-#                     for agtFrom in possibleAgtFrom:
-#                         possibleActions.append(action, (agt, agtFrom, agtTo))
-#
-#                 elif action.name == "Push" and effect.name="AgentAt":
-#                     agt = agent.agt
-#                     boxFrom = effect.variables[1]
-#                     possibleAgtFrom = findNeighbour(boxFrom)
-#                     box = state.findBox(boxFrom)
-#                     possibleBoxTo = findNeighbour(boxFrom) # restrict somehow for no swap between agt and box
-#                     color = agent.color
-#                     for boxTo in possibleBoxTo:
-#                         for agtFrom in possibleAgtFrom
-#                             possibleActions.append(action, (agt, agtFrom, box, boxFrom, boxTo, color))
-#
-#                 elif action.name == "Push" and effect.name="Free":
-#                     agt = agent.agt
-#                     agtFrom = effect.variables[0]
-#                     possibleBoxFrom = findNeighbour(agtFrom)
-#                     box = state.findBox(boxFrom)
-#                     possibleBoxTo = findNeighbour(boxFrom)
-#                     color = agent.color
-#                     for boxFrom in possibleBoxFrom:
-#                         for boxTo in possibleBoxTo:
-#                             possibleActions.append(action, (agt, agtFrom, box, boxFrom, boxTo, color))
-#
-#                 elif action.name == "Push" and effect.name="BoxAt":
-#                     agt = agent.agt
-#                     box = effect.variables[0]
-#                     boxTo = effect.variables[1]
-#                     possibleBoxFrom = findNeighbour(boxTo)
-#                     possibleAgtFrom = findNeighbour(boxFrom)
-#                     color = agent.color
-#                     for boxFrom in possibleBoxFrom:
-#                         for agtFrom in possibleAgtFrom:
-#                             possibleActions.append(action, (agt, agtFrom, box, boxFrom, boxTo, color))
-#
-#                 elif action.name == "Pull" and effect.name="AgentAt":
-#                     agt = agent.agt
-#                     agtTo = effect.variables[1]
-#                     possibleAgtFrom = findNeighbour(agtTo)
-#                     possibleBoxFrom = findNeighbour(agtFrom)
-#                     box = state.findBox(boxFrom)
-#                     color = agent.color
-#                     for agtFrom in possibleAgtFrom:
-#                         for boxFrom in possibleBoxFrom:
-#                             possibleActions.append(action, (agt, agtFrom, agtTo, box, boxFrom, color))
-#
-#                 elif action.name == "Pull" and effect.name="Free":
-#                     agt = agent.agt
-#                     boxFrom = effect.variables[0]
-#                     possibleAgtFrom = findNeighbour(boxFrom)
-#                     possibleAgtTo = findNeighbour(agtFrom)
-#                     box = state.findBox(boxFrom)
-#                     color = agent.color
-#                     for agtFrom in possibleAgtFrom:
-#                         for agtTo in possibleAgtTo:
-#                             possibleActions.append(action, (agt, agtFrom, agtTo, box, boxFrom, color))
-#
-#                 elif action.name == "Pull" and effect.name="BoxAt":
-#                     agt = agent.agt
-#                     box = effect.variables[0]
-#                     agtFrom = effect.variables[1]
-#                     possibleAgtTo = findNeighbour(agtFrom)
-#                     possibleBoxFrom = findNeighbour(agtFrom)
-#                     color = agent.color
-#                     for agtTo in possibleAgtTo:
-#                         for boxFrom in possibleBoxFrom:
-#                             possibleActions.append(action, (agt, agtFrom, agtTo, box, boxFrom, color))
+class AdditiveHeuristics(Heuristic):
+    def h(self, initial_state: 'State', agent: 'Agent', goal:'Atom', expanded, table) -> 'int':
+        expanded.add(goal)
+        table[str(goal)] = np.inf
+        if goal in initial_state.atoms:
+            table[str(goal)] = 0
+        else:
+            actions = self.getActions(initial_state, agent, goal)
+            print("Goal", goal, file=sys.stderr)
+            print("NB possible actions:", len(actions), file=sys.stderr)
+            for a in actions:
+                print(a[0].name + str(a[1]), file=sys.stderr)
+            if actions != []:
+                precond_of_action = list(map(lambda action: action[0].preconditions(*action[1])
+                                                            , actions))
+                def recursionCall(preconditions):
+                    print("rec call", file=sys.stderr)
+                    sum = 0
+                    for p in preconditions:
+                        if p not in initial_state.rigid_atoms and p not in expanded:
+                            h = self.h(initial_state, agent, p, expanded, table)
+                            # table[str(p)] = h
+                            if h == np.inf:
+                                return h
+                            sum += h # Additive Heuristic, sum up all precond cost for one action
+                        elif p not in initial_state.rigid_atoms and p in expanded:
+                            print("atom already expanded", file=sys.stderr)
+                            sum += table[str(p)]
+                    # print("table:", str(table), file=sys.stderr)
+                    return sum
+                table[str(goal)] = 1 + min(list(map(lambda preconditions: recursionCall(preconditions), precond_of_action)))
+        # table[str(goal)] = value
+        print(table, file=sys.stderr)
+        return table[str(goal)]
+
+
+
+    def f(self, state: 'State') -> 'int':
+        return self.h(state) + state.cost
+
+    def getActions(self, state:'State', agent: 'Agent', goal): # goal must be one atom only
+        possibleActions = []
+        for action in [Move, Push]:
+            positive_effects_function = action.positive_effects # retrieve positive effect of action
+            args = inspect.getargspec(positive_effects_function)[0] # get list of argument of that function
+            effects = positive_effects_function(*args)
+            for effect in effects:
+                if effect.name == goal.name:
+
+                    if action.name == "Move" and effect.name=="AgentAt":
+                        agt = agent.name
+                        agtTo = goal.variables[1]
+                        possibleAgtFrom = state.findNeighbour(agtTo)
+                        for agtFrom in possibleAgtFrom:
+                            possibleActions.append((action, (agt, agtFrom, agtTo)))
+
+                    elif action.name == "Move" and effect.name=="Free":
+                        agt = agent.name
+                        agtFrom = goal.variables[0]
+                        possibleAgtTo = state.findNeighbour(agtFrom)
+                        for agtTo in possibleAgtTo:
+                            possibleActions.append((action, (agt, agtFrom, agtTo)))
+
+                    elif action.name == "Push" and effect.name=="AgentAt":
+                        agt = agent.name
+                        boxFrom = goal.variables[1]
+                        possibleAgtFrom = state.findNeighbour(boxFrom)
+                        possibleBoxes = state.findBoxes()
+                        possibleBoxTo = state.findNeighbour(boxFrom) # restrict somehow for no swap between agt and box
+                        color = agent.color
+                        for box in possibleBoxes:
+                            for boxTo in possibleBoxTo:
+                                for agtFrom in possibleAgtFrom:
+                                    if agtFrom != boxTo: # prevent exchange box and agent positions
+                                        possibleActions.append((action, (agt, agtFrom, box[0], boxFrom, boxTo, color)))
+
+                    elif action.name == "Push" and effect.name=="Free":
+                        agt = agent.name
+                        agtFrom = goal.variables[0]
+                        possibleBoxFrom = state.findNeighbour(agtFrom)
+                        possibleBoxes = state.findBoxes()
+                        color = agent.color
+                        for box in possibleBoxes:
+                            for boxFrom in possibleBoxFrom:
+                                possibleBoxTo = state.findNeighbour(boxFrom)
+                                for boxTo in possibleBoxTo:
+                                    if agtFrom != boxTo: # prevent exchange box and agent positions
+                                        possibleActions.append((action, (agt, agtFrom, box[0], boxFrom, boxTo, color)))
+
+                    elif action.name == "Push" and effect.name=="BoxAt":
+                        agt = agent.name
+                        box = goal.variables[0]
+                        boxTo = goal.variables[1]
+                        possibleBoxFrom = state.findNeighbour(boxTo)
+                        color = agent.color
+                        for boxFrom in possibleBoxFrom:
+                            possibleAgtFrom = state.findNeighbour(boxFrom)
+                            for agtFrom in possibleAgtFrom:
+                                if agtFrom != boxTo: # prevent exchange box and agent positions
+                                    possibleActions.append((action, (agt, agtFrom, box, boxFrom, boxTo, color)))
+
+                    elif action.name == "Pull" and effect.name=="AgentAt":
+                        agt = agent.name
+                        agtTo = goal.variables[1]
+                        possibleAgtFrom = state.findNeighbour(agtTo)
+                        possibleBoxes = state.findBoxes()
+                        color = agent.color
+                        for box in possibleBoxes:
+                            for agtFrom in possibleAgtFrom:
+                                possibleBoxFrom = state.findNeighbour(agtFrom)
+                                for boxFrom in possibleBoxFrom:
+                                    if agtTo != boxFrom: # prevent exchange box and agent positions
+                                        possibleActions.append((action, (agt, agtFrom, agtTo, box[0], boxFrom, color)))
+
+                    elif action.name == "Pull" and effect.name=="Free":
+                        agt = agent.name
+                        boxFrom = goal.variables[0]
+                        possibleAgtFrom = state.findNeighbour(boxFrom)
+                        possibleBoxes = state.findBoxes()
+                        color = agent.color
+                        for box in possibleBoxes:
+                            for agtFrom in possibleAgtFrom:
+                                possibleAgtTo = state.findNeighbour(agtFrom)
+                                for agtTo in possibleAgtTo:
+                                    if agtTo != boxFrom: # prevent exchange box and agent positions
+                                        possibleActions.append((action, (agt, agtFrom, agtTo, box[0], boxFrom, color)))
+
+                    elif action.name == "Pull" and effect.name=="BoxAt":
+                        agt = agent.name
+                        box = goal.variables[0]
+                        agtFrom = goal.variables[1]
+                        possibleAgtTo = state.findNeighbour(agtFrom)
+                        possibleBoxFrom = state.findNeighbour(agtFrom)
+                        color = agent.color
+                        for agtTo in possibleAgtTo:
+                            for boxFrom in possibleBoxFrom:
+                                if agtTo != boxFrom: # prevent exchange box and agent positions
+                                    possibleActions.append((action, (agt, agtFrom, agtTo, box, boxFrom, color)))
+        # shuffle(possibleActions)
+        return possibleActions
+    def __repr__(self):
+        pass
