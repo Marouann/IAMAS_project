@@ -75,5 +75,5 @@ NoOp = Action(
     'NoOp',
     lambda agt, agtFrom: [Atom('AgentAt', agt, agtFrom)],
     lambda agt, agtFrom: [Atom('AgentAt', agt, agtFrom)],
-    lambda agt, agtFrom: [Atom('AgentAt', agt, agtFrom), Atom('Free', agtFrom)],
+    lambda agt, agtFrom: [Atom('Free', agtFrom)],
 )
