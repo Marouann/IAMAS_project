@@ -1,39 +1,39 @@
 from state import State
-import numpy as np
-from atom import Atom, DynamicAtom
+from atom import DynamicAtom
 from knowledgeBase import KnowledgeBase
 from heapq import heapify, heappush, heappop
 
 
-def level_adjacency(state: 'State', row: 'int', col: 'int'):
+def level_adjacency(state: 'State', row: 'int', col: 'int') -> 'KnowledgeBase':
     '''Calculates real distances between cells in a level'''
-    def distance_calculator(start: ('int', 'int'), end: ('int', 'int')) -> 'int':
+    def distance_calculator(coord: ('int', 'int')):
         frontier = list()
         explored = set()
-        for neighbour in state.find_neighbours(start):
+        memory = list()
+        for neighbour in state.find_neighbours(coord):
             heappush(frontier, (1, neighbour))
 
         while frontier:
+            heapify(frontier)
             current = heappop(frontier)
             explored.add(current[1])
-            if current[1] == end:
-                return current[0]
-            elif state.find_neighbours(current[1]):
+            memory.append(current)
+
+            if state.find_neighbours(current[1]):
                 for neighbour in state.find_neighbours(current[1]):
                     if neighbour not in explored:
                         heappush(frontier, (current[0] + 1, neighbour))
                         explored.add(neighbour)
-                heapify(frontier)
-        return -1 ##if none is found it returns negative value
+                        memory.append((current[0] + 1, neighbour))
+        return memory
 
     adjacency = KnowledgeBase('Real Distances')
+
     for r in range(row):
         for c in range(col):
-            for r1 in range(row):
-                for c1 in range(col):
-                    distance = distance_calculator((r, c), (r1, c1))
-                    if distance > 0 and not (r == r1 and c == c1):
-                        atom = DynamicAtom('Distance', (r, c), (r1, c1))
-                        atom.assign_property(distance)
-                        adjacency.update(atom)
+            result = distance_calculator((r, c))
+            for distance, cell in result:
+                atom = DynamicAtom('Distance', (r, c), cell, )
+                atom.assign_property(distance)
+                adjacency.update(atom)
     return adjacency
