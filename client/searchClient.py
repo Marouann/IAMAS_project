@@ -1,15 +1,7 @@
 import argparse
-import re
 import sys
-import numpy as np
-
-from state import State
-from atom import Atom
-from agent import Agent
-from action import *
-from knowledgeBase import KnowledgeBase
-from getLevel import getLevel
 from masterAgent import *
+from utils import level_adjacency, get_level
 
 
 class SearchClient:
@@ -19,7 +11,9 @@ class SearchClient:
         self.masterAgent = None
 
         # We get the level information from the incoming stream.
-        level = getLevel(server_messages)
+        level = get_level(server_messages)
+        #print(level['initial_state'])
+        level['initial_state'].rigid_atoms += level_adjacency(level['initial_state'], 30, 30) ## state, max rows and max cols in level
         self.domain = level['domain']
         self.levelName = level['levelName']
 
@@ -32,7 +26,6 @@ def main():
     print('Best group', flush=True)
     # Read server messages from stdin.
     server_messages = sys.stdin
-    #server_messages = open('../MAMoreGoalsSameColor.lvl')
 
     # Use stderr to print to console through server.
     print('SearchClient initializing. I am sending this using the error output stream.', file=sys.stderr, flush=True)

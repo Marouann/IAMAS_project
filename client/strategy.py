@@ -1,6 +1,8 @@
 from collections import deque
 from state import State
 from heapq import heapify, heappush, heappop
+from Tracker import *
+from utils import level_adjacency
 
 from agent import *
 
@@ -9,8 +11,8 @@ import sys
 
 
 class Strategy:
-
-    def __init__(self, state: 'State', agent: 'Agent', strategy='astar', heuristics='Distance', metrics='Manhattan'):
+    """"Strategy class is responsible for the planning and searching strategies"""
+    def __init__(self, state: 'State', agent: 'Agent', strategy='bfs', heuristics='Distance', metrics='Manhattan'):
         self.state = state
         self.agent = agent
         self.strategy = strategy
@@ -18,7 +20,6 @@ class Strategy:
         self.metrics = metrics
         self.goal_found = False
 
-        # self.explored_states = set() #stores visited states
         self.expanded = set()  # stores expanded states
 
     def plan(self):
@@ -51,6 +52,16 @@ class Strategy:
                     heapify(frontier)
 
     def bfs(self):
+       # print('level', level_adjacency(self.state, 12,12), file=sys.stderr, flush=True)
+        print(self.state.find_distance((1,2), (5,6)), file=sys.stderr, flush=True)
+        #access = Tracker(self.state.find_agent(self.agent.name))
+        #access.estimate(self.state)
+        #access_goal = Tracker( (1,1))
+        #access_goal.estimate(self.state)
+        #print( access.intersection(access_goal), file=sys.stderr, flush=True)
+        #print(access.check_if_reachable((3,3)), file= sys.stderr, flush=True)
+        #print(access.intersection_members(access_goal), file= sys.stderr, flush=True)
+
         frontier = deque()
         frontier.append(self.state)
 
@@ -92,7 +103,7 @@ class Strategy:
         frontier = list()
         heappush(frontier, self.state)
 
-        while len(frontier) > 0 and not self.goal_found:
+        while frontier and not self.goal_found:
             s = heappop(frontier)
             self.expanded.add(s)
             possible_actions = self.agent.getPossibleActions(s)

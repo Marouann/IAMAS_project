@@ -8,53 +8,23 @@ from atom import Atom
 from agent import *
 from action import *
 from knowledgeBase import KnowledgeBase
-from getLevel import getLevel
 
 
 class MasterAgent:
     def __init__(self, initial_state: 'State', agents: '[Agent]', boxes: '[dict]'):
         self.currentState = initial_state
+
         self.agents = []
         self.boxes = boxes  # List of { 'name': Box, 'letter': char, 'color': color }
         self.goalsInAction = []
 
         for agt in sorted(agents, key=lambda k: k['name']):
-            agtAt = initial_state.findAgent(agt['name'])
+            agtAt = initial_state.find_agent(agt['name'])
             agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull, NoOp], agt['color'])
             self.agents.append(agent)
 
-        # Here we need to assign the first goals to the agent
-
-        # SAExample goal POSITIONS (Use SA.lvl)
-
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 1)))
-
-        # BFSLEVEL goal POSITIONS (Use BFStest.lvl)
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 4)))
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))
-
-        # BFSLEVEL with conflict goal POSITIONS (Use BFStestConflict.lvl)
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 4)))
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5,1)))
-
-        # NO CONFLICT (Use MAExample.lvl)
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (5, 1)))
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (1,10)))
-
-        # CONFLICT with two agents (Use MAExample.lvl)
-
-        # CONFLICT with two agents and two boxes (Use MAConflictExample.lvl)
-
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 10)) # A goal
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))  # B goal
-
-        # CONFLICT with two agents and two boxes (Use MAImpardist.lvl)
-
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 10)))  # A goal
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))  # B goal
-
     def assignGoals(self, agentsToReplan):
-        (goalsToAssign, goalsMet) = self.currentState.getUnmetGoals()
+        (goalsToAssign, goalsMet) = self.currentState.get_unmet_goals()
         if agentsToReplan != []:
             print('\nFree agents : ' + str([agent.name for agent in agentsToReplan]), file=sys.stderr, flush=True)
             print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
@@ -64,7 +34,7 @@ class MasterAgent:
         boxesHandled = []
         # Boxes already placed on the goal
         for goal in goalsMet:
-            boxOnGoal = self.currentState.findBox(goal['position'])
+            boxOnGoal = self.currentState.find_box(goal['position'])
             boxesHandled.append(boxOnGoal.variables[0])
 
         # Boxes that are currently hadnled by agents
@@ -118,7 +88,7 @@ class MasterAgent:
                             box = prioritizedBoxes.pop(0)
                             boxAlreadyPlaced = False
                             for goalmet in goalsMet:
-                                boxPlaced = self.currentState.findBox(goalmet['position'])
+                                boxPlaced = self.currentState.find_box(goalmet['position'])
                                 if boxPlaced.variables[0] == box['name']:
                                     boxAlreadyPlaced = True
 
@@ -142,7 +112,7 @@ class MasterAgent:
         # counter in while
         nb_iter = 0
         # stop util reached goal
-        while self.currentState.getUnmetGoals()[0] != []:
+        while self.currentState.get_unmet_goals()[0] != []:
             # First we loop over agent to free them if their goal are met
 
             self.assignGoals([agent for agent in self.agents if agent.occupied == False])
