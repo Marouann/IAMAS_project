@@ -1,0 +1,21 @@
+#domain
+hospital
+#levelname
+SAGoalPriority
+#colors
+red: 0, A, B, C, D, E, F
+#initial
+++++++++++++
++  0       +
++ +     A  +
++ D E      +
++  F    C+ +
+++++++++++++
+#goal
+++++++++++++
++       FDA+
++ +       E+
++          +
++        +C+
+++++++++++++
+#end

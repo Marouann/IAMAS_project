@@ -1,11 +1,46 @@
-
 import sys
-
 from state import State
-from atom import Atom
+from atom import Atom, DynamicAtom
 from knowledgeBase import KnowledgeBase
+from heapq import heapify, heappush, heappop
 
-def getLevel(server_messages):
+
+def level_adjacency(state: 'State', row: 'int', col: 'int') -> 'KnowledgeBase':
+    '''Calculates real distances between cells in a level'''
+    def distance_calculator(coord: ('int', 'int')):
+        frontier = list()
+        explored = set()
+        memory = list()
+        for neighbour in state.find_neighbours(coord):
+            heappush(frontier, (1, neighbour))
+
+        while frontier:
+            heapify(frontier)
+            current = heappop(frontier)
+            explored.add(current[1])
+            memory.append(current)
+
+            if state.find_neighbours(current[1]):
+                for neighbour in state.find_neighbours(current[1]):
+                    if neighbour not in explored:
+                        heappush(frontier, (current[0] + 1, neighbour))
+                        explored.add(neighbour)
+                        memory.append((current[0] + 1, neighbour))
+        return memory
+
+    adjacency = KnowledgeBase('Real Distances')
+    for r in range(row):
+        for c in range(col):
+            result = distance_calculator((r, c))
+            for distance, cell in result:
+                atom = DynamicAtom('Distance', (r, c), cell, )
+                atom.assign_property(distance)
+                adjacency.update(atom)
+
+    return adjacency
+
+
+def get_level(server_messages):
     initial_state = None
     domain = None
     levelName = None
@@ -33,7 +68,7 @@ def getLevel(server_messages):
         while line != "#end":
             if line == '#domain':
                 line = server_messages.readline().rstrip()
-                domain= line
+                domain = line
             elif line == "#levelname":
                 line = server_messages.readline().rstrip()
                 levelName = line
@@ -69,7 +104,7 @@ def getLevel(server_messages):
             if initial:
                 for col, char in enumerate(line):
                     if char == '+':
-                        a=1
+                        a = 1
                     elif char in "0123456789":
                         AgentAt = Atom('AgentAt', char, (row, col))
                         atoms.update(AgentAt)
@@ -77,7 +112,7 @@ def getLevel(server_messages):
                         Color = Atom('Color', char, boxColors[char])
                         rigidAtoms.update(Color)
 
-                        agents.append({ 'name': char, 'color': boxColors[char] })
+                        agents.append({'name': char, 'color': boxColors[char]})
 
                     elif char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
                         Box = 'B' + str(currentBox)
@@ -91,7 +126,7 @@ def getLevel(server_messages):
                         BoxAt = Atom('BoxAt', Box, (row, col))
                         atoms.update(BoxAt)
 
-                        boxes.append({ 'name': Box, 'letter': char, 'color': boxColors[char]})
+                        boxes.append({'name': Box, 'letter': char, 'color': boxColors[char]})
 
                         currentBox += 1
                     elif char == ' ':
@@ -113,7 +148,6 @@ def getLevel(server_messages):
                                 rigidAtoms.update(Atom('Neighbour', (row, col), (row, col - 1)))
                                 rigidAtoms.update(Atom('Neighbour', (row, col - 1), (row, col)))
 
-
                 row += 1
 
             if goal:
@@ -127,7 +161,7 @@ def getLevel(server_messages):
                         GoalAt = Atom('GoalAt', Goal, (row, col))
                         rigidAtoms.update(GoalAt)
 
-                        goals.append({ 'name': Goal, 'position': (row, col), 'letter': char })
+                        goals.append({'name': Goal, 'position': (row, col), 'letter': char})
 
                         currentGoal += 1
 
@@ -136,15 +170,16 @@ def getLevel(server_messages):
             previousLine = line
             line = server_messages.readline().rstrip()
 
+
     except Exception as ex:
         print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)
         sys.exit(1)
 
     return {
-            'initial_state': State('s0', goals, atoms, rigidAtoms),
-            'domain': domain,
-            'levelName': levelName, 
-            'agents': agents,
-            'goals': goals,
-            'boxes': boxes,
-        }
+        'initial_state': State('s0', goals, atoms, rigidAtoms),
+        'domain': domain,
+        'levelName': levelName,
+        'agents': agents,
+        'goals': goals,
+        'boxes': boxes
+    }

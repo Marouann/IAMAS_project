@@ -9,23 +9,23 @@ from atom import Atom
 from agent import *
 from action import *
 from knowledgeBase import KnowledgeBase
-from getLevel import getLevel
 
 
 class MasterAgent:
     def __init__(self, initial_state: 'State', agents: '[Agent]', boxes: '[dict]'):
         self.currentState = initial_state
+
         self.agents = []
         self.boxes = boxes  # List of { 'name': Box, 'letter': char, 'color': color }
         self.goalsInAction = []
 
         for agt in sorted(agents, key=lambda k: k['name']):
-            agtAt = initial_state.findAgent(agt['name'])
+            agtAt = initial_state.find_agent(agt['name'])
             agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull, NoOp], agt['color'])
             self.agents.append(agent)
 
     def assignGoals(self, agentsToReplan):
-        (goalsToAssign, goalsMet) = self.currentState.getUnmetGoals()
+        (goalsToAssign, goalsMet) = self.currentState.get_unmet_goals()
         if agentsToReplan != []:
             print('\nFree agents : ' + str([agent.name for agent in agentsToReplan]), file=sys.stderr, flush=True)
             print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
@@ -35,7 +35,7 @@ class MasterAgent:
         boxesHandled = []
         # Boxes already placed on the goal
         for goal in goalsMet:
-            boxOnGoal = self.currentState.findBox(goal['position'])
+            boxOnGoal = self.currentState.find_box(goal['position'])
             boxesHandled.append(boxOnGoal.variables[0])
 
         # Boxes that are currently hadnled by agents
@@ -55,9 +55,9 @@ class MasterAgent:
             if goal in goalsToAssign:
                 goalsToAssign.remove(goal)
 
-        # print('Agents to replan:',agentsToReplan, file=sys.stderr)
-        if goalsToAssign != []:
+        prioritizedGoals = self.prioritizeGoals(goalsToAssign)
 
+        if prioritizedGoals != []:
             for agent in agentsToReplan:
                 if agent.current_plan != []:
 
@@ -66,8 +66,8 @@ class MasterAgent:
                     print('Agent', agent.name, 'has no plan!', file=sys.stderr, flush=True)
                 # print(agent.occupied, file=sys.stderr)
                 if agent.occupied == False:
-                    # print('Agent', agent.name, 'is not occupied!', file=sys.stderr, flush=True)
-                    for goal in goalsToAssign:
+                    print('Agent', agent.name, 'is not occupied!', file=sys.stderr, flush=True)
+                    for goal in prioritizedGoals:
                         if agent.goal is not None:
                             # print('Agent already has a goal, continue: ' + str(goal), file=sys.stderr, flush=True)
                             continue
@@ -81,12 +81,15 @@ class MasterAgent:
                                     box['name'] not in boxesHandled:
                                 possibleBoxes.append(box)
                         # print('Possible boxes:', possibleBoxes, file=sys.stderr)
+
+                        prioritizedBoxes = sorted (possibleBoxes,
+                                                   key=lambda x: self.currentState.find_box_goal_distance(x["name"], goal))
                         goalNotAssigned = True
-                        while goalNotAssigned and possibleBoxes != []:
-                            box = possibleBoxes.pop()
+                        while goalNotAssigned and prioritizedBoxes != []:
+                            box = prioritizedBoxes.pop(0)
                             boxAlreadyPlaced = False
                             for goalmet in goalsMet:
-                                boxPlaced = self.currentState.findBox(goalmet['position'])
+                                boxPlaced = self.currentState.find_box(goalmet['position'])
                                 if boxPlaced.variables[0] == box['name']:
                                     boxAlreadyPlaced = True
 
@@ -114,7 +117,7 @@ class MasterAgent:
         # counter in while
         nb_iter = 0
         # stop util reached goal
-        while self.currentState.getUnmetGoals()[0] != []:
+        while self.currentState.get_unmet_goals()[0] != []:
             # First we loop over agent to free them if their goal are met
 
             self.assignGoals([agent for agent in self.agents if agent.occupied == False])
@@ -156,6 +159,13 @@ class MasterAgent:
             # print(joint_action, file=sys.stderr, flush=True)
         return joint_action
 
+    def prioritizeGoals(self, goals):
+        # Sort goals 1st by number of free neighbour fields, then by number of neighbour goals)
+        sortedGoals = sorted(goals,
+                                key=lambda x: (self.currentState.getNeithbourFieldsWithoutGoals(x["position"]).__len__(),
+                                self.currentState.getNeithbourGoals(x["position"]).__len__()))
+
+        return sortedGoals
 
     def solveConflict(self, agents_with_conflit, actions, previous_action):
         print('\n************* Solve conflict ***************************************\n', file=sys.stderr, flush=True)

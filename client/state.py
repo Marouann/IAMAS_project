@@ -1,4 +1,5 @@
 import sys
+import math
 from knowledgeBase import KnowledgeBase
 from atom import *
 
@@ -11,7 +12,7 @@ class State:
                  cost=0,
                  h_cost=0,
                  parent=None,
-                 last_action=  {'action': 'NoOp', 'params': [], 'message': []}
+                 last_action={'action': 'NoOp', 'params': [], 'message': [], 'priority': 0}
                  ):
         self.name = name
         self.goals = goals
@@ -23,62 +24,107 @@ class State:
         self.cost = cost
         self.h_cost = h_cost  # cost based on heuristics
 
-    def removeAtom(self, atom: 'Atom'):
-        # if atom not in s then do nothing
-        try:
-            self.atoms.delete(atom)
-        except ValueError:
-            pass
+    def remove_atom(self, atom: 'Atom'):
+        self.atoms.delete(atom)
 
-    def addAtom(self, atom: 'Atom'):
+    def add_atom(self, atom: 'Atom'):
         self.atoms.update(atom)
 
-    # def __len__(self):
-    #     return self.atoms.kb.length
+    def contain(self, atom: 'Atom') -> 'bool':
+        if atom in self.atoms:
+            return True
+        elif atom in self.rigid_atoms:
+            return True
+        else:
+            return False
 
-    def __eq__(self, other: 'State'):
-        return self.atoms == other.atoms  # and self.parent == other.parent and self.last_action == other.last_action
+    def find_neighbours(self, coords: ('int', 'int')):
+        neighbours = set()
+        for atom in self.rigid_atoms:
+            if atom.name == 'Neighbour' and atom.variables[0] == coords:
+                neighbours.add(atom.variables[1])
 
-    def __str__(self):
-        state_str = "State " + self.name + "\n"
+        return neighbours
 
-        state_str += str(self.rigid_atoms)
+    def find_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
+        if DynamicAtom('Distance', start, end) in self.rigid_atoms:
+            return self.rigid_atoms[DynamicAtom('Distance', start, end)].property()[0]
+        return -1
 
-        state_str += str(self.atoms)
+    def check_if_connected(self, start: ('int', 'int'), end: ('int', 'int')) -> 'bool':
+        return DynamicAtom('Distance', start, end) in self.rigid_atoms
 
-        return (state_str)
-
-    def findBox(self, position):
+    def find_box(self, position):  #### WHAT DOES IT DO ??
         for atom in self.atoms:
             if atom.name == "BoxAt" and atom.variables[1] == position:
                 return atom
         return False
 
-    def findBoxLetter(self, boxName):
+    def find_box_goal_distance(self, name: 'str', goal):
+        boxAtom = Atom
+        for atom in self.atoms:
+            if atom.name == "BoxAt" and atom.variables[0] == name:
+                boxAtom = atom
+                break
+        distance = self.find_distance(boxAtom.variables[1], goal["position"])
+        return distance
+
+    def find_box_letter(self, box_name):  ##### WHAT DOES IT DO?
         for atom in self.rigid_atoms:
-            if atom.name == "Letter" and atom.variables[0] == boxName:
+            if atom.name == "Letter" and atom.variables[0] == box_name:
                 return atom
 
-    def findAgent(self, agt):
+    def find_agent(self, agt: 'str'):
         for atom in self.atoms:
             if atom.name == "AgentAt" and atom.variables[0] == agt:
                 return atom.variables[1]
 
-    def getUnmetGoals(self):
+    def get_unmet_goals(self):
         metGoals = []
         unmetGoals = []
         for goal in self.goals:
-            box = self.findBox(goal['position'])
+            box = self.find_box(goal['position'])
             if False == box:
                 unmetGoals.append(goal)
             else:
-                boxLetter = self.findBoxLetter(box.variables[0])
+                boxLetter = self.find_box_letter(box.variables[0])
                 letter = boxLetter.variables[1]
                 if letter != goal['letter']:
                     unmetGoals.append(goal)
                 else:
                     metGoals.append(goal)
         return [unmetGoals, metGoals]
+
+    def getNeithbourGoals(self, position):
+        neighbourLocations = []
+        for atom in self.rigid_atoms:
+            if atom.name == "Neighbour" and position == atom.variables[0]:
+                neighbourLocations.append(atom.variables[1])
+
+        neighbourGoals = []
+        for atom in self.rigid_atoms:
+            if atom.name == "GoalAt":
+                for location in neighbourLocations:
+                    if location == atom.variables[1]:
+                        neighbourGoals.append(atom)
+
+        return neighbourGoals
+
+    def getNeithbourFieldsWithoutGoals(self, position):
+        neighbourLocations = []
+        for atom in self.rigid_atoms:
+            if atom.name == "Neighbour" and position == atom.variables[0]:
+                neighbourLocations.append(atom.variables[1])
+
+        result = neighbourLocations
+
+        for atom in self.rigid_atoms:
+            if atom.name == "GoalAt":
+                for location in neighbourLocations:
+                    if location == atom.variables[1]:
+                        result.remove(location)
+
+        return result
 
     def copy(self):
         atoms_copy = KnowledgeBase("Atoms")
@@ -101,19 +147,31 @@ class State:
                       parent=self,
                       cost=self.cost + cost,
                       h_cost=h_cost)
-        state.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
-        #print(action,file=sys.stderr, flush=True)
+        state.last_action = {'action': action[0], 'params': action[1], 'message': action[2], 'priority': action[4]}
+        # print(action,file=sys.stderr, flush=True)
         action[0].execute(state, action[1])
         return state
-
-    def __total_cost__(self) -> 'int':
-        return self.cost + self.h_cost
 
     def atoms(self):
         return self.atoms + self.rigid_atoms
 
+    ############################
+    ##Private or implicit methods
+
+    def __total_cost__(self) -> 'int':
+        return (self.cost + self.h_cost, self.last_action['priority'])
+
+    def __eq__(self, other: 'State'):
+        return self.atoms == other.atoms  # and self.parent == other.parent and self.last_action == other.last_action
+
+    def __str__(self):
+        state_str = "State " + self.name + "\n"
+        state_str += str(self.rigid_atoms)
+        state_str += str(self.atoms)
+
+        return (state_str)
+
     def __hash__(self):
-        #print(self.last_action)
         return hash(self.atoms)
 
     def __cmp__(self, other: 'State'):
