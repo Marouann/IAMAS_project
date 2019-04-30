@@ -2,6 +2,8 @@ import argparse
 import sys
 from masterAgent import *
 from utils import level_adjacency, get_level
+from Multi import *
+import time
 
 
 class SearchClient:
@@ -13,7 +15,17 @@ class SearchClient:
         # We get the level information from the incoming stream.
         level = get_level(server_messages)
         #print(level['initial_state'])
-        level['initial_state'].rigid_atoms += level_adjacency(level['initial_state'], 30, 30) ## state, max rows and max cols in level
+        #print(level['initial_state'])
+        start_time = time.time()
+        level_adjacency(level['initial_state'])
+        #level['initial_state'].rigid_atoms += multiprocess_adjacency(level['initial_state']) ## state, max rows and max cols in level
+        print('That took {} seconds for normal'.format(time.time() - start_time), file=sys.stderr, flush=True)
+
+        start_time = time.time()
+        multiprocess_adjacency(level['initial_state'])
+        #level['initial_state'].rigid_atoms += multiprocess_adjacency(level['initial_state']) ## state, max rows and max cols in level
+        print('That took {} seconds for multi'.format(time.time() - start_time), file=sys.stderr, flush=True)
+        raise BaseException()
         self.domain = level['domain']
         self.levelName = level['levelName']
 

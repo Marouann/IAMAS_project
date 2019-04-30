@@ -3,9 +3,9 @@ from state import State
 from atom import Atom, DynamicAtom
 from knowledgeBase import KnowledgeBase
 from heapq import heapify, heappush, heappop
+from multiprocessing import Process, Manager
 
-
-def level_adjacency(state: 'State', row: 'int', col: 'int') -> 'KnowledgeBase':
+def level_adjacency(state: 'State', row = 60, col = 60) -> 'KnowledgeBase':
     '''Calculates real distances between cells in a level'''
     def distance_calculator(coord: ('int', 'int')):
         frontier = list()
