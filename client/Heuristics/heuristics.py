@@ -54,21 +54,22 @@ class DistanceBased(Heuristic):
     def h(self, state: 'State', agent:'Agent', metrics='Manhattan'):
         distance = 0
         if metrics == 'Manhattan':
-            for goal in [agent.goal_details]: ## if agent has multiple goals remove '[ ]'
-                # print(goal, file=sys.stderr)
-                min_distance = np.inf
-                for atom in state.atoms:
-                    # print(state.findBoxLetter(atom.variables[0]).variables[1], file=sys.stderr)
-                    if atom.name == 'BoxAt' and  goal['letter']== state.find_box_letter(atom.variables[0]).variables[1]:
-                        coords = atom.variables[1]
-                        agent_pos = state.find_agent(agent.name)
-                        d = 0
-                        d += np.abs(coords[0] - goal['position'][0]) + np.abs(
-                            coords[1] - goal['position'][1])
-                        d += np.abs(coords[0] - agent_pos[0]) + np.abs(coords[1] - agent_pos[1])
-                        if d < min_distance:
-                            min_distance = d
-                distance += min_distance
+            if agent.goal_details != {}:
+                for goal in [agent.goal_details]: ## if agent has multiple goals remove '[ ]'
+                    # print(goal, file=sys.stderr)
+                    min_distance = np.inf
+                    for atom in state.atoms:
+                        # print(state.findBoxLetter(atom.variables[0]).variables[1], file=sys.stderr)
+                        if atom.name == 'BoxAt' and  goal['letter']== state.findBoxLetter(atom.variables[0]).variables[1]:
+                            coords = atom.variables[1]
+                            agent_pos = state.findAgent(agent.name)
+                            d = 0
+                            d += np.abs(coords[0] - goal['position'][0]) + np.abs(
+                                coords[1] - goal['position'][1])
+                            d += np.abs(coords[0] - agent_pos[0]) + np.abs(coords[1] - agent_pos[1])
+                            if d < min_distance:
+                                min_distance = d
+                    distance += min_distance
 
 
 

@@ -25,6 +25,7 @@ class Agent:
     - variables is the list of variable that the logical action take in argument
     - primitive_action is the action that we want to send to the server (e.g. "Push(E,E)")
     - new_agt_position is position of agent after executing the action
+    - priority of the action.
     '''
 
     def assignGoal(self, goal, goal_details):
@@ -46,7 +47,7 @@ class Agent:
                 agtTo = (agtFrom[0] + dir[0], agtFrom[1] + dir[1])
                 if action.name == "Move":
                     if action.checkPreconditions(s, [self.name, agtFrom, agtTo]):
-                        possibleActions.append((action, [self.name, agtFrom, agtTo], "Move(" + dir[2] + ")", agtTo))
+                        possibleActions.append((action, [self.name, agtFrom, agtTo], "Move(" + dir[2] + ")", agtTo, 0))
                 elif action.name == "Push":
                     for second_dir in [N, S, E, W]:
                         boxFrom = agtTo  # the agent will take the place of box
@@ -58,7 +59,9 @@ class Agent:
                                                              self.color]):  # we also need box somehow
                                 possibleActions.append((action,
                                                         [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
-                                                        "Push(" + dir[2] + "," + second_dir[2] + ")"))
+                                                        "Push(" + dir[2] + "," + second_dir[2] + ")",
+                                                        boxFrom,
+                                                        4))
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
@@ -69,10 +72,15 @@ class Agent:
                                                              self.color]):  # we also need box somehow
                                 possibleActions.append((action,
                                                         [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
-                                                        "Pull(" + dir[2] + "," + second_dir[2] + ")"))
+                                                        "Pull(" + dir[2] + "," + second_dir[2] + ")",
+                                                        agtTo,
+                                                        4))
                 elif action.name == 'NoOp':
-                                possibleActions.append((action, [self.name, agtFrom], 'NoOp'))
+                                possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 5))
         shuffle(possibleActions)
+
+        # After shuffling we sort the action by priority.
+        possibleActions.sort(key=lambda tup: tup[4])
 
         return possibleActions
 
