@@ -109,7 +109,7 @@ class MasterAgent:
 
 
         # Store previous and current joint actions
-        previous_action = ['NoOp'] * 2    # [ pop(0) <-[Previous joint action], [Current joint action] <- append(jointaction)]
+        previous_action = [None] * 2    # [ pop(0) <-[Previous joint action], [Current joint action] <- append(jointaction)]
 
         # counter in while
         nb_iter = 0
@@ -147,8 +147,11 @@ class MasterAgent:
                     agent.plan(self.currentState)
 
     def getNextJointAction(self):
-        # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
-        joint_action = ['NoOp'] * len(self.agents)
+
+        #joint_action = [None] * len(self.agents)       # This could be the problem
+
+        joint_action = self.setNoOpToALLAgents()
+  
         for i, agt in enumerate(self.agents):
             # If there are still actions in current plan pop the first action and
             if agt.current_plan != []:
@@ -188,6 +191,12 @@ class MasterAgent:
                 if atom not in self.currentState.atoms and atom not in self.currentState.rigid_atoms:
                     unmet_preconditions.append(atom)
 
+
+            for agent in self.agents:
+                NoOp1 = self.assignNoOp(agent)
+                print('\nassigning NoOp action : ' + str(NoOp1), file=sys.stderr, flush=True)
+            
+
             if unmet_preconditions != []:
                 keep_goal = self.agents[conflict_solver].goal
                 keep_goal_details = self.agents[conflict_solver].goal_details
@@ -197,7 +206,12 @@ class MasterAgent:
                 # self.agents[conflict_solver].plan(self.currentState, strategy='best-first')
 
                 # actionsToResolveConflicts = [NoOp for i in range(len(self.agents))]
-                actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
+                # actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
+                # print('\nactionsToResolveConflicts : ' + str(actionsToResolveConflicts), file=sys.stderr, flush=True)
+
+                actionsToResolveConflicts = self.setNoOpToALLAgents()  # stop all agents
+                # print('\nactionsToResolveConflicts : ' + str(actionsToResolveConflicts), file=sys.stderr, flush=True)
+
                 actionsToResolveConflicts[conflict_solver] = self.agents[conflict_solver].current_plan[0]
                 self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
 
@@ -209,11 +223,29 @@ class MasterAgent:
                     priority_agent].current_plan
 
             else:
-                # actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
-                actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
+                actionsToResolveConflicts = self.setNoOpToALLAgents() # stop all agents
                 actionsToResolveConflicts[priority_agent] = action_of_priority_agent
 
                 self.executeAction(actionsToResolveConflicts)  # generalize this for more than 2 agents conflicting
+
+    '''
+    Set all agent actions to NoOp
+    '''
+    def setNoOpToALLAgents(self):
+        actionsToResolveConflicts = []
+        for agent in self.agents:
+            actionsToResolveConflicts.append(self.assignNoOp(agent))
+        return actionsToResolveConflicts
+
+    '''
+    Assign the NoOp action with {'action': <>, 'params': (x,y), and 'message': 'NoOp'}
+    '''
+    def assignNoOp(self, agent):
+        agt = agent.name
+        agtFrom = self.currentState.findAgent(agent.name)
+        action = Action('NoOp', Atom('AgentAt', agt, agtFrom), Atom('AgentAt', agt, agtFrom), Atom('Free', agtFrom))
+        NoOp = {'action': action, 'params': [agt, agtFrom], 'message': 'NoOp'}
+        return NoOp
 
     '''
     Remove vice-versa conflicts:
@@ -269,38 +301,38 @@ class MasterAgent:
                     # get agent's previous action
                     prev_action_of_agent = previous_action[0][int(agent.name)]
 
-                    if prev_action_of_agent != 'NoOp':  # solves TypeError: string indices must be integers
-                        negative_effects_of_agent = prev_action_of_agent['action'].negative_effects(*prev_action_of_agent['params'])
-
-                        # print('\nagent[' + agent.name + '] Previous actions: ' + str(prev_action_of_agent['message']), file = sys.stderr, flush = True)
-
-                    else:
-                        agent_location = self.currentState.findAgent(agent.name)
-
-                        print('\n Find Agent : ' + str(agent_location), file=sys.stderr, flush=True)
-                        print('\n TEST : ' + str(unmet_preconditions[0]), file=sys.stderr, flush=True)
-
-                        negative_effects_Atom = Atom('Free', agent_location)
-
-                        print('\n TEST2 : ' + str(negative_effects_Atom),
-                              file=sys.stderr, flush=True)
-
-                        if str(negative_effects_Atom) == str(unmet_preconditions[0]):
-                            print('\n EQUAL', file=sys.stderr, flush=True)
-
-                            negative_effects_of_agent = unmet_preconditions         # CHANGE: set this one to the free(agent location) #
-
-                        # preconditions_of_prev_action = prev_action_of_agent['action'].preconditions(*prev_action_of_agent['params'])
-
-                        # print('\nagent[' + agent.name + '] preconditions of prev action : ', file=sys.stderr, flush=True)
-                        # for i in range(len(preconditions_of_prev_action)):
-                        #     print(str(preconditions_of_prev_action[i]), file=sys.stderr, flush=True)
-
-                        # get x and y location
-                        # prev_action_of_agent['action'].precondition(*prev_action_of_agent['params'])
+                    # NEW
+                    negative_effects_of_agent = prev_action_of_agent['action'].negative_effects(*prev_action_of_agent['params'])
 
 
-                        print('\nagent[' + agent.name + '] Previous actions: ' + str(prev_action_of_agent), file=sys.stderr, flush=True)
+                    # if prev_action_of_agent != 'NoOp':  # solves TypeError: string indices must be integers
+                    #     negative_effects_of_agent = prev_action_of_agent['action'].negative_effects(*prev_action_of_agent['params'])
+
+                    #     # print('\nagent[' + agent.name + '] Previous actions: ' + str(prev_action_of_agent['message']), file = sys.stderr, flush = True)
+
+                    # else:
+                    #     negative_effects_of_agent = prev_action_of_agent['action'].negative_effects(*prev_action_of_agent['params'])
+
+                    #     agent_location = self.currentState.findAgent(agent.name)
+
+                    #     print('\n Find Agent : ' + str(agent_location), file=sys.stderr, flush=True)
+                    #     print('\n TEST : ' + str(unmet_preconditions[0]), file=sys.stderr, flush=True)
+
+                    #     negative_effects_Atom = Atom('Free', agent_location)
+
+                    #     print('\n TEST2 : ' + str(negative_effects_Atom),
+                    #           file=sys.stderr, flush=True)
+
+                    #     if str(negative_effects_Atom) == str(unmet_preconditions[0]):
+                    #         print('\n EQUAL', file=sys.stderr, flush=True)
+
+                    #         negative_effects_of_agent = unmet_preconditions         # CHANGE: set this one to the free(agent location) #
+
+
+                        
+
+
+                        # print('\nagent[' + agent.name + '] Previous actions: ' + str(prev_action_of_agent), file=sys.stderr, flush=True)
 
 
                     # print('\nagent[' + agent.name + '] neg effect : ', file=sys.stderr, flush=True)
@@ -310,6 +342,7 @@ class MasterAgent:
                     print('\nagent[' + str(current_agent) + '] unmet pre. : ', file=sys.stderr, flush=True)
                     for i in range(len(unmet_preconditions)):
                         print(str(unmet_preconditions[i]), file=sys.stderr, flush=True)
+
 
                     for atoms in unmet_preconditions:
                         if atoms in negative_effects_of_agent:
@@ -342,16 +375,26 @@ class MasterAgent:
 
         server_answer = ''
         actions_string = ''
+
+        print('joint action : ' + str(jointAction), file=sys.stderr, flush=True)
         for agent_action in jointAction:
 
-            # print('agent action : ' + str(agent_action), file=sys.stderr, flush=True)
+            # 1) agent_action['action'].name Not subcriptable when action is NoOp
+
+            
+            #print('\nagent_action message : ' + str(agent_action), file=sys.stderr, flush=True)
+            #print('agent action message : ' + str(agent_action['message']), file=sys.stderr, flush=True)
+            # print('agent action message: ' + str(agent_action['message']), file=sys.stderr, flush=True)
+
+            # actions_string += agent_action['message']
+            # actions_string += ';'
 
             # if agent_action['action'].name != 'NoOp':
-            if agent_action != 'NoOp':
+            if agent_action['action'].name != 'NoOp':
                 actions_string += agent_action['message']
                 actions_string += ';'
             else:
-                actions_string += agent_action
+                actions_string += agent_action['action'].name
                 actions_string += ';'
 
         actions_string = actions_string[:-1]  # remove last ';' from the string
@@ -365,8 +408,8 @@ class MasterAgent:
 
         for i, answer in enumerate(server_answer):
             if answer == 'true':
-                #if jointAction[i]['action'].name != 'NoOp':
-                if jointAction[i] != 'NoOp':
+                if jointAction[i]['action'].name != 'NoOp':
+                #if jointAction[i] != 'NoOp':
                     jointAction[i]['action'].execute(self.currentState, jointAction[i]['params'])
 
         for agent in self.agents:
