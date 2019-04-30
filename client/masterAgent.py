@@ -285,7 +285,7 @@ class MasterAgent:
                         # print('\nagent[' + agent.name + '] Previous actions: ' + str(prev_action_of_agent['message']), file = sys.stderr, flush = True)
 
                     else:
-                        agent_location = self.currentState.findAgent(agent.name)
+                        agent_location = self.currentState.find_agent(agent.name)
 
                         print('\n Find Agent : ' + str(agent_location), file=sys.stderr, flush=True)
                         print('\n TEST : ' + str(unmet_preconditions[0]), file=sys.stderr, flush=True)
