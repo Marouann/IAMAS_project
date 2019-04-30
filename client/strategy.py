@@ -12,7 +12,7 @@ import sys
 
 class Strategy:
     """"Strategy class is responsible for the planning and searching strategies"""
-    def __init__(self, state: 'State', agent: 'Agent', strategy='best-first', heuristics='Distance', metrics='Manhattan'):
+    def __init__(self, state: 'State', agent: 'Agent', strategy='best-first', heuristics='Distance', metrics='Real'):
         self.state = state
         self.agent = agent
         self.strategy = strategy
