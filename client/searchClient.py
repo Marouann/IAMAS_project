@@ -12,6 +12,7 @@ class SearchClient:
 
         # We get the level information from the incoming stream.
         level = get_level(server_messages)
+        #print(level['initial_state'])
         level['initial_state'].rigid_atoms += level_adjacency(level['initial_state'], 30, 30) ## state, max rows and max cols in level
         self.domain = level['domain']
         self.levelName = level['levelName']

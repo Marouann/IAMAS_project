@@ -42,10 +42,14 @@ class State:
         for atom in self.rigid_atoms:
             if atom.name == 'Neighbour' and atom.variables[0] == coords:
                 neighbours.add(atom.variables[1])
+
+        return neighbours
+
+
+
     def __eq__(self, other: 'State'):
         return self.atoms == other.atoms  # and self.parent == other.parent and self.last_action == other.last_action
 
-        return neighbours
 
     def find_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
         if DynamicAtom('Distance', start, end) in self.rigid_atoms:
