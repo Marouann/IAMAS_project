@@ -82,7 +82,7 @@ class MasterAgent:
                         # print('Possible boxes:', possibleBoxes, file=sys.stderr)
 
                         prioritizedBoxes = sorted (possibleBoxes,
-                                                   key=lambda x: self.currentState.findBoxGoalDistance(x["name"], goal))
+                                                   key=lambda x: self.currentState.find_box_goal_distance(x["name"], goal))
                         goalNotAssigned = True
                         while goalNotAssigned and prioritizedBoxes != []:
                             box = prioritizedBoxes.pop(0)
@@ -135,8 +135,8 @@ class MasterAgent:
 
             # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
             # Change x parameter in order to solve in less states
-            if nb_iter % 10 == 0:
-                self.agents[1].plan(self.currentState)
+           # if nb_iter % 10 == 0:
+            #    self.agents[1].plan(self.currentState)
 
     def getNextJointAction(self):
         # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]

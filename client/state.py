@@ -3,6 +3,7 @@ import math
 from knowledgeBase import KnowledgeBase
 from atom import *
 
+
 class State:
     def __init__(self, name: 'str',
                  goals: '[dict]',
@@ -11,7 +12,7 @@ class State:
                  cost=0,
                  h_cost=0,
                  parent=None,
-                 last_action=  {'action': 'NoOp', 'params': [], 'message': [], 'priority': 0}
+                 last_action={'action': 'NoOp', 'params': [], 'message': [], 'priority': 0}
                  ):
         self.name = name
         self.goals = goals
@@ -45,12 +46,6 @@ class State:
 
         return neighbours
 
-
-
-    def __eq__(self, other: 'State'):
-        return self.atoms == other.atoms  # and self.parent == other.parent and self.last_action == other.last_action
-
-
     def find_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
         if DynamicAtom('Distance', start, end) in self.rigid_atoms:
             return self.rigid_atoms[DynamicAtom('Distance', start, end)].property()[0]
@@ -59,27 +54,22 @@ class State:
     def check_if_connected(self, start: ('int', 'int'), end: ('int', 'int')) -> 'bool':
         return DynamicAtom('Distance', start, end) in self.rigid_atoms
 
-    def find_box(self, position): #### WHAT DOES IT DO ??
+    def find_box(self, position):  #### WHAT DOES IT DO ??
         for atom in self.atoms:
             if atom.name == "BoxAt" and atom.variables[1] == position:
                 return atom
         return False
 
-    def findBoxGoalDistance(self, name, goalAtom):
+    def find_box_goal_distance(self, name: 'str', goal):
         boxAtom = Atom
         for atom in self.atoms:
             if atom.name == "BoxAt" and atom.variables[0] == name:
                 boxAtom = atom
                 break
-        distance = self.getDistance(boxAtom.variables[1], goalAtom["position"])
+        distance = self.find_distance(boxAtom.variables[1], goal["position"])
         return distance
 
-    def getDistance(self, firstLocation, secondLocation):
-        distance = math.sqrt(math.pow(secondLocation[0] - firstLocation[0], 2) +
-                             math.pow(secondLocation[1] - firstLocation[1], 2))
-        return distance
-
-    def find_box_letter(self, box_name): ##### WHAT DOES IT DO?
+    def find_box_letter(self, box_name):  ##### WHAT DOES IT DO?
         for atom in self.rigid_atoms:
             if atom.name == "Letter" and atom.variables[0] == box_name:
                 return atom
@@ -158,7 +148,7 @@ class State:
                       cost=self.cost + cost,
                       h_cost=h_cost)
         state.last_action = {'action': action[0], 'params': action[1], 'message': action[2], 'priority': action[4]}
-        #print(action,file=sys.stderr, flush=True)
+        # print(action,file=sys.stderr, flush=True)
         action[0].execute(state, action[1])
         return state
 
