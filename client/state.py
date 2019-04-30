@@ -53,13 +53,13 @@ class State:
     def check_if_connected(self, start: ('int', 'int'), end: ('int', 'int')) -> 'bool':
         return DynamicAtom('Distance', start, end) in self.rigid_atoms
 
-    def find_box(self, position):
+    def find_box(self, position): #### WHAT DOES IT DO ??
         for atom in self.atoms:
             if atom.name == "BoxAt" and atom.variables[1] == position:
                 return atom
         return False
 
-    def find_box_letter(self, box_name):
+    def find_box_letter(self, box_name): ##### WHAT DOES IT DO?
         for atom in self.rigid_atoms:
             if atom.name == "Letter" and atom.variables[0] == box_name:
                 return atom

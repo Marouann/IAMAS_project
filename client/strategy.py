@@ -2,7 +2,7 @@ from collections import deque
 from state import State
 from heapq import heapify, heappush, heappop
 from Tracker import *
-from AdjacencyTable import *
+from utils import level_adjacency
 
 from agent import *
 

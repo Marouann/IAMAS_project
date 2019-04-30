@@ -8,7 +8,6 @@ from atom import Atom
 from agent import *
 from action import *
 from knowledgeBase import KnowledgeBase
-from getLevel import getLevel
 
 
 class MasterAgent:
@@ -23,36 +22,6 @@ class MasterAgent:
             agtAt = initial_state.find_agent(agt['name'])
             agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull, NoOp], agt['color'])
             self.agents.append(agent)
-
-        # Here we need to assign the first goals to the agent
-
-        # SAExample goal POSITIONS (Use SA.lvl)
-
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 1)))
-
-        # BFSLEVEL goal POSITIONS (Use BFStest.lvl)
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 4)))
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))
-
-        # BFSLEVEL with conflict goal POSITIONS (Use BFStestConflict.lvl)
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 4)))
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5,1)))
-
-        # NO CONFLICT (Use MAExample.lvl)
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (5, 1)))
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (1,10)))
-
-        # CONFLICT with two agents (Use MAExample.lvl)
-
-        # CONFLICT with two agents and two boxes (Use MAConflictExample.lvl)
-
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 10)) # A goal
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))  # B goal
-
-        # CONFLICT with two agents and two boxes (Use MAImpardist.lvl)
-
-        # self.agents[0].assignGoal(Atom("BoxAt", "B1", (1, 10)))  # A goal
-        # self.agents[1].assignGoal(Atom("BoxAt", "B2", (5, 1)))  # B goal
 
     def assignGoals(self, agentsToReplan):
         (goalsToAssign, goalsMet) = self.currentState.get_unmet_goals()
@@ -136,14 +105,6 @@ class MasterAgent:
     def solveLevel(self):
         # We need to check the goal.
         self.assignGoals(self.agents)
-        # print(agt, file=sys.stderr, flush=True) # agent
-        # print(self.currentState, file=sys.stderr, flush=True) # state, rigid atoms, atoms
-        # print(agt.current_plan, file=sys.stderr, flush=True) # Current plan of actions for agent [action, param, message(name of action)]
-
-        # print('I am sending message to the server', file=sys.stderr, flush=True)
-
-        # actions = list(zip(*plans)) #won't work if plan are not the same length
-        # serverAction = [tuple(i['message'] for i in k) for k in actions[1:]]
 
         # counter in while
         nb_iter = 0
