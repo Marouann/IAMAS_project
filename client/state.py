@@ -3,7 +3,6 @@ import math
 from knowledgeBase import KnowledgeBase
 from atom import *
 
-
 class State:
     def __init__(self, name: 'str',
                  goals: '[dict]',
@@ -12,7 +11,7 @@ class State:
                  cost=0,
                  h_cost=0,
                  parent=None,
-                 last_action=  {'action': 'NoOp', 'params': [], 'message': []}
+                 last_action=  {'action': 'NoOp', 'params': [], 'message': [], 'priority': 0}
                  ):
         self.name = name
         self.goals = goals
@@ -33,9 +32,6 @@ class State:
 
     def addAtom(self, atom: 'Atom'):
         self.atoms.update(atom)
-
-    # def __len__(self):
-    #     return self.atoms.kb.length
 
     def __eq__(self, other: 'State'):
         return self.atoms == other.atoms  # and self.parent == other.parent and self.last_action == other.last_action
@@ -147,13 +143,13 @@ class State:
                       parent=self,
                       cost=self.cost + cost,
                       h_cost=h_cost)
-        state.last_action = {'action': action[0], 'params': action[1], 'message': action[2]}
+        state.last_action = {'action': action[0], 'params': action[1], 'message': action[2], 'priority': action[4]}
         #print(action,file=sys.stderr, flush=True)
         action[0].execute(state, action[1])
         return state
 
     def __total_cost__(self) -> 'int':
-        return self.cost + self.h_cost
+        return (self.cost + self.h_cost, self.last_action['priority'])
 
     def atoms(self):
         return self.atoms + self.rigid_atoms
