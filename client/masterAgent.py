@@ -165,8 +165,8 @@ class MasterAgent:
 
             # Replan after (nb_iter % 'x') 'x' interations (Need a real replan function)
             # Change x parameter in order to solve in less states
-            if nb_iter % 10 == 0:
-                self.agents[1].plan(self.currentState)
+            # if nb_iter % 10 == 0:
+            #     self.agents[0].plan(self.currentState)
 
     def getNextJointAction(self):
         # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
@@ -218,9 +218,10 @@ class MasterAgent:
         if unmet_preconditions != []:
             keep_goal = self.agents[conflict_solver].goal
             keep_goal_details = self.agents[conflict_solver].goal_details
-            self.agents[conflict_solver].assignGoal(unmet_preconditions[0], {})
+            self.agents[conflict_solver].assignGoal(unmet_preconditions[0], None)
             self.agents[conflict_solver].current_plan = []
-            self.agents[conflict_solver].plan(self.currentState)
+            self.agents[conflict_solver].plan(self.currentState, strategy='bfs') #don't use heuristic for solving conflicts
+            # print(self.agents[conflict_solver].goal, file=sys.stderr, flush=True)
             print(self.agents[conflict_solver].current_plan, file=sys.stderr, flush=True)
 
             actionsToResolveConflicts = ['NoOp' for i in range(len(self.agents))]
@@ -263,7 +264,7 @@ class MasterAgent:
 
         # retrieve answer from server and separate answer for specific action
         # [:-1] is only to remove the '\n' at the end of response
-        print(actions_string, file=sys.stderr, flush=True)  # print out
+        # print(actions_string, file=sys.stderr, flush=True)  # print out
         print(actions_string, flush=True)  # send to server
 
         server_answer = sys.stdin.readline()[:-1].split(";")
