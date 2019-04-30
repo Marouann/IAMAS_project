@@ -53,7 +53,7 @@ class Strategy:
 
     def bfs(self):
        # print('level', level_adjacency(self.state, 12,12), file=sys.stderr, flush=True)
-        print(self.state, file=sys.stderr, flush=True)
+        #print(self.state.check_if_connected((1,2), (30,6)), file=sys.stderr, flush=True)
         #access = Tracker(self.state.find_agent(self.agent.name))
         #access.estimate(self.state)
         #access_goal = Tracker( (1,1))

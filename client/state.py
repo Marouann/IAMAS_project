@@ -19,7 +19,6 @@ class State:
         self.rigid_atoms = rigid_atoms
         self.parent = parent
         self.last_action = last_action
-        self.distances = KnowledgeBase()
 
         self.cost = cost
         self.h_cost = h_cost  # cost based on heuristics
@@ -46,9 +45,15 @@ class State:
 
         return neighbours
 
-    def find_distance(self, start: ('int', 'int'), end:('int', 'int')):
-        if DynamicAtom('Distance', start, end) in self.distances:
-            return  1
+    def find_distance(self, start: ('int', 'int'), end:('int', 'int')) -> 'int':
+        if DynamicAtom('Distance', start, end) in self.rigid_atoms:
+            return self.rigid_atoms[DynamicAtom('Distance', start, end)].return_property()
+
+        return -1
+
+    def check_if_connected(self, start: ('int', 'int'), end:('int', 'int')) -> 'bool':
+        return DynamicAtom('Distance', start, end) in self.rigid_atoms
+
     def find_box(self, position):
         for atom in self.atoms:
             if atom.name == "BoxAt" and atom.variables[1] == position:
@@ -123,7 +128,6 @@ class State:
         state_str = "State " + self.name + "\n"
         state_str += str(self.rigid_atoms)
         state_str += str(self.atoms)
-        state_str += str(self.distances)
 
         return (state_str)
 

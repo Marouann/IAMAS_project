@@ -21,7 +21,7 @@ class SearchClient:
 
         # We get the level information from the incoming stream.
         level = getLevel(server_messages)
-        level['initial_state'].distances = level_adjacency(level['initial_state'], 12, 7)
+        level['initial_state'].rigid_atoms += level_adjacency(level['initial_state'], 30, 30)
         self.domain = level['domain']
         self.levelName = level['levelName']
 

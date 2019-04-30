@@ -73,13 +73,21 @@ class KnowledgeBase:
         """"Specifies how to iterate throught the Knowledge Base's dictionary"""
         return self.__kb.__iter__()
 
-    def __add__(self, other: 'KnowledgeBase') -> 'dict':
+    def __add__(self, other: 'KnowledgeBase') -> 'KnowledgeBase':
         """"Specifies how to add elements of different Knowledge Bases (allows to use + operator)"""
-        return {**self.__kb, **other.kb()}
+        new_kb = KnowledgeBase(self.name)
+        new_dict = {}
+        new_dict.update(self.__kb)
+        new_dict.update(other.__kb)
+        new_kb.__kb = new_dict
+        return new_kb
 
     def items(self):
         """"Returns items(values) that are stored in the KB's dictionary"""
         return self.__kb.items()
+
+    def __getitem__(self, item):
+        return self.__kb[item]
 
     def __hash__(self) -> 'int':
         """"Specifies how to hash the dictionary of the Knowledge Base"""
