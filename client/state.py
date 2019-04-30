@@ -45,13 +45,12 @@ class State:
 
         return neighbours
 
-    def find_distance(self, start: ('int', 'int'), end:('int', 'int')) -> 'int':
+    def find_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
         if DynamicAtom('Distance', start, end) in self.rigid_atoms:
-            return self.rigid_atoms[DynamicAtom('Distance', start, end)].return_property()
-
+            return self.rigid_atoms[DynamicAtom('Distance', start, end)].property()[0]
         return -1
 
-    def check_if_connected(self, start: ('int', 'int'), end:('int', 'int')) -> 'bool':
+    def check_if_connected(self, start: ('int', 'int'), end: ('int', 'int')) -> 'bool':
         return DynamicAtom('Distance', start, end) in self.rigid_atoms
 
     def find_box(self, position):

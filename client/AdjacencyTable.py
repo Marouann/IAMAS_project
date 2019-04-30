@@ -28,7 +28,6 @@ def level_adjacency(state: 'State', row: 'int', col: 'int') -> 'KnowledgeBase':
         return memory
 
     adjacency = KnowledgeBase('Real Distances')
-
     for r in range(row):
         for c in range(col):
             result = distance_calculator((r, c))
@@ -36,4 +35,5 @@ def level_adjacency(state: 'State', row: 'int', col: 'int') -> 'KnowledgeBase':
                 atom = DynamicAtom('Distance', (r, c), cell, )
                 atom.assign_property(distance)
                 adjacency.update(atom)
+
     return adjacency
