@@ -84,9 +84,9 @@ class MasterAgent:
             if goal in goalsToAssign:
                 goalsToAssign.remove(goal)
 
-        # print('Agents to replan:',agentsToReplan, file=sys.stderr)
-        if goalsToAssign != []:
+        prioritizedGoals = self.prioritizeGoals(goalsToAssign)
 
+        if prioritizedGoals != []:
             for agent in agentsToReplan:
                 if agent.current_plan != []:
 
@@ -96,7 +96,7 @@ class MasterAgent:
                 # print(agent.occupied, file=sys.stderr)
                 if agent.occupied == False:
                     print('Agent', agent.name, 'is not occupied!', file=sys.stderr, flush=True)
-                    for goal in goalsToAssign:
+                    for goal in prioritizedGoals:
                         if agent.goal is not None:
                             print('Agent already has a goal, continue: ' + str(goal), file=sys.stderr, flush=True)
                             continue
@@ -110,9 +110,12 @@ class MasterAgent:
                                     box['name'] not in boxesHandled:
                                 possibleBoxes.append(box)
                         # print('Possible boxes:', possibleBoxes, file=sys.stderr)
+
+                        prioritizedBoxes = sorted (possibleBoxes,
+                                                   key=lambda x: self.currentState.findBoxGoalDistance(x["name"], goal))
                         goalNotAssigned = True
-                        while goalNotAssigned and possibleBoxes != []:
-                            box = possibleBoxes.pop()
+                        while goalNotAssigned and prioritizedBoxes != []:
+                            box = prioritizedBoxes.pop(0)
                             boxAlreadyPlaced = False
                             for goalmet in goalsMet:
                                 boxPlaced = self.currentState.findBox(goalmet['position'])
@@ -182,6 +185,14 @@ class MasterAgent:
                 # print("joint_action: ", file=sys.stderr, flush=True)
             # print(joint_action, file=sys.stderr, flush=True)
         return joint_action
+
+    def prioritizeGoals(self, goals):
+        # Sort goals 1st by number of free neighbour fields, then by number of neighbour goals)
+        sortedGoals = sorted(goals,
+                                key=lambda x: (self.currentState.getNeithbourFieldsWithoutGoals(x["position"]).__len__(),
+                                self.currentState.getNeithbourGoals(x["position"]).__len__()))
+
+        return sortedGoals
 
     def solveConflict(self, conflicting_agents, actions):
         print('solve conflict', file=sys.stderr, flush=True)

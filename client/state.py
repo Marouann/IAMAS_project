@@ -1,4 +1,5 @@
 import sys
+import math
 from knowledgeBase import KnowledgeBase
 from atom import *
 
@@ -54,6 +55,20 @@ class State:
                 return atom
         return False
 
+    def findBoxGoalDistance(self, name, goalAtom):
+        boxAtom = Atom
+        for atom in self.atoms:
+            if atom.name == "BoxAt" and atom.variables[0] == name:
+                boxAtom = atom
+                break
+        distance = self.getDistance(boxAtom.variables[1], goalAtom["position"])
+        return distance
+
+    def getDistance(self, firstLocation, secondLocation):
+        distance = math.sqrt(math.pow(secondLocation[0] - firstLocation[0], 2) +
+                             math.pow(secondLocation[1] - firstLocation[1], 2))
+        return distance
+
     def findBoxLetter(self, boxName):
         for atom in self.rigid_atoms:
             if atom.name == "Letter" and atom.variables[0] == boxName:
@@ -79,6 +94,37 @@ class State:
                 else:
                     metGoals.append(goal)
         return [unmetGoals, metGoals]
+
+    def getNeithbourGoals(self, position):
+        neighbourLocations = []
+        for atom in self.rigid_atoms:
+            if atom.name == "Neighbour" and position == atom.variables[0]:
+                neighbourLocations.append(atom.variables[1])
+
+        neighbourGoals = []
+        for atom in self.rigid_atoms:
+            if atom.name == "GoalAt":
+                for location in neighbourLocations:
+                    if location == atom.variables[1]:
+                        neighbourGoals.append(atom)
+
+        return neighbourGoals
+
+    def getNeithbourFieldsWithoutGoals(self, position):
+        neighbourLocations = []
+        for atom in self.rigid_atoms:
+            if atom.name == "Neighbour" and position == atom.variables[0]:
+                neighbourLocations.append(atom.variables[1])
+
+        result = neighbourLocations
+
+        for atom in self.rigid_atoms:
+            if atom.name == "GoalAt":
+                for location in neighbourLocations:
+                    if location == atom.variables[1]:
+                        result.remove(location)
+
+        return result
 
     def copy(self):
         atoms_copy = KnowledgeBase("Atoms")
