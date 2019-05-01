@@ -34,7 +34,8 @@ class Action:
             for effect in self.positive_effects(*variables):
                 s.add_atom(effect)
         else:
-            print("This action is not applicable here.")
+            print("This action is not applicable here.", file=sys.stderr, flush=True)
+            print(variables, file=sys.stderr)
 
 
 Move = Action(
