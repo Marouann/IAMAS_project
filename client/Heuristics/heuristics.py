@@ -75,17 +75,39 @@ class DistanceBased(Heuristic):
 
 
         elif metrics=='Euclidean':
-            for atom in state.atoms:
-                if atom.name == 'BoxAt':
-                    coords = atom.variables[1]
-                    distance_min = np.inf
-                    for goal in state.goals:
-                        distance_current = np.sqrt(np.power(coords[0] - goal['position'][0],2) + np.power(
-                            coords[1] - goal['position'][1],2))
-                        if distance_current < distance_min:
-                            distance_min = distance_current
+            if agent.goal_details != {}:
+                for goal in [agent.goal_details]: ## if agent has multiple goals remove '[ ]'
+                    # print(goal, file=sys.stderr)
+                    min_distance = np.inf
+                    for atom in state.atoms:
+                        # print(state.find_box_letter(atom.variables[0]).variables[1], file=sys.stderr)
+                        if atom.name == 'BoxAt' and  goal['letter']== state.find_box_letter(atom.variables[0]).variables[1]:
+                            coords = atom.variables[1]
+                            agent_pos = state.find_agent(agent.name)
+                            d = 0
+                            d += np.sqrt(np.pow(coords[0] - goal['position'][0], 2) + np.pow(
+                                coords[1] - goal['position'][1], 2))
+                            d += np.sqrt(np.pow(coords[0] - agent_pos[0], 2) + np.pow(coords[1] - agent_pos[1], 2))
+                            if d < min_distance:
+                                min_distance = d
+                    distance += min_distance
 
-                    distance += distance_min
+        if metrics == 'Real':
+            if agent.goal_details != {}:
+                for goal in [agent.goal_details]: ## if agent has multiple goals remove '[ ]'
+                    # print(goal, file=sys.stderr)
+                    min_distance = np.inf
+                    for atom in state.atoms:
+                        # print(state.find_box_letter(atom.variables[0]).variables[1], file=sys.stderr)
+                        if atom.name == 'BoxAt' and  goal['letter']== state.find_box_letter(atom.variables[0]).variables[1]:
+                            coords = atom.variables[1]
+                            agent_pos = state.find_agent(agent.name)
+                            d = 0
+                            d += state.find_distance(coords, goal['position'])
+                            d += state.find_distance(coords, agent_pos)
+                            if d < min_distance:
+                                min_distance = d
+                    distance += min_distance
         return distance
 
     def f(self, state: 'State'):
