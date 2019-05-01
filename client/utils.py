@@ -1,42 +1,48 @@
-import sys
+import sys, time
 from state import State
 from atom import Atom, DynamicAtom
 from knowledgeBase import KnowledgeBase
 from heapq import heapify, heappush, heappop
 from multiprocessing import Process, Manager
 
-def level_adjacency(state: 'State', row = 60, col = 60) -> 'KnowledgeBase':
+
+def level_adjacency(state: 'State', row=30, col=30) -> 'KnowledgeBase':
     '''Calculates real distances between cells in a level'''
+
     def distance_calculator(coord: ('int', 'int')):
         frontier = list()
         explored = set()
         memory = list()
-        for neighbour in state.find_neighbours(coord):
-            heappush(frontier, (1, neighbour))
+        explored.add(coord)  ## so we do not calculate the distance between itself
+        if state.find_neighbours(coord):
+            for neighbour in state.find_neighbours(coord):
+                heappush(frontier, (1, neighbour))
+                explored.add(neighbour)
+                memory.append((1, neighbour))
 
         while frontier:
-            heapify(frontier)
             current = heappop(frontier)
-            explored.add(current[1])
-            memory.append(current)
-
             if state.find_neighbours(current[1]):
                 for neighbour in state.find_neighbours(current[1]):
                     if neighbour not in explored:
-                        heappush(frontier, (current[0] + 1, neighbour))
-                        explored.add(neighbour)
                         memory.append((current[0] + 1, neighbour))
+                        explored.add(neighbour)
+                        heappush(frontier, (current[0] + 1, neighbour))
+                heapify(frontier)
         return memory
 
+    start_time = time.time()
     adjacency = KnowledgeBase('Real Distances')
     for r in range(row):
         for c in range(col):
-            result = distance_calculator((r, c))
-            for distance, cell in result:
-                atom = DynamicAtom('Distance', (r, c), cell, )
+            for distance, cell in distance_calculator((r, c)):
+                atom = DynamicAtom('Distance', (r, c), cell)
                 atom.assign_property(distance)
                 adjacency.update(atom)
 
+    print('Distances computed in %.2f seconds' %(time.time() - start_time), file=sys.stderr, flush=True)
+
+    # print('I calculated {} distances'.format(adjacency), file=sys.stderr, flush=True)
     return adjacency
 
 
