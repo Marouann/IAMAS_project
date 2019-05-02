@@ -40,9 +40,8 @@ class Agent:
         S = (1, 0, 'S')
         E = (0, 1, 'E')
         W = (0, -1, 'W')
-        #NO = (0,0, 'NO')
         agtFrom = s.find_agent(self.name)
-        # print(agtFrom, file=sys.stderr, flush=True)
+
         for action in self.actions:
             for dir in [N, S, E, W]:
                 agtTo = (agtFrom[0] + dir[0], agtFrom[1] + dir[1])

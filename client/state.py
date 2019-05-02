@@ -156,7 +156,6 @@ class State:
                       cost=self.cost + cost,
                       h_cost=h_cost)
         state.last_action = {'action': action[0], 'params': action[1], 'message': action[2], 'priority': action[4]}
-        # print(action,file=sys.stderr, flush=True)
         action[0].execute(state, action[1])
         return state
 

@@ -1,6 +1,6 @@
 import argparse
 import sys
-from masterAgent import *
+from masterAgent2 import *
 from utils import level_adjacency, get_level
 
 class SearchClient:
