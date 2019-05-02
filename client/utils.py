@@ -4,6 +4,7 @@ from atom import Atom, DynamicAtom
 from knowledgeBase import KnowledgeBase
 from heapq import heapify, heappush, heappop
 
+STATUS_WAIT_REPLAN = 0
 
 def level_adjacency(state: 'State', row: 'int', col: 'int') -> 'KnowledgeBase':
     '''Calculates real distances between cells in a level'''
