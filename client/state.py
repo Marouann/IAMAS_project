@@ -40,9 +40,17 @@ class State:
 
     def find_neighbours(self, coords: ('int', 'int')):
         neighbours = set()
-        for atom in self.rigid_atoms:
-            if atom.name == 'Neighbour' and atom.variables[0] == coords:
-                neighbours.add(atom.variables[1])
+        if Atom('Neighbour', coords, (coords[0] - 1, coords[1])) in self.rigid_atoms:
+            neighbours.add((coords[0] - 1, coords[1]))
+
+        if Atom('Neighbour', coords, (coords[0] + 1, coords[1])) in self.rigid_atoms:
+            neighbours.add((coords[0] + 1, coords[1]))
+
+        if Atom('Neighbour', coords, (coords[0], coords[1] - 1)) in self.rigid_atoms:
+            neighbours.add((coords[0], coords[1] - 1))
+
+        if Atom('Neighbour', coords, (coords[0], coords[1] + 1)) in self.rigid_atoms:
+            neighbours.add((coords[0], coords[1] + 1))
 
         return neighbours
 

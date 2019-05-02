@@ -75,12 +75,9 @@ class KnowledgeBase:
 
     def __add__(self, other: 'KnowledgeBase') -> 'KnowledgeBase':
         """"Specifies how to add elements of different Knowledge Bases (allows to use + operator)"""
-        new_kb = KnowledgeBase(self.name)
-        new_dict = {}
-        new_dict.update(self.__kb)
-        new_dict.update(other.__kb)
-        new_kb.__kb = new_dict
-        return new_kb
+        self.__kb.update(other.__kb)
+
+        return self
 
     def items(self):
         """"Returns items(values) that are stored in the KB's dictionary"""

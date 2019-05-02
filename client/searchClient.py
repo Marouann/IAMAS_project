@@ -3,7 +3,6 @@ import sys
 from masterAgent import *
 from utils import level_adjacency, get_level
 
-
 class SearchClient:
     def __init__(self, server_messages):
         self.domain = None
@@ -12,8 +11,9 @@ class SearchClient:
 
         # We get the level information from the incoming stream.
         level = get_level(server_messages)
-        #print(level['initial_state'])
-        level['initial_state'].rigid_atoms += level_adjacency(level['initial_state'], 30, 30) ## state, max rows and max cols in level
+        level['initial_state'].rigid_atoms += level_adjacency(level['initial_state']) ## state, max rows and max cols in level
+        #print(level['initial_state'].rigid_atoms, file= sys.stderr, flush=True)
+
         self.domain = level['domain']
         self.levelName = level['levelName']
 
