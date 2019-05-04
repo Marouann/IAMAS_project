@@ -12,7 +12,7 @@ import sys
 
 class Strategy:
     """"Strategy class is responsible for the planning and searching strategies"""
-    def __init__(self, state: 'State', agent: 'Agent', strategy='best-first', heuristics='Distance', metrics='Real'):
+    def __init__(self, state: 'State', agent: 'Agent', strategy='astar', heuristics='Distance', metrics='Real'):
         self.state = state
         self.agent = agent
         self.strategy = strategy
@@ -33,6 +33,8 @@ class Strategy:
             self.best_first()
         elif self.strategy == 'astar':
             self.a_star()
+        elif self.strategy == 'ida':
+            self.IDA()
 
     def uniform(self):
         frontier = list()
@@ -52,16 +54,6 @@ class Strategy:
                     heapify(frontier)
 
     def bfs(self):
-       # print('level', level_adjacency(self.state, 12,12), file=sys.stderr, flush=True)
-        print(self.state.find_distance((1,2), (5,6)), file=sys.stderr, flush=True)
-        #access = Tracker(self.state.find_agent(self.agent.name))
-        #access.estimate(self.state)
-        #access_goal = Tracker( (1,1))
-        #access_goal.estimate(self.state)
-        #print( access.intersection(access_goal), file=sys.stderr, flush=True)
-        #print(access.check_if_reachable((3,3)), file= sys.stderr, flush=True)
-        #print(access.intersection_members(access_goal), file= sys.stderr, flush=True)
-
         frontier = deque()
         frontier.append(self.state)
 
