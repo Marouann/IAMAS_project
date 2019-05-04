@@ -7,6 +7,7 @@ class Tracker(object):
         self.boundary = set()  # cells that are reachable, but are curently occupied
         self.position = coords  ##tuple
 
+
     def estimate(self, state):  # estimates reachable cells
         self.reachable = set()
         frontier = set()
