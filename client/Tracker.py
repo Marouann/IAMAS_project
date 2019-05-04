@@ -57,6 +57,6 @@ class Tracker(object):
             elif state.find_agent_by_position(coord):
                 atoms.add(state.find_agent_by_position(coord))
         return atoms
-    
+
     def check_if_reachable(self, coords: '(int,int)'):
         return coords in self.reachable
