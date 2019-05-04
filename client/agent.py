@@ -84,8 +84,8 @@ class Agent:
 
         return possibleActions
 
-    def plan(self, state: 'State'):
+    def plan(self, state: 'State', strategy="astar", multi_goal=False):
         print("Agent:", self.name, file=sys.stderr)
         print("Planning for goal:", self.goal_details, file=sys.stderr)
-        strategy = Strategy(state, self)
+        strategy = Strategy(state, self, strategy=strategy, multi_goal=multi_goal)
         strategy.plan()

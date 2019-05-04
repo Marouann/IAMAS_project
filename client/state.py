@@ -16,6 +16,7 @@ class State:
                  ):
         self.name = name
         self.goals = goals
+        self.helping_goals = []
         self.atoms = atoms
         self.rigid_atoms = rigid_atoms
         self.parent = parent
@@ -68,6 +69,18 @@ class State:
                 return atom
         return False
 
+    def find_box_position(self, box: 'str') -> ('int', 'int'):
+        for atom in self.atoms:
+            if atom.name == "BoxAt" and atom.variables[0] == box:
+                return atom.variables[1]
+        return False
+
+    def find_box_color(self, box: 'str') -> ('str'):
+        for atom in self.rigid_atoms:
+            if atom.name == "Color" and atom.variables[0] == box:
+                return atom.variables[1]
+        return False
+
     def find_box_goal_distance(self, name: 'str', goal):
         boxAtom = Atom
         for atom in self.atoms:
@@ -77,7 +90,7 @@ class State:
         distance = self.find_distance(boxAtom.variables[1], goal["position"])
         return distance
 
-    def find_box_letter(self, box_name):  ##### WHAT DOES IT DO?
+    def find_box_letter(self, box_name: 'str'):  ##### WHAT DOES IT DO?
         for atom in self.rigid_atoms:
             if atom.name == "Letter" and atom.variables[0] == box_name:
                 return atom
@@ -86,6 +99,14 @@ class State:
         for atom in self.atoms:
             if atom.name == "AgentAt" and atom.variables[0] == agt:
                 return atom.variables[1]
+
+    def find_object_at_position(self, position: ('int', 'int')) -> 'Atom':
+        for atom in self.atoms:
+            if atom.name == "AgentAt" and atom.variables[1] == position:
+                return atom
+            elif atom.name == "BoxAt" and atom.variables[1] == position:
+                return atom
+        return False
 
     def get_unmet_goals(self):
         metGoals = []

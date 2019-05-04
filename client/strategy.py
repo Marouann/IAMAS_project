@@ -12,27 +12,29 @@ import sys
 
 class Strategy:
     """"Strategy class is responsible for the planning and searching strategies"""
-    def __init__(self, state: 'State', agent: 'Agent', strategy='best-first', heuristics='Distance', metrics='Real'):
+    def __init__(self, state: 'State', agent: 'Agent', strategy='best-first', heuristics='Distance', metrics='Real', multi_goal=False):
         self.state = state
         self.agent = agent
         self.strategy = strategy
         self.heuristics = heuristics
         self.metrics = metrics
         self.goal_found = False
+        self.multi_goal = multi_goal
 
         self.expanded = set()  # stores expanded states
 
     def plan(self):
-        if self.strategy == 'bfs':
-            self.bfs()
-        elif self.strategy == 'dfs':
-            self.dfs()
-        elif self.strategy == 'uniform':
-            self.uniform()
-        elif self.strategy == 'best-first':
-            self.best_first()
-        elif self.strategy == 'astar':
-            self.a_star()
+        if not self.__is_goal__(self.agent, self.state, self.multi_goal) and self.agent.goal is not None:
+            if self.strategy == 'bfs':
+                self.bfs()
+            elif self.strategy == 'dfs':
+                self.dfs()
+            elif self.strategy == 'uniform':
+                self.uniform()
+            elif self.strategy == 'best-first':
+                self.best_first()
+            elif self.strategy == 'astar':
+                self.a_star()
 
     def uniform(self):
         frontier = list()
@@ -52,8 +54,10 @@ class Strategy:
                     heapify(frontier)
 
     def bfs(self):
+        print("Solving with BFS", file=sys.stderr)
+        print(self.state.atoms, file=sys.stderr)
        # print('level', level_adjacency(self.state, 12,12), file=sys.stderr, flush=True)
-        print(self.state.find_distance((1,2), (5,6)), file=sys.stderr, flush=True)
+        # print(self.state.find_distance((1,2), (5,6)), file=sys.stderr, flush=True)
         #access = Tracker(self.state.find_agent(self.agent.name))
         #access.estimate(self.state)
         #access_goal = Tracker( (1,1))
@@ -72,10 +76,13 @@ class Strategy:
 
             for action in possible_actions:
                 state_ = s.create_child(action)
-                self.__is_goal__(self.agent, state_)
+                self.__is_goal__(self.agent, state_,multi_goal=self.multi_goal)
 
-                if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
-                    frontier.append(state_)
+
+                if not self.goal_found:
+                    if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
+                        # print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
+                        frontier.append(state_)
 
     def dfs(self):
         frontier = list()
@@ -130,6 +137,7 @@ class Strategy:
         elif self.heuristics == 'Distance':
             self.state.h_cost = DistanceBased(self.state, self.state.goals).h(self.state, self.agent, metrics=self.metrics)
 
+
         frontier = list()
         heappush(frontier, self.state)
 
@@ -163,12 +171,27 @@ class Strategy:
             self.agent.current_plan = self.agent.current_plan[:-1]
             self.agent.current_plan.reverse()
 
-    def __is_goal__(self, agent: 'Agent', state: 'State') -> 'bool':
-        if agent.goal in state.atoms:
-            self.extract_plan(state)
-            self.goal_found = True
-            print('Plan found for agent : ' + str(agent.name) + ' with goal : ' + str(agent.goal) + '\n',
-                  file=sys.stderr, flush=True)  # print out
+    def __is_goal__(self, agent: 'Agent', state: 'State', multi_goal=False) -> 'bool':
+        if not multi_goal:
+            if agent.goal in state.atoms and not self.goal_found:
+                self.extract_plan(state)
+                self.goal_found = True
+                print('Plan found for agent : ' + str(agent.name) + ' with goal : ' + str(agent.goal) + '\n',
+                      file=sys.stderr, flush=True)  # print out
 
-            return True
-        return False
+                return True
+            return False
+        else:
+            is_goal = True
+            for goal in agent.goal:
+                if goal not in state.atoms:
+                    is_goal = False
+            if is_goal:
+                self.goal_found = True
+                self.extract_plan(state)
+                print('Plan found for agent : ' + str(agent.name) + ' with goal : ',
+                      file=sys.stderr, flush=True)
+                for goal in agent.goal:
+                    print(goal, file=sys.stderr)
+                print('Plan: ', agent.current_plan, file=sys.stderr )
+            return is_goal
