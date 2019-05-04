@@ -1,13 +1,14 @@
-from atom import Atom
+from atom import Atom, DynamicAtom
 
 
 class Tracker(object):
     def __init__(self, coords: '(int,int)'):
         self.reachable = set()
+        self.boundary = set()  # cells that are reachable, but are curently occupied
         self.current_cell = coords  ##tuple
         # self.estimate(state)
 
-    def estimate(self, state: 'State', for_agent=False):  # estimates reachable cells
+    def estimate(self, state):  # estimates reachable cells
         self.reachable = set()
         frontier = set()
         self.reachable.add(self.current_cell)
@@ -20,16 +21,18 @@ class Tracker(object):
                     self.reachable.add(neighbour)
                     frontier.add(neighbour)
 
-                ##elif Atom('')
-                 ### there is one issue with boxes and agents
+                else:
+                    self.boundary.add(neighbour)
 
         return self.reachable
 
-    def intersection(self, other_reachable: 'Tracker') -> 'bool':
+    def intersection(self, other_reachable: 'Tracker') -> 'int':
         if self.reachable & other_reachable.reachable:
-            return True
-        else:
-            return False
+            return 1  # if it is currently reachable
+        elif self.boundary & other_reachable.boundary:
+            return 0  # it there is an occlusion
+        else:  # not reachable or more than one occlusion
+            return -1
 
     def intersection_members(self, other_reachable: 'Tracker') -> '{}':
         return self.reachable & other_reachable.reachable

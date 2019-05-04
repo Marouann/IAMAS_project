@@ -51,7 +51,6 @@ class State:
 
         if Atom('Neighbour', coords, (coords[0], coords[1] + 1)) in self.rigid_atoms:
             neighbours.add((coords[0], coords[1] + 1))
-
         return neighbours
 
     def find_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
