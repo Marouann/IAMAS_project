@@ -193,6 +193,16 @@ class MasterAgent:
                     agent.occupied = False
                     agent.goal = None
 
+    def replanAgentWithStatus(self, status:'Int'):
+        for agent in self.agents:
+            if agent.status == status:
+                print('Replanning with status', agent.status, file=sys.stderr)
+                agent.plan(self.currentState)
+                if agent.current_plan != []:
+                    agent.status = None
+                    agent.occupied = False
+                    agent.goal = None
+
     def getNextJointAction(self):
         # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
         joint_action = []
@@ -355,6 +365,7 @@ class MasterAgent:
                     But we still to detect which agent has unmet the predcondition even if succeed
                     to do its action.
                     '''
+
 
                     other_agent_is_the_problem = False
                     unmet_precond_due_to_other_agent = None
