@@ -6,6 +6,8 @@ from heapq import heapify, heappush, heappop
 from multiprocessing import Process, Manager
 
 STATUS_WAIT_REPLAN = 0
+STATUS_REPLAN_AFTER_CONFLICT = 1
+STATUS_REPLAN_NO_PLAN_FOUND = 2
 
 def level_adjacency(state: 'State', row=30, col=30) -> 'KnowledgeBase':
     '''Calculates real distances between cells in a level'''
@@ -190,3 +192,40 @@ def get_level(server_messages):
         'goals': goals,
         'boxes': boxes
     }
+
+def reduceServerAnswer(answer):
+    isExecuted = True
+    for bool in answer:
+        if bool == "false":
+            isExecuted = False
+    return isExecuted
+
+def areGoalsMet(state: 'State', goals)-> 'bool':
+    for goal in goals:
+        if goal not in state.atoms:
+            return False
+    return True
+
+def get_cluster_conflict(who_is_conflicting_with):
+    clusters = []
+    all_agents = who_is_conflicting_with.keys()
+    for agent in all_agents:
+        cluster = find_cluster_of_agent(agent, clusters)
+        if cluster is not False:
+            for conflicting_agent in who_is_conflicting_with[agent]:
+                if conflicting_agent['status'] == 'blocked':
+                    cluster.add(conflicting_agent['agent'])
+        else:
+            cluster = set()
+            cluster.add(agent)
+            for conflicting_agent in who_is_conflicting_with[agent]:
+                if conflicting_agent['status'] == 'blocked':
+                    cluster.add(conflicting_agent['agent'])
+            clusters.append(cluster)
+    return clusters
+
+def find_cluster_of_agent(agent, clusters):
+    for cluster in clusters:
+        if agent in cluster:
+            return cluster
+    return False
