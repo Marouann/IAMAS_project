@@ -1,0 +1,24 @@
+#domain
+hospital
+#levelname
+Conflict_v1
+#colors
+cyan: 0, E
+orange: 1, F
+#initial
++++++++
++     +
++     +
++0  E +
++  F  +
++  1  +
++++++++
+#goal
++++++++
++  F  +
++     +
++    E+
++     +
++     +
++++++++
+#end
