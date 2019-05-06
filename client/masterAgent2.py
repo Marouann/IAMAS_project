@@ -526,7 +526,7 @@ class MasterAgent:
         +B+++
         +++++
 
-        Then we want to free (1,1) and (2,1) but not (2,1).
+        Then we want to free (1,1) and (2,1) but not (1,2).
         '''
 
         self.currentState.helping_goals = self.getHelpingGoals(available_agents)
