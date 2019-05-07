@@ -1,7 +1,5 @@
-from abc import ABCMeta, abstractmethod
 from Heuristics.distance import manhattan, euclidean
 from state import *
-from action import *
 from agent import *
 
 MAX_DISTANCE = 1000

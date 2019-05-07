@@ -1,8 +1,8 @@
-import sys
 from strategy import Strategy
-from random import shuffle
-from atom import *
 from action import *
+
+STRATEGY = 'astar'
+
 
 
 class Agent:
@@ -61,7 +61,7 @@ class Agent:
                                                         [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
                                                         "Push(" + dir[2] + "," + second_dir[2] + ")",
                                                         boxFrom,
-                                                        1.5))
+                                                        1.25))
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
@@ -74,13 +74,15 @@ class Agent:
                                                         [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                         "Pull(" + dir[2] + "," + second_dir[2] + ")",
                                                         agtTo,
-                                                        1.75))
+                                                        1.5))
                 elif action.name == 'NoOp':
-                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 0.5))
+                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 2))
+
+
 
         return possibleActions
 
-    def plan(self, state: 'State', strategy="astar", multi_goal=False):
+    def plan(self, state: 'State', strategy=STRATEGY, multi_goal=False):
         print("Agent:", self.name, file=sys.stderr)
         print("Planning for goal:", self.goal_details, file=sys.stderr)
         strategy = Strategy(state, self, strategy=strategy, multi_goal=multi_goal)

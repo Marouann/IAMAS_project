@@ -1,10 +1,7 @@
 from collections import deque
 from state import State
 from heapq import heapify, heappush, heappop
-from Tracker import *
-from utils import level_adjacency
-
-from agent import *
+from agent import Agent
 
 from Heuristics.heuristics import GoalCount, DistanceBased, ActionPriority
 import sys
