@@ -52,7 +52,6 @@ class State:
 
         if Atom('Neighbour', coords, (coords[0], coords[1] + 1)) in self.rigid_atoms:
             neighbours.add((coords[0], coords[1] + 1))
-
         return neighbours
 
     def find_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
@@ -99,6 +98,12 @@ class State:
         for atom in self.atoms:
             if atom.name == "AgentAt" and atom.variables[0] == agt:
                 return atom.variables[1]
+
+    def find_agent_by_position(self, position):  #### WHAT DOES IT DO ??
+        for atom in self.atoms:
+            if atom.name == "AgentAt" and atom.variables[1] == position:
+                return atom
+        return False
 
     def find_object_at_position(self, position: ('int', 'int')) -> 'Atom':
         for atom in self.atoms:

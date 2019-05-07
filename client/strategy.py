@@ -54,10 +54,8 @@ class Strategy:
                     heapify(frontier)
 
     def bfs(self):
-        print("Solving with BFS", file=sys.stderr)
-        # print(self.state.atoms, file=sys.stderr)
        # print('level', level_adjacency(self.state, 12,12), file=sys.stderr, flush=True)
-        # print(self.state.find_distance((1,2), (5,6)), file=sys.stderr, flush=True)
+        print(self.state.find_distance((1,2), (5,6)), file=sys.stderr, flush=True)
         #access = Tracker(self.state.find_agent(self.agent.name))
         #access.estimate(self.state)
         #access_goal = Tracker( (1,1))
