@@ -183,7 +183,7 @@ class MasterAgent:
             #     break
 
 
-    def replanAgentWithStatus(self, status:'Int'):
+    def replanAgentWithStatus(self, status:'int'):
         for agent in self.agents:
             if agent.status == status:
                 print('Replanning with status', agent.status, file=sys.stderr)
@@ -193,7 +193,7 @@ class MasterAgent:
                     agent.occupied = False
                     agent.goal = None
 
-    def replanAgentWithStatus(self, status:'Int'):
+    def replanAgentWithStatus(self, status:'int'):
         for agent in self.agents:
             if agent.status == status:
                 print('Replanning with status', agent.status, file=sys.stderr)

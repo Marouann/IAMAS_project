@@ -191,8 +191,8 @@ class State:
     ############################
     ##Private or implicit methods
 
-    def __total_cost__(self) -> 'int':
-        return (self.cost + self.h_cost, self.last_action['priority'])
+    def __total_cost__(self) -> 'float':
+        return  self.cost + self.h_cost + 2 *  self.last_action['priority']
 
     def __eq__(self, other: 'State'):
         return self.atoms == other.atoms  # and self.parent == other.parent and self.last_action == other.last_action
@@ -205,7 +205,7 @@ class State:
         return (state_str)
 
     def __hash__(self):
-        return hash(self.atoms)
+        return hash(self.atoms) #+ hash(self.last_action['priority'])
 
     def __cmp__(self, other: 'State'):
         if self.__total_cost__() > other.__total_cost__():

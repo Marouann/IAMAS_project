@@ -13,24 +13,10 @@ class SearchClient:
         # We get the level information from the incoming stream.
         level = get_level(server_messages)
         level['initial_state'].rigid_atoms += level_adjacency(level['initial_state']) ## state, max rows and max cols in level
-        #print(level['initial_state'].rigid_atoms, file= sys.stderr, flush=True)
-
-        # Track_1 = Tracker((4, 1))
-        # Track_1.estimate(level['initial_state'])
-        # Track_2 = Tracker((6, 6))
-        # Track_2.estimate(level['initial_state'])
-        # print(level['initial_state'].atoms, file=sys.stderr, flush=True)
-        # print(Track_1.boundary, file=sys.stderr, flush=True)
-        # print(Track_2.boundary, file=sys.stderr, flush=True)
-        # print(Track_1.intersection(Track_2, level['initial_state']), file=sys.stderr, flush=True)
-        # print(Track_1.boundary_atoms(Track_2, level['initial_state']), file=sys.stderr, flush=True)
-        # raise BaseException()
-
         self.domain = level['domain']
         self.levelName = level['levelName']
-
         self.masterAgent = MasterAgent(level['initial_state'], level['agents'],
-                                       level['boxes'])  # level['goals'], level['boxes']
+                                       level['boxes'])
 
 
 def main():
@@ -44,7 +30,6 @@ def main():
 
     # Read level and create the initial state of the problem.
     client = SearchClient(server_messages)
-
     client.masterAgent.solveLevel()
 
 

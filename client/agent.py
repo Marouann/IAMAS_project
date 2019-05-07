@@ -61,7 +61,7 @@ class Agent:
                                                         [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
                                                         "Push(" + dir[2] + "," + second_dir[2] + ")",
                                                         boxFrom,
-                                                        4))
+                                                        1.5))
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
@@ -74,13 +74,14 @@ class Agent:
                                                         [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                         "Pull(" + dir[2] + "," + second_dir[2] + ")",
                                                         agtTo,
-                                                        4))
+                                                        1.75))
                 elif action.name == 'NoOp':
-                                possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 5))
-        shuffle(possibleActions)
+                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 2))
+
+        #shuffle(possibleActions)
 
         # After shuffling we sort the action by priority.
-        possibleActions.sort(key=lambda tup: tup[4])
+        #possibleActions.sort(key=lambda tup: tup[4])
 
         return possibleActions
 
