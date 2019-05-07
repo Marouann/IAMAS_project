@@ -105,7 +105,7 @@ class State:
                 return atom
         return False
 
-    def find_object_at_position(self, position: ('int', 'int')) -> 'Atom':
+    def find_object_at_position(self, position: ('int', 'int')):
         for atom in self.atoms:
             if atom.name == "AgentAt" and atom.variables[1] == position:
                 return atom
@@ -192,10 +192,10 @@ class State:
     ##Private or implicit methods
 
     def __total_cost__(self) -> 'float':
-        return  self.cost + self.h_cost + 2 *  self.last_action['priority']
+        return self.cost + self.h_cost
 
     def __eq__(self, other: 'State'):
-        return self.atoms == other.atoms  # and self.parent == other.parent and self.last_action == other.last_action
+        return self.atoms == other.atoms
 
     def __str__(self):
         state_str = "State " + self.name + "\n"
@@ -205,7 +205,7 @@ class State:
         return (state_str)
 
     def __hash__(self):
-        return hash(self.atoms) #+ hash(self.last_action['priority'])
+        return hash(self.atoms)
 
     def __cmp__(self, other: 'State'):
         if self.__total_cost__() > other.__total_cost__():

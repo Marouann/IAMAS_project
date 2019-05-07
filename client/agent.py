@@ -35,7 +35,7 @@ class Agent:
         self.occupied = True
 
     def getPossibleActions(self, s: 'State') -> '[Action]':
-        possibleActions = []
+        possibleActions = list()
         N = (-1, 0, 'N')
         S = (1, 0, 'S')
         E = (0, 1, 'E')
@@ -76,12 +76,7 @@ class Agent:
                                                         agtTo,
                                                         1.75))
                 elif action.name == 'NoOp':
-                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 2))
-
-        #shuffle(possibleActions)
-
-        # After shuffling we sort the action by priority.
-        #possibleActions.sort(key=lambda tup: tup[4])
+                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 0.5))
 
         return possibleActions
 

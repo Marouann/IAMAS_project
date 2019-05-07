@@ -6,21 +6,26 @@ from utils import level_adjacency
 
 from agent import *
 
-from Heuristics.heuristics import GoalCount, DistanceBased
+from Heuristics.heuristics import GoalCount, DistanceBased, ActionPriority
 import sys
 
 
 class Strategy:
     """"Strategy class is responsible for the planning and searching strategies"""
-    def __init__(self, state: 'State', agent: 'Agent', strategy='astar', heuristics='Distance', metrics='Real', multi_goal=False):
+    def __init__(self, state: 'State', agent: 'Agent',
+                 strategy='astar',
+                 heuristics='Complex',
+                 metrics='Real',
+                 multi_goal=False):
+
         self.state = state
         self.agent = agent
         self.strategy = strategy
         self.heuristics = heuristics
         self.metrics = metrics
-        self.goal_found = False
         self.multi_goal = multi_goal
 
+        self.goal_found = False
         self.expanded = set()  # stores expanded states
 
     def plan(self):
@@ -65,10 +70,8 @@ class Strategy:
             for action in possible_actions:
                 state_ = s.create_child(action)
                 self.__is_goal__(self.agent, state_,multi_goal=self.multi_goal)
-
                 if not self.goal_found:
-                    if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
-                        # print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
+                    if state_ not in frontier and state_ not in self.expanded:
                         frontier.append(state_)
 
     def dfs(self):
@@ -83,64 +86,71 @@ class Strategy:
             for action in possible_actions:
                 state_ = s.create_child(action)
                 self.__is_goal__(self.agent, state_)
-
-                if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
-                    frontier.append(state_)
+                if not self.goal_found:
+                    if state_ not in frontier and state_ not in self.expanded:
+                        frontier.append(state_)
 
     def best_first(self):
         print('Solving with best-first', self.heuristics, self.metrics, file=sys.stderr, flush=True)
         if self.heuristics == 'GoalCount':
-            self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)
+            self.state.h_cost = GoalCount.h(self.state)
         elif self.heuristics == 'Distance':
-            self.state.h_cost = DistanceBased(self.state, self.state.goals).h(self.state, self.agent, metrics=self.metrics)
+            self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
+        elif self.heuristics == 'Complex':
+            self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics) + \
+                            ActionPriority.h(self.state, scaler=10)
 
         frontier = list()
+        self.expanded.clear()
         heappush(frontier, self.state)
 
         while frontier and not self.goal_found:
             s = heappop(frontier)
             self.expanded.add(s)
-            possible_actions = self.agent.getPossibleActions(s)
-
-            for action in possible_actions:
-                state_ = s.create_child(action)
-                if self.heuristics == 'GoalCount':
-                    state_.h_cost = GoalCount(self.state, self.state.goals).h(state_)
-                elif self.heuristics == 'Distance':
-                    state_.h_cost = DistanceBased(self.state, self.state.goals).h(state_, self.agent, metrics=self.metrics)
+            for action in self.agent.getPossibleActions(s):
+                state_ = s.create_child(action, cost=0)
                 self.__is_goal__(self.agent, state_)
-                if not self.goal_found and not self.__is_goal__(self.agent, state_):
-                    if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
+                if not self.goal_found:
+                    if state_ not in frontier and state_ not in self.expanded:
+                        if self.heuristics == 'GoalCount':
+                            state_.h_cost = GoalCount.h(state_)
+                        elif self.heuristics == 'Distance':
+                            state_.h_cost = DistanceBased.h(state_, self.agent, metrics=self.metrics)
+                        elif self.heuristics == 'Complex':
+                            state_.h_cost = DistanceBased.h(state_, self.agent, metrics=self.metrics) + \
+                                            ActionPriority.h(state_, scaler=10)
                         heappush(frontier, state_)
                         heapify(frontier)
 
     def a_star(self):
         print('Solving with A*', self.heuristics, self.metrics, file=sys.stderr, flush=True)
         if self.heuristics == 'GoalCount':
-            self.state.h_cost = GoalCount(self.state, self.state.goals).h(self.state)
+            self.state.h_cost = GoalCount.h(self.state)
         elif self.heuristics == 'Distance':
-            self.state.h_cost = DistanceBased(self.state, self.agent, metrics=self.metrics)
+            self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
+        elif self.heuristics == 'Complex':
+            self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics) + \
+                            ActionPriority.h(self.state, scaler=10)
 
         frontier = list()
+        self.expanded.clear()
         heappush(frontier, self.state)
 
         while frontier and not self.goal_found:
             s = heappop(frontier)
             self.expanded.add(s)
-            possible_actions = self.agent.getPossibleActions(s)
-
-            for action in possible_actions:
+            for action in self.agent.getPossibleActions(s):
                 state_ = s.create_child(action, cost=1)
-                print(state_.__total_cost__(), file = sys.stderr, flush = True )
-
-                if self.heuristics == 'GoalCount':
-                    state_.h_cost = GoalCount(self.state, self.state.goals).h(state_)
-                elif self.heuristics == 'Distance':
-                    state_.h_cost = DistanceBased(state_, self.agent, metrics=self.metrics)
-
                 self.__is_goal__(self.agent, state_)
-                if not self.goal_found and not self.__is_goal__(self.agent, state_):
-                    if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
+                if not self.goal_found:
+                    if state_ not in frontier and state_ not in self.expanded:
+                        if self.heuristics == 'GoalCount':
+                            state_.h_cost = GoalCount.h(state_)
+                        elif self.heuristics == 'Distance':
+                            state_.h_cost = DistanceBased.h(state_, self.agent, metrics=self.metrics)
+                        elif self.heuristics == 'Complex':
+                            state_.h_cost = DistanceBased.h(state_, self.agent, metrics=self.metrics) + \
+                                            ActionPriority.h(state_, scaler=10)
                         heappush(frontier, state_)
                         heapify(frontier)
 
