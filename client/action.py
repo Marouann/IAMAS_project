@@ -34,7 +34,7 @@ class Action:
             for effect in self.positive_effects(*variables):
                 s.add_atom(effect)
         else:
-            print("This action is not applicable here.")
+            print("This action is not applicable here.", variables, file=sys.stderr)
 
 
 Move = Action(
@@ -55,7 +55,7 @@ Push = Action(
     lambda agt, agtFrom, box, boxFrom, boxTo, color: [Atom('AgentAt', agt, boxFrom), Atom('Free', agtFrom),
                                                       Atom('BoxAt', box, boxTo)],
     lambda agt, agtFrom, box, boxFrom, boxTo, color: [Atom('AgentAt', agt, agtFrom), Atom('Free', boxTo),
-                                                      Atom('BoxAt', box, boxFrom)],
+                                                      Atom('BoxAt', box, boxFrom), Atom('Free', boxFrom)],
 )
 
 Pull = Action(
@@ -68,12 +68,12 @@ Pull = Action(
     lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', agt, agtTo), Atom('Free', boxFrom),
                                                       Atom('BoxAt', box, agtFrom)],
     lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', agt, agtFrom), Atom('Free', agtTo),
-                                                      Atom('BoxAt', box, boxFrom)],
+                                                      Atom('BoxAt', box, boxFrom), Atom('Free', agtFrom)],
 )
 
 NoOp = Action(
     'NoOp',
     lambda agt, agtFrom: [Atom('AgentAt', agt, agtFrom)],
     lambda agt, agtFrom: [Atom('AgentAt', agt, agtFrom)],
-    lambda agt, agtFrom: [Atom('AgentAt', agt, agtFrom), Atom('Free', agtFrom)],
+    lambda agt, agtFrom: [Atom('Free', agtFrom)],
 )

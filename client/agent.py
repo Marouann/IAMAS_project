@@ -40,9 +40,8 @@ class Agent:
         S = (1, 0, 'S')
         E = (0, 1, 'E')
         W = (0, -1, 'W')
-        #NO = (0,0, 'NO')
         agtFrom = s.find_agent(self.name)
-        # print(agtFrom, file=sys.stderr, flush=True)
+
         for action in self.actions:
             for dir in [N, S, E, W]:
                 agtTo = (agtFrom[0] + dir[0], agtFrom[1] + dir[1])
@@ -85,8 +84,8 @@ class Agent:
 
         return possibleActions
 
-    def plan(self, state: 'State'):
+    def plan(self, state: 'State', strategy="astar", multi_goal=False):
         print("Agent:", self.name, file=sys.stderr)
         print("Planning for goal:", self.goal_details, file=sys.stderr)
-        strategy = Strategy(state, self)
+        strategy = Strategy(state, self, strategy=strategy, multi_goal=multi_goal)
         strategy.plan()

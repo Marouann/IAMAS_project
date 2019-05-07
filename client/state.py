@@ -16,6 +16,7 @@ class State:
                  ):
         self.name = name
         self.goals = goals
+        self.helping_goals = []
         self.atoms = atoms
         self.rigid_atoms = rigid_atoms
         self.parent = parent
@@ -67,6 +68,18 @@ class State:
                 return atom
         return False
 
+    def find_box_position(self, box: 'str') -> ('int', 'int'):
+        for atom in self.atoms:
+            if atom.name == "BoxAt" and atom.variables[0] == box:
+                return atom.variables[1]
+        return False
+
+    def find_box_color(self, box: 'str') -> ('str'):
+        for atom in self.rigid_atoms:
+            if atom.name == "Color" and atom.variables[0] == box:
+                return atom.variables[1]
+        return False
+
     def find_box_goal_distance(self, name: 'str', goal):
         boxAtom = Atom
         for atom in self.atoms:
@@ -76,7 +89,7 @@ class State:
         distance = self.find_distance(boxAtom.variables[1], goal["position"])
         return distance
 
-    def find_box_letter(self, box_name):  ##### WHAT DOES IT DO?
+    def find_box_letter(self, box_name: 'str'):  ##### WHAT DOES IT DO?
         for atom in self.rigid_atoms:
             if atom.name == "Letter" and atom.variables[0] == box_name:
                 return atom
@@ -89,6 +102,14 @@ class State:
     def find_agent_by_position(self, position):  #### WHAT DOES IT DO ??
         for atom in self.atoms:
             if atom.name == "AgentAt" and atom.variables[1] == position:
+                return atom
+        return False
+
+    def find_object_at_position(self, position: ('int', 'int')) -> 'Atom':
+        for atom in self.atoms:
+            if atom.name == "AgentAt" and atom.variables[1] == position:
+                return atom
+            elif atom.name == "BoxAt" and atom.variables[1] == position:
                 return atom
         return False
 
@@ -161,7 +182,6 @@ class State:
                       cost=self.cost + cost,
                       h_cost=h_cost)
         state.last_action = {'action': action[0], 'params': action[1], 'message': action[2], 'priority': action[4]}
-        # print(action,file=sys.stderr, flush=True)
         action[0].execute(state, action[1])
         return state
 
