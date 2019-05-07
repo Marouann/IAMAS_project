@@ -152,7 +152,7 @@ class MasterAgent:
 
             old_valids.pop(0)
             valid = self.executeAction(actions_to_execute)
-            old_valids.append(reduceServerAnswer(valid))
+            old_valids.append(isAllExecuted(valid))
 
             # 'agents_with_conflit': List of agents which cannot execute their actions (e.g [agt0, agt1, agt6])
             agents_with_conflit = [i for i in range(len(valid)) if valid[i]=='false']
@@ -179,8 +179,8 @@ class MasterAgent:
             if nb_iter % 5 == 0:
                 self.replanAgentWithStatus(STATUS_REPLAN_NO_PLAN_FOUND)
 
-            if nb_iter > 50:
-                break
+            # if nb_iter > 50:
+            #     break
 
 
     def replanAgentWithStatus(self, status:'Int'):

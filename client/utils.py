@@ -193,7 +193,7 @@ def get_level(server_messages):
         'boxes': boxes
     }
 
-def reduceServerAnswer(answer):
+def isAllExecuted(answer):
     isExecuted = True
     for bool in answer:
         if bool == "false":
