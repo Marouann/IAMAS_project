@@ -1,5 +1,6 @@
 from strategy import Strategy
 from action import *
+from Tracker import Tracker
 
 STRATEGY = 'IDA'
 HEURISTICS = 'Dynamic'
@@ -18,6 +19,7 @@ class Agent:
         self.current_plan = []
         self.occupied = False
         self.status = None
+        self.tracker = None
 
     '''
     getPossibleActions return a list of tuple that represents the different actions the agent
@@ -85,6 +87,10 @@ class Agent:
 
     def reset_plan(self):
         self.current_plan = []
+
+    def update_tracker(self, state: 'State'):
+        self.tracker = Tracker(state.find_agent(self.name))
+        self.tracker.estimate(state)
 
     def plan(self, state: 'State', strategy=STRATEGY, multi_goal=False):
         print("Agent:", self.name, file=sys.stderr)

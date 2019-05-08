@@ -1,0 +1,20 @@
+#domain
+hospital
+#levelname
+Conflict_v1
+#colors
+red: 0, 2
+green: 1, A
+#initial
++++++++++
++  2++  +
++ A 0   +
++1  ++  +
++++++++++
+#goal
++++++++++
++   ++  +
++       +
++   ++ A+
++++++++++
+#end
