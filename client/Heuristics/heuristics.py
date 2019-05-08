@@ -1,6 +1,5 @@
 from Heuristics.distance import manhattan, euclidean
 from state import *
-from agent import *
 
 MAX_DISTANCE = 1000
 

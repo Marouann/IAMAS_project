@@ -14,8 +14,8 @@ from utils import STATUS_WAIT_REPLAN
 
 class MasterAgent:
     def __init__(self, initial_state: 'State', agents: '[Agent]', boxes: '[dict]'):
-
         self.currentState = initial_state
+
         self.agents = []
         self.boxes = boxes  # List of { 'name': Box, 'letter': char, 'color': color }
         self.goalsInAction = []
@@ -270,7 +270,13 @@ class MasterAgent:
                 if atom not in self.currentState.atoms and atom not in self.currentState.rigid_atoms:
                     unmet_preconditions.append(atom)
 
+            # print('\nagent[' + str(current_agent) +'] preconditions of current agent : ', file=sys.stderr, flush=True)
+            # for i in range(len(preconditions_of_current_agent)):
+            #     print(str(preconditions_of_current_agent[i]), file=sys.stderr, flush=True)
 
+            # print('\nagent[' + str(current_agent) +'] unmet preconditions : ', file=sys.stderr, flush=True)
+            # for i in range(len(unmet_preconditions)):
+            #     print(str(unmet_preconditions[i]), file=sys.stderr, flush=True)
 
             for agent in self.agents:
                 # This is to not repeat the current agent (agent cannot conflict with himslef).
@@ -348,12 +354,15 @@ class MasterAgent:
     '''
 
     def executeAction(self, jointAction):
-
+        # print('I am executing actions', file=sys.stderr, flush=True)
 
         server_answer = ''
         actions_string = ''
         for agent_action in jointAction:
 
+            # print('agent action : ' + str(agent_action), file=sys.stderr, flush=True)
+
+            # if agent_action['action'].name != 'NoOp':
             if agent_action != 'NoOp':
                 actions_string += agent_action['message']
                 actions_string += ';'
@@ -372,6 +381,7 @@ class MasterAgent:
 
         for i, answer in enumerate(server_answer):
             if answer == 'true':
+                #if jointAction[i]['action'].name != 'NoOp':
                 if jointAction[i] != 'NoOp':
                     jointAction[i]['action'].execute(self.currentState, jointAction[i]['params'])
 

@@ -1,7 +1,7 @@
 from collections import deque
 from state import State
 from heapq import heapify, heappush, heappop
-from agent import Agent
+from agent import *
 
 from Heuristics.heuristics import GoalCount, DistanceBased, ActionPriority
 import sys
@@ -50,10 +50,10 @@ class Strategy:
             for action in possible_actions:
                 state_ = s.create_child(action, cost=1)
                 self.__is_goal__(self.agent, state_)
-
-                if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
-                    heappush(frontier, state_)
-                    heapify(frontier)
+                if not self.goal_found:
+                    if state_ not in frontier and state_ not in self.expanded:
+                        heappush(frontier, state_)
+                        heapify(frontier)
 
     def bfs(self):
         frontier = deque()
