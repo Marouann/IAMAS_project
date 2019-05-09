@@ -33,24 +33,26 @@ class ActionPriority(Heuristic):
 
 class DistanceBased(Heuristic):
     @staticmethod
-    def h(state: 'State', agent: 'Agent', metrics='Real') -> 'float':
+    def h(state: 'State', agent: 'Agent', metrics) -> 'float':
         distance = 0
         if agent.goal:
             for goal in [agent.goal]:
                 min_distance = MAX_DISTANCE
                 for atom in state.atoms:
-                    if atom.name == 'BoxAt' == goal.name and atom.variables[0] == goal.variables[1]:
+
+                    if atom.name == 'BoxAt' == goal.name and atom.variables[0] == goal.variables[0]:
                         agent_pos = state.find_agent(agent.name)
                         if metrics == 'Manhattan':
-                            d = manhattan(atom.variables[1], goal['position']) + manhattan(atom.variables[1], agent_pos)
+                            d = manhattan(atom.variables[1], goal.variables[1]) + manhattan(atom.variables[1], agent_pos)
                         elif metrics == 'Euclidean':
-                            d = euclidean(atom.variables[1], goal['position']) + euclidean(atom.variables[1], agent_pos)
+                            d = euclidean(atom.variables[1], goal.variables[1]) + euclidean(atom.variables[1], agent_pos)
                         else:  # real metrics
                             d = state.find_distance(atom.variables[1], goal.variables[1]) + \
-                                state.find_distance(atom.variables[1], agent_pos)
+                                state.find_distance(agent_pos, atom.variables[1])
+                            print( state.find_distance(atom.variables[1], goal.variables[1]), state.find_distance(agent_pos, atom.variables[1]), file=sys.stderr, flush=True)
                         if d < min_distance:
                             min_distance = d
-                    distance += min_distance
+                distance += min_distance
         return distance
 
     @staticmethod

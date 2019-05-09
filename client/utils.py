@@ -9,7 +9,7 @@ STATUS_WAIT_REPLAN = 0
 STATUS_REPLAN_AFTER_CONFLICT = 1
 STATUS_REPLAN_NO_PLAN_FOUND = 2
 
-def level_adjacency(state: 'State', row=30, col=30) -> 'KnowledgeBase':
+def level_adjacency(state: 'State', row=60, col=60) -> 'KnowledgeBase':
     '''Calculates real distances between cells in a level'''
 
     def distance_calculator(coord: ('int', 'int')):

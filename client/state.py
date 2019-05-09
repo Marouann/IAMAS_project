@@ -58,6 +58,12 @@ class State:
         if DynamicAtom('Distance', start, end) in self.rigid_atoms:
             return self.rigid_atoms[DynamicAtom('Distance', start, end)].property()[0]
         return -1
+    def update_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
+        '''If shortest path is ocluded by an object, then change the distance'''
+        pass
+
+    def shortest_path(self, start: ('int', 'int'), end: ('int', 'int')) -> []:
+        pass
 
     def check_if_connected(self, start: ('int', 'int'), end: ('int', 'int')) -> 'bool':
         return DynamicAtom('Distance', start, end) in self.rigid_atoms

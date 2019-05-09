@@ -5,7 +5,7 @@ def manhattan(start: ('int', 'int'), end: ('int', 'int')) -> 'float':
     return sum(distance)
 
 
-def euclidean(start: ('int', 'int'), end: ('int', 'int')) -> 'float':
+def euclidean(start: ('float', 'float'), end: ('float', 'float')) -> 'float':
     distance = [(a - b) ** 2 for a, b in zip(start, end)]
     return sqrt(sum(distance))
 

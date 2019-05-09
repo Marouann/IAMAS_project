@@ -11,8 +11,8 @@ class Strategy:
     """"Strategy class is responsible for the planning and searching strategies"""
     def __init__(self, state: 'State', agent: 'Agent',
                  strategy='astar',
-                 heuristics='Complex',
-                 metrics='Real',
+                 heuristics='Distance',
+                 metrics='Manhattan',
                  multi_goal=False):
 
         self.state = state
@@ -136,6 +136,7 @@ class Strategy:
         while frontier and not self.goal_found:
             s = heappop(frontier)
             self.expanded.add(s)
+            #print(s.cost, s.h_cost, s.__total_cost__(), file = sys.stderr, flush= True)
             for action in self.agent.getPossibleActions(s):
                 state_ = s.create_child(action, cost=1)
                 self.__is_goal__(self.agent, state_)

@@ -2,7 +2,8 @@ from strategy import Strategy
 from action import *
 
 STRATEGY = 'astar'
-HEURISTICS = 'Complex'
+HEURISTICS = 'Distance'
+METRICS = 'Real'
 
 
 
@@ -84,5 +85,5 @@ class Agent:
     def plan(self, state: 'State', strategy=STRATEGY, multi_goal=False):
         print("Agent:", self.name, file=sys.stderr)
         print("Planning for goal:", self.goal_details, file=sys.stderr)
-        strategy = Strategy(state, self, strategy=strategy, heuristics=HEURISTICS, multi_goal=multi_goal)
+        strategy = Strategy(state, self, strategy=strategy, heuristics=HEURISTICS, metrics=METRICS, multi_goal=multi_goal)
         strategy.plan()
