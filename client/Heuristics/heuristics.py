@@ -11,7 +11,7 @@ class Heuristic:
 class GoalCount(Heuristic):
     @staticmethod
     def h(state: 'State', scaler = 5) -> 'float':
-        goal_count = len(state.get_unmet_goals())
+        goal_count = len(state.get_unmet_goals()[0])
         return goal_count * scaler
 
     @staticmethod

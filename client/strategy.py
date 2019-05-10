@@ -98,7 +98,7 @@ class Strategy:
                             GoalCount.h(self.state, scaler=5)
 
         frontier = list()
-        self.expanded.clear()
+        self.expanded = set()
         heappush(frontier, self.state)
 
         while frontier and not self.goal_found:
@@ -129,7 +129,7 @@ class Strategy:
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
         elif self.heuristics == 'Complex':
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics) + \
-                            GoalCount.h(self.state, scaler=5)
+                            ActionPriority.h(self.state, scaler=10) + GoalCount.h(self.state, 150)
 
         frontier = list()
         heappush(frontier, self.state)
@@ -147,15 +147,16 @@ class Strategy:
                             state_.h_cost = DistanceBased.h(state_, self.agent, metrics=self.metrics)
                         elif self.heuristics == 'Complex':
                             state_.h_cost = DistanceBased.h(state_, self.agent, metrics=self.metrics) + \
-                                            ActionPriority.h(state_, scaler=10)
+                                            ActionPriority.h(state_, scaler=10) + GoalCount.h(self.state, 150)
                         heappush(frontier, state_)
                         heapify(frontier)
 
     def extract_plan(self, state: 'State'):
         if state:
             if self.agent.goal in state.atoms:
-                self.agent.current_plan.clear()
+                self.agent.reset_plan()
 
+            print(state.cost, state.h_cost, state.__total_cost__(), file=sys.stderr, flush = True)
             self.agent.current_plan.append(state.last_action)
             self.extract_plan(state.parent)
         else:
