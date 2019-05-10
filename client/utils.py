@@ -32,6 +32,7 @@ def level_adjacency(state: 'State', row=60, col=60) -> 'KnowledgeBase':
                         explored.add(neighbour)
                         heappush(frontier, (current[0] + 1, neighbour))
                 heapify(frontier)
+        memory.append((0, coord))
         return memory
 
     start_time = time.time()

@@ -95,7 +95,7 @@ class Strategy:
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
         elif self.heuristics == 'Complex':
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics) + \
-                            ActionPriority.h(self.state, scaler=10)
+                            GoalCount.h(self.state, scaler=5)
 
         frontier = list()
         self.expanded.clear()
@@ -117,9 +117,11 @@ class Strategy:
                             state_.h_cost = DistanceBased.h(state_, self.agent, metrics=self.metrics) + \
                                             ActionPriority.h(state_, scaler=10)
                         heappush(frontier, state_)
-                        heapify(frontier)
+            heapify(frontier)
 
     def a_star(self):
+        self.state.reset_state()
+        self.agent.reset_plan()
         print('Solving with A*', self.heuristics, self.metrics, file=sys.stderr, flush=True)
         if self.heuristics == 'GoalCount':
             self.state.h_cost = GoalCount.h(self.state)
@@ -127,20 +129,17 @@ class Strategy:
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
         elif self.heuristics == 'Complex':
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics) + \
-                            ActionPriority.h(self.state, scaler=10)
+                            GoalCount.h(self.state, scaler=5)
 
         frontier = list()
-        self.expanded.clear()
         heappush(frontier, self.state)
-
         while frontier and not self.goal_found:
             s = heappop(frontier)
             self.expanded.add(s)
-            #print(s.cost, s.h_cost, s.__total_cost__(), file = sys.stderr, flush= True)
-            for action in self.agent.getPossibleActions(s):
-                state_ = s.create_child(action, cost=1)
-                self.__is_goal__(self.agent, state_)
-                if not self.goal_found:
+            self.__is_goal__(self.agent, s)
+            if not self.goal_found:
+                for action in self.agent.getPossibleActions(s):
+                    state_ = s.create_child(action, cost=1)
                     if state_ not in frontier and state_ not in self.expanded:
                         if self.heuristics == 'GoalCount':
                             state_.h_cost = GoalCount.h(state_)
@@ -154,20 +153,26 @@ class Strategy:
 
     def extract_plan(self, state: 'State'):
         if state:
+            if self.agent.goal in state.atoms:
+                self.agent.current_plan.clear()
+
             self.agent.current_plan.append(state.last_action)
             self.extract_plan(state.parent)
         else:
             self.agent.current_plan = self.agent.current_plan[:-1]
             self.agent.current_plan.reverse()
 
+
+
     def __is_goal__(self, agent: 'Agent', state: 'State', multi_goal=False) -> 'bool':
         if not multi_goal:
             if agent.goal in state.atoms and not self.goal_found:
                 self.extract_plan(state)
                 self.goal_found = True
-                print('Plan found for agent : ' + str(agent.name) + ' with goal : ' + str(agent.goal) + '\n',
-                      file=sys.stderr, flush=True)  # print out
-
+                #print('Plan found for agent : ' + str(agent.name) + ' with goal : ' + str(agent.goal) + '\n',
+                 #     file=sys.stderr, flush=True)  # print out
+                for item in agent.current_plan:
+                    print(item['message'], item['params'], file=sys.stderr, flush = True)
                 return True
             return False
         else:
@@ -178,9 +183,11 @@ class Strategy:
             if is_goal:
                 self.goal_found = True
                 self.extract_plan(state)
-                print('Plan found for agent : ' + str(agent.name) + ' with goal : ',
-                      file=sys.stderr, flush=True)
+                ### print('Plan found for agent : ' + str(agent.name) + ' with goal : ',
+                 ####     file=sys.stderr, flush=True)
                 for goal in agent.goal:
                     print(goal, file=sys.stderr)
-                print('Plan: ', agent.current_plan, file=sys.stderr )
+
             return is_goal
+
+

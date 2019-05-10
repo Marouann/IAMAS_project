@@ -90,5 +90,5 @@ class KnowledgeBase:
         """"Specifies how to hash the dictionary of the Knowledge Base"""
         hash_value = 0
         for item in self.__kb:
-            hash_value += hash(item) / 17
+            hash_value += hash(item)
         return int(hash_value)

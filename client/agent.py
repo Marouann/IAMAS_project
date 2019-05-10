@@ -82,6 +82,9 @@ class Agent:
 
         return possibleActions
 
+    def reset_plan(self):
+        self.current_plan = []
+
     def plan(self, state: 'State', strategy=STRATEGY, multi_goal=False):
         print("Agent:", self.name, file=sys.stderr)
         print("Planning for goal:", self.goal_details, file=sys.stderr)

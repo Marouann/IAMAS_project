@@ -10,11 +10,8 @@ class Heuristic:
 
 class GoalCount(Heuristic):
     @staticmethod
-    def h(state: 'State', scaler = 1) -> 'float':
-        goal_count = len(state.goals)
-        for atom in state.goals:
-            if atom in state.atoms:  # there is no self.goals here right?
-                goal_count -= 1
+    def h(state: 'State', scaler = 5) -> 'float':
+        goal_count = len(state.get_unmet_goals())
         return goal_count * scaler
 
     @staticmethod
@@ -49,7 +46,6 @@ class DistanceBased(Heuristic):
                         else:  # real metrics
                             d = state.find_distance(atom.variables[1], goal.variables[1]) + \
                                 state.find_distance(agent_pos, atom.variables[1])
-                            print( state.find_distance(atom.variables[1], goal.variables[1]), state.find_distance(agent_pos, atom.variables[1]), file=sys.stderr, flush=True)
                         if d < min_distance:
                             min_distance = d
                 distance += min_distance
