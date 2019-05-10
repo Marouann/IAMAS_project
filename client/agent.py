@@ -1,8 +1,10 @@
-import sys
 from strategy import Strategy
-from random import shuffle
-from atom import *
 from action import *
+
+STRATEGY = 'astar'
+HEURISTICS = 'Complex'
+METRICS = 'Real'
+
 
 
 class Agent:
@@ -35,7 +37,7 @@ class Agent:
         self.occupied = True
 
     def getPossibleActions(self, s: 'State') -> '[Action]':
-        possibleActions = []
+        possibleActions = list()
         N = (-1, 0, 'N')
         S = (1, 0, 'S')
         E = (0, 1, 'E')
@@ -61,7 +63,7 @@ class Agent:
                                                         [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
                                                         "Push(" + dir[2] + "," + second_dir[2] + ")",
                                                         boxFrom,
-                                                        4))
+                                                        2))
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
@@ -74,18 +76,18 @@ class Agent:
                                                         [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                         "Pull(" + dir[2] + "," + second_dir[2] + ")",
                                                         agtTo,
-                                                        4))
+                                                        2.5))
                 elif action.name == 'NoOp':
-                                possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 5))
-        shuffle(possibleActions)
-
-        # After shuffling we sort the action by priority.
+                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 3))
         possibleActions.sort(key=lambda tup: tup[4])
 
         return possibleActions
 
-    def plan(self, state: 'State', strategy="astar", multi_goal=False):
+    def reset_plan(self):
+        self.current_plan = []
+
+    def plan(self, state: 'State', strategy=STRATEGY, multi_goal=False):
         print("Agent:", self.name, file=sys.stderr)
         print("Planning for goal:", self.goal_details, file=sys.stderr)
-        strategy = Strategy(state, self, strategy=strategy, multi_goal=multi_goal)
+        strategy = Strategy(state, self, strategy=strategy, heuristics=HEURISTICS, metrics=METRICS, multi_goal=multi_goal)
         strategy.plan()

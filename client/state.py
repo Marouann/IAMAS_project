@@ -12,7 +12,7 @@ class State:
                  cost=0,
                  h_cost=0,
                  parent=None,
-                 last_action={'action': 'NoOp', 'params': [], 'message': [], 'priority': 0}
+                 last_action={'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 2}
                  ):
         self.name = name
         self.goals = goals
@@ -58,6 +58,12 @@ class State:
         if DynamicAtom('Distance', start, end) in self.rigid_atoms:
             return self.rigid_atoms[DynamicAtom('Distance', start, end)].property()[0]
         return -1
+    def update_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
+        '''If shortest path is ocluded by an object, then change the distance'''
+        pass
+
+    def shortest_path(self, start: ('int', 'int'), end: ('int', 'int')) -> []:
+        pass
 
     def check_if_connected(self, start: ('int', 'int'), end: ('int', 'int')) -> 'bool':
         return DynamicAtom('Distance', start, end) in self.rigid_atoms
@@ -105,7 +111,7 @@ class State:
                 return atom
         return False
 
-    def find_object_at_position(self, position: ('int', 'int')) -> 'Atom':
+    def find_object_at_position(self, position: ('int', 'int')):
         for atom in self.atoms:
             if atom.name == "AgentAt" and atom.variables[1] == position:
                 return atom
@@ -188,14 +194,19 @@ class State:
     def atoms(self):
         return self.atoms + self.rigid_atoms
 
+    def reset_state(self):
+        self.last_action = {'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 2}
+        self.cost = 0
+        self.h_cost = 0
+        self.parent = None
     ############################
     ##Private or implicit methods
 
-    def __total_cost__(self) -> 'int':
-        return (self.cost + self.h_cost, self.last_action['priority'])
+    def __total_cost__(self) -> 'float':
+        return self.cost + self.h_cost
 
     def __eq__(self, other: 'State'):
-        return self.atoms == other.atoms  # and self.parent == other.parent and self.last_action == other.last_action
+        return self.atoms == other.atoms
 
     def __str__(self):
         state_str = "State " + self.name + "\n"
