@@ -31,7 +31,7 @@ class ActionPriority(Heuristic):
 
 class DistanceBased(Heuristic):
     @staticmethod
-    def h(state: 'State', agent: 'Agent', metrics) -> 'float':
+    def h(state: 'State', agent: 'Agent', metrics, scaler = 1.0) -> 'float':
         distance = 0
         if agent.goal:
             for goal in [agent.goal]:
@@ -47,7 +47,7 @@ class DistanceBased(Heuristic):
                             d = euclidean(atom.variables[1], goal.variables[1]) + euclidean(atom.variables[1],
                                                                                             agent_pos)
                         else:  # real metrics
-                            d = state.find_distance(atom.variables[1], goal.variables[1]) + \
+                            d = scaler * state.find_distance(atom.variables[1], goal.variables[1]) + \
                                 state.find_distance(agent_pos, atom.variables[1])
                         if d < min_distance:
                             min_distance = d
@@ -62,9 +62,11 @@ class DistanceBased(Heuristic):
 class DynamicHeuristics(Heuristic):
     @staticmethod
     def h(state: 'State', agent: 'Agent', metrics,
-          action_scaler=10., goal_scaler=150., decay= 1000.) -> 'float':
+          action_scaler=5, goal_scaler=150., decay= 1000,
+          distance_scaler = 1.5) -> 'float':
+
         weight = math.exp((-state.cost)/decay)
-        h = DistanceBased.h(state, agent, metrics) + weight * ActionPriority.h(state, action_scaler) + \
+        h = DistanceBased.h(state, agent, metrics, distance_scaler) + weight * ActionPriority.h(state, action_scaler) + \
             weight * GoalCount.h(state,  goal_scaler)
         return h
 

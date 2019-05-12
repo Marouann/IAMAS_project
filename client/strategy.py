@@ -131,7 +131,19 @@ class Strategy:
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics) + \
                             ActionPriority.h(self.state, scaler=10) + GoalCount.h(self.state, 150)
         elif self.heuristics == 'Dynamic':
-            self.state.h_cost = DynamicHeuristics.h(self.state, self.agent, metrics=self.metrics)
+            if len(self.state.rigid_atoms) > 150000:
+                self.decay = 100
+                self.bias = 5
+                self.distance_scaler = 3
+                self.action_scaler = 1.5
+            else:
+                self.decay = 1000
+                self.bias = 1.5
+                self.distance_scaler = 1.2
+                self.action_scaler = 5
+            self.state.h_cost = DynamicHeuristics.h(self.state, self.agent, metrics=self.metrics,
+                                                    action_scaler=self.action_scaler, decay=self.decay,
+                                                    distance_scaler=self.distance_scaler)
 
         frontier = list()
         heappush(frontier, self.state)
@@ -151,8 +163,10 @@ class Strategy:
                                             ActionPriority.h(state_, scaler=10) + GoalCount.h(self.state, 150)
 
                     elif self.heuristics == 'Dynamic':
-                        state_.h_cost = DynamicHeuristics.h(state_, self.agent, metrics=self.metrics)
-                        self.evaluate_cost(state_)
+                        state_.h_cost = DynamicHeuristics.h(state_, self.agent, metrics=self.metrics,
+                                                            action_scaler=self.action_scaler, decay=self.decay,
+                                                            distance_scaler=self.distance_scaler)
+                        self.evaluate_cost(state_, bias=self.bias)
 
                     if state_ not in frontier and state_ not in self.expanded:
                         heappush(frontier, state_)
@@ -163,14 +177,14 @@ class Strategy:
             if self.agent.goal in state.atoms:
                 self.agent.reset_plan()
 
-            print(state.cost, state.h_cost, state.__total_cost__(), file=sys.stderr, flush = True)
+           # print(state.cost, state.h_cost, state.__total_cost__(), file=sys.stderr, flush = True)
             self.agent.current_plan.append(state.last_action)
             self.extract_plan(state.parent)
         else:
             self.agent.current_plan = self.agent.current_plan[:-1]
             self.agent.current_plan.reverse()
 
-    def evaluate_cost(self, new_state: 'State', bias = 1):
+    def evaluate_cost(self, new_state: 'State', bias = 1.5):
         if new_state in self.expanded:
             s = set()
             s.add(new_state)
