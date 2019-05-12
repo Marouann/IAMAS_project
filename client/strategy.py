@@ -3,7 +3,7 @@ from state import State
 from heapq import heapify, heappush, heappop
 from agent import *
 
-from Heuristics.heuristics import GoalCount, DistanceBased, ActionPriority
+from Heuristics.heuristics import GoalCount, DistanceBased, ActionPriority, DynamicHeuristics
 import sys
 
 
@@ -130,6 +130,8 @@ class Strategy:
         elif self.heuristics == 'Complex':
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics) + \
                             ActionPriority.h(self.state, scaler=10) + GoalCount.h(self.state, 150)
+        elif self.heuristics == 'Dynamic':
+            self.state.h_cost = DynamicHeuristics.h(self.state, self.agent, metrics=self.metrics)
 
         frontier = list()
         heappush(frontier, self.state)
@@ -140,14 +142,19 @@ class Strategy:
             if not self.goal_found:
                 for action in self.agent.getPossibleActions(s):
                     state_ = s.create_child(action, cost=1)
-                    if state_ not in frontier and state_ not in self.expanded:
-                        if self.heuristics == 'GoalCount':
-                            state_.h_cost = GoalCount.h(state_)
-                        elif self.heuristics == 'Distance':
-                            state_.h_cost = DistanceBased.h(state_, self.agent, metrics=self.metrics)
-                        elif self.heuristics == 'Complex':
-                            state_.h_cost = DistanceBased.h(state_, self.agent, metrics=self.metrics) + \
+                    if self.heuristics == 'GoalCount':
+                        state_.h_cost = GoalCount.h(state_)
+                    elif self.heuristics == 'Distance':
+                        state_.h_cost = DistanceBased.h(state_, self.agent, metrics=self.metrics)
+                    elif self.heuristics == 'Complex':
+                        state_.h_cost = DistanceBased.h(state_, self.agent, metrics=self.metrics) + \
                                             ActionPriority.h(state_, scaler=10) + GoalCount.h(self.state, 150)
+
+                    elif self.heuristics == 'Dynamic':
+                        state_.h_cost = DynamicHeuristics.h(state_, self.agent, metrics=self.metrics)
+                        self.evaluate_cost(state_)
+                    
+                    if state_ not in frontier and state_ not in self.expanded:
                         heappush(frontier, state_)
                         heapify(frontier)
 
@@ -163,6 +170,17 @@ class Strategy:
             self.agent.current_plan = self.agent.current_plan[:-1]
             self.agent.current_plan.reverse()
 
+    def evaluate_cost(self, new_state: 'State'):
+        if new_state in self.expanded:
+            s = set()
+            s.add(new_state)
+            union = self.expanded.union(s)
+            old_state = union.pop()
+
+            #print('UNION', new_state.__total_cost__(), old_state.__total_cost__(), file=sys.stderr, flush = True)
+            if new_state.__total_cost__() < old_state.__total_cost__():
+                #print('YESS', file=sys.stderr, flush = True)
+                self.expanded.remove(old_state)
 
 
     def __is_goal__(self, agent: 'Agent', state: 'State', multi_goal=False) -> 'bool':
