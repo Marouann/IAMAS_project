@@ -63,7 +63,7 @@ class DynamicHeuristics(Heuristic):
     @staticmethod
     def h(state: 'State', agent: 'Agent', metrics,
           action_scaler=10., goal_scaler=150., decay= 1000.) -> 'float':
-        weight = math.exp((-state.cost)/1000)
+        weight = math.exp((-state.cost)/decay)
         h = DistanceBased.h(state, agent, metrics) + weight * ActionPriority.h(state, action_scaler) + \
             weight * GoalCount.h(state,  goal_scaler)
         return h

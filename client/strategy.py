@@ -153,7 +153,7 @@ class Strategy:
                     elif self.heuristics == 'Dynamic':
                         state_.h_cost = DynamicHeuristics.h(state_, self.agent, metrics=self.metrics)
                         self.evaluate_cost(state_)
-                    
+
                     if state_ not in frontier and state_ not in self.expanded:
                         heappush(frontier, state_)
                         heapify(frontier)
@@ -170,7 +170,7 @@ class Strategy:
             self.agent.current_plan = self.agent.current_plan[:-1]
             self.agent.current_plan.reverse()
 
-    def evaluate_cost(self, new_state: 'State'):
+    def evaluate_cost(self, new_state: 'State', bias = 1):
         if new_state in self.expanded:
             s = set()
             s.add(new_state)
@@ -178,7 +178,7 @@ class Strategy:
             old_state = union.pop()
 
             #print('UNION', new_state.__total_cost__(), old_state.__total_cost__(), file=sys.stderr, flush = True)
-            if new_state.__total_cost__() < old_state.__total_cost__():
+            if new_state.__total_cost__() + bias < old_state.__total_cost__():
                 #print('YESS', file=sys.stderr, flush = True)
                 self.expanded.remove(old_state)
 
