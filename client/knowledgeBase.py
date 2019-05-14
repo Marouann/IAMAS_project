@@ -92,3 +92,8 @@ class KnowledgeBase:
         for item in self.__kb:
             hash_value += hash(item)
         return int(hash_value)
+
+    def __len__(self):
+        """"Number of Atoms in the Knowledge Base"""
+        return self.__kb.__len__()
+
