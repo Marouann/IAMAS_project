@@ -181,8 +181,7 @@ class MasterAgent:
                                     prioritized_goal_is_assigned = True
                                     remaining_agents_to_replan.remove(agent)
 
-                                    agent.ghostmode = True
-                                    agent.plan(self.currentState)
+                                    agent.plan(self.currentState, ghostmode=False)
                                     if agent.current_plan == []:
                                         agent.status = STATUS_REPLAN_NO_PLAN_FOUND
                                 else:
@@ -270,11 +269,8 @@ class MasterAgent:
                     if agent.current_plan == [] and agent.goal in self.currentState.atoms:
                         agent.status = STATUS_REPLAN_GHOST
 
-                self.replanAgentWithStatus(STATUS_REPLAN_GHOST)
-
-
-            # if nb_iter > 10:
-            #     break
+            if nb_iter > 20:
+                break
 
 
 
