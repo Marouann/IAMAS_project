@@ -157,7 +157,7 @@ class MasterAgent:
                                 boxAlreadyPlaced = True
 
                         if not boxAlreadyPlaced:
-                            if box_pos in agent.tracker.boundary:
+                            if self.isSAlvl or box_pos in agent.tracker.boundary:
                                 box_tracker = None
                                 # We initiate a tracker at the box position
                                 if str(box_pos) in box_tracker_dict:
