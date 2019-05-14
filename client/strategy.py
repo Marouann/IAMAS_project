@@ -20,6 +20,7 @@ class Strategy:
                  metrics='Real',
                  multi_goal=False,
                  max_depth=None,
+                 ghostmode=False,
                  quit_event=Event(),
                  found_event=Event()):
 
@@ -31,6 +32,7 @@ class Strategy:
         self.multi_goal = multi_goal
         self.max_depth = max_depth
         self.goal_found = False
+        self.ghostmode = ghostmode
         self.async_mode = False
         self.quit_event = quit_event
         self.found_event = found_event
@@ -73,7 +75,7 @@ class Strategy:
 
             if not self.goal_found:
                 for action in self.agent.getPossibleActions(s):
-                    s_child = s.create_child(action, cost=1)
+                    s_child = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if s_child:
                         self.__is_goal__(self.agent, s_child)
                         if self.goal_found:
@@ -97,7 +99,7 @@ class Strategy:
 
             if not self.goal_found:
                 for action in self.agent.getPossibleActions(s):
-                    s_child = s.create_child(action, cost=1)
+                    s_child = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if s_child:
                         self.__is_goal__(self.agent, s_child)
                         if self.goal_found:
@@ -123,7 +125,7 @@ class Strategy:
 
             if not self.goal_found:
                 for action in self.agent.getPossibleActions(s):
-                    s_child = s.create_child(action, cost=1)
+                    s_child = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if s_child:
                         self.__is_goal__(self.agent, s_child)
                         if self.goal_found:
@@ -194,7 +196,7 @@ class Strategy:
 
             if not self.goal_found:
                 for action in self.agent.getPossibleActions(s):
-                    s_child = s.create_child(action, cost=1)
+                    s_child = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if s_child:
                         s_child.h_cost = h_function.h(s_child, self.agent, metrics=self.metrics)
                         self.__is_goal__(self.agent, s_child)
@@ -217,7 +219,7 @@ class Strategy:
 
             minimum = INF
             for action in self.agent.getPossibleActions(state):
-                s = state.create_child(action, cost=1)
+                s = state.create_child(action, cost=1, ghostmode=self.ghostmode)
                 if s:
                     self.__is_goal__(self.agent, s)
                     if self.goal_found:
