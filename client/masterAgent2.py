@@ -27,6 +27,8 @@ class MasterAgent:
             agtAt = initial_state.find_agent(agt['name'])
             agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull, NoOp], agt['color'])
             self.agents.append(agent)
+        
+        self.isSAlvl = 1 == len(self.agents)
 
     def prioritizeGoals(self, goals):
         # Sort goals 1st by number of free neighbour fields, then by number of neighbour goals)
@@ -169,7 +171,7 @@ class MasterAgent:
                                 # If yes --> we can assign a goal
                                 box_can_reach_goal = prioritized_goal['position'] in box_tracker.reachable
                                 agent_can_reach_goal = prioritized_goal['position'] in agent.tracker.reachable
-                                if box_can_reach_goal or agent_can_reach_goal:
+                                if self.isSAlvl or box_can_reach_goal or agent_can_reach_goal:
                                     agent.assignGoal(Atom("BoxAt", box['name'], prioritized_goal['position']), prioritized_goal)
                                     self.goalsInAction.append(prioritized_goal)
                                     boxesHandled.append(box['name'])
