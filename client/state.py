@@ -56,8 +56,9 @@ class State:
 
     def find_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
         if DynamicAtom('Distance', start, end) in self.rigid_atoms:
-            return self.rigid_atoms[DynamicAtom('Distance', start, end)].property()[0]
+            return self.rigid_atoms[DynamicAtom('Distance', start, end)].property_()
         return -1
+
     def update_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
         '''If shortest path is ocluded by an object, then change the distance'''
         pass
@@ -81,9 +82,9 @@ class State:
         return False
 
     def find_box_color(self, box: 'str') -> ('str'):
-        for atom in self.rigid_atoms:
-            if atom.name == "Color" and atom.variables[0] == box:
-                return atom.variables[1]
+        atom = DynamicAtom('Color*', box)
+        if atom in self.rigid_atoms:
+            return self.rigid_atoms[atom].property_()
         return False
 
     def find_box_goal_distance(self, name: 'str', goal):
@@ -96,11 +97,12 @@ class State:
         return distance
 
     def find_box_letter(self, box_name: 'str'):  ##### WHAT DOES IT DO?
-        for atom in self.rigid_atoms:
-            if atom.name == "Letter" and atom.variables[0] == box_name:
-                return atom
+        atom = DynamicAtom('Letter*', box_name)
+        if atom in self.rigid_atoms:
+            return self.rigid_atoms[atom].property_()
 
     def find_agent(self, agt: 'str'):
+
         for atom in self.atoms:
             if atom.name == "AgentAt" and atom.variables[0] == agt:
                 return atom.variables[1]
@@ -128,7 +130,7 @@ class State:
                 unmetGoals.append(goal)
             else:
                 boxLetter = self.find_box_letter(box.variables[0])
-                letter = boxLetter.variables[1]
+                letter = boxLetter
                 if letter != goal['letter']:
                     unmetGoals.append(goal)
                 else:
@@ -199,6 +201,7 @@ class State:
         self.cost = 0
         self.h_cost = 0
         self.parent = None
+
     ############################
     ##Private or implicit methods
 

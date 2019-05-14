@@ -37,13 +37,19 @@ class Atom:
 class DynamicAtom(Atom):
     def __init__(self, name: 'str', *variables):
         self.properties = None
-        super().__init__( name, *variables)
+        super().__init__(name, *variables)
 
     def assign_property(self, *properties):
         self.properties = properties
 
     def property(self):
         return self.properties
+
+    def property_(self, index=0):
+        try:
+            return self.property()[0]
+        except:
+            return self.property()
 
     def __str__(self):
         var_string = ""

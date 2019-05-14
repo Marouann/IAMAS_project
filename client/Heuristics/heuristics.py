@@ -64,8 +64,8 @@ class ConnectionHeuristics(Heuristic):
 class DynamicHeuristics(Heuristic):
     @staticmethod
     def h(state: 'State', agent: 'Agent', metrics,
-          action_scaler=5, goal_scaler=150., decay= 1000,
-          distance_scaler = 1.5) -> 'float':
+          action_scaler=1, goal_scaler=100., decay= 1000,
+          distance_scaler = 1) -> 'float':
 
         weight = math.exp((-state.cost)/decay)
         h = DistanceBased.h(state, agent, metrics, distance_scaler) + weight * ActionPriority.h(state, action_scaler) + \

@@ -184,31 +184,36 @@ class Strategy:
                         heappush(frontier, state_)
                         heapify(frontier)
 
-    def IDA(self):
+    def IDA(self, h_function = DistanceBased):
         def search(state, limit):
-            state.h_cost = DistanceBased.h(state, self.agent, metrics=self.metrics)
+            state.h_cost = h_function.h(state, self.agent, metrics=self.metrics)
+            self.evaluate_state_IDA(state)
+
             f = state.__total_cost__()
             if f > limit:
                 return f
-            self.__is_goal__(self.agent, state)
+
             minimum = INF
             for action in self.agent.getPossibleActions(state):
                 s = state.create_child(action, cost=1)
-                temporary = search(state.create_child(action, cost=1), limit)
+                self.__is_goal__(self.agent, s)
+
                 if self.goal_found:
                     return True
-                if temporary < minimum and (s,limit) not in self.expanded:
+
+                temporary = search(state.create_child(action, cost=1), limit)
+                if temporary < minimum and (s,limit, s.cost) not in self.expanded:
                     minimum = temporary
-                    self.expanded.add((s,limit))
+                    self.expanded.add((s,limit, s.cost))
             return minimum
 
         ##IDA starts here
-        self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
+        self.state.h_cost = h_function.h(self.state, self.agent, metrics=self.metrics)
         threshold = self.state.h_cost
         deadlock = False
         while not self.goal_found and not deadlock:
             self.state.reset_state()
-           # self.expanded.clear()
+            self.expanded.clear()
             temp = search(self.state, threshold)
             if self.goal_found:
                 return True
@@ -229,7 +234,7 @@ class Strategy:
             self.agent.current_plan = self.agent.current_plan[:-1]
             self.agent.current_plan.reverse()
 
-    def evaluate_cost(self, new_state: 'State', bias=1.5):
+    def evaluate_cost(self, new_state: 'State', bias=5):
         if new_state in self.expanded:
             s = set()
             s.add(new_state)
@@ -240,6 +245,17 @@ class Strategy:
             if new_state.__total_cost__() + bias < old_state.__total_cost__():
                 # print('YESS', file=sys.stderr, flush = True)
                 self.expanded.remove(old_state)
+
+    def evaluate_state_IDA(self, new_state: 'State',  bias=1.5):
+        if (new_state, new_state.cost) in self.expanded:
+            if new_state in self.expanded:
+                s = set()
+                s.add(new_state)
+                union = self.expanded.union(s)
+                old_state = union.pop()
+                if new_state.__total_cost__() + bias < old_state.__total_cost__():
+                    self.expanded.remove((old_state, old_state.cost))
+
 
     def __is_goal__(self, agent: 'Agent', state: 'State', multi_goal=False) -> 'bool':
         if not multi_goal:

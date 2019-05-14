@@ -119,7 +119,15 @@ def get_level(server_messages):
                         AgentAt = Atom('AgentAt', char, (row, col))
                         atoms.update(AgentAt)
 
+                        AgentAt = DynamicAtom('AgentAt*', char)
+                        AgentAt.assign_property((row,col))
+                        atoms.update(AgentAt)
+
                         Color = Atom('Color', char, boxColors[char])
+                        rigidAtoms.update(Color)
+
+                        Color = DynamicAtom('Color*', char)
+                        Color.assign_property(boxColors[char])
                         rigidAtoms.update(Color)
 
                         agents.append({'name': char, 'color': boxColors[char]})
@@ -130,10 +138,22 @@ def get_level(server_messages):
                         Color = Atom('Color', Box, boxColors[char])
                         rigidAtoms.update(Color)
 
+                        Color = DynamicAtom('Color*', Box)
+                        Color.assign_property(boxColors[char])
+                        rigidAtoms.update(Color)
+
                         Letter = Atom('Letter', Box, char)
                         rigidAtoms.update(Letter)
 
+                        Letter = DynamicAtom('Letter*', Box)
+                        Letter.assign_property(char)
+                        rigidAtoms.update(Letter)
+
                         BoxAt = Atom('BoxAt', Box, (row, col))
+                        atoms.update(BoxAt)
+
+                        BoxAt = DynamicAtom('BoxAt*', Box)
+                        BoxAt.assign_property((row,col))
                         atoms.update(BoxAt)
 
                         boxes.append({'name': Box, 'letter': char, 'color': boxColors[char]})
