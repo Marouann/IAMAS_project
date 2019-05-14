@@ -1,7 +1,7 @@
 from strategy import Strategy
 from action import *
 
-STRATEGY = 'astar'
+STRATEGY = 'IDA'
 HEURISTICS = 'Dynamic'
 METRICS = 'Real'
 

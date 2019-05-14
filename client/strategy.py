@@ -192,7 +192,6 @@ class Strategy:
             f = state.__total_cost__()
             if f > limit:
                 return f
-
             minimum = INF
             for action in self.agent.getPossibleActions(state):
                 s = state.create_child(action, cost=1)
@@ -210,14 +209,13 @@ class Strategy:
         ##IDA starts here
         self.state.h_cost = h_function.h(self.state, self.agent, metrics=self.metrics)
         threshold = self.state.h_cost
-        deadlock = False
-        while not self.goal_found and not deadlock:
+        while not self.goal_found:
             self.state.reset_state()
-            self.expanded.clear()
+            #self.expanded.clear()
             temp = search(self.state, threshold)
             if self.goal_found:
                 return True
-            if temp == INF:
+            if temp == INF and not self.goal_found:
                 return False
             threshold = temp
             print(threshold, file=sys.stderr, flush=True)
