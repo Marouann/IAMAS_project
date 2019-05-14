@@ -14,7 +14,7 @@ class Strategy:
     """"Strategy class is responsible for the planning and searching strategies"""
     def __init__(self, state: 'State', agent: 'Agent',
                   strategy='best-first',
-                  heuristics='Distance'
+                  heuristics='Distance',
                   metrics='Real',
                   multi_goal=False,
                   max_depth=None):
