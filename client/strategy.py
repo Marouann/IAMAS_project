@@ -12,20 +12,20 @@ INF = inf
 
 class Strategy:
     """"Strategy class is responsible for the planning and searching strategies"""
-
     def __init__(self, state: 'State', agent: 'Agent',
-                 strategy='astar',
-                 heuristics='Distance',
-                 metrics='Manhattan',
-                 multi_goal=False):
-
+                  strategy='best-first',
+                  heuristics='Distance'
+                  metrics='Real',
+                  multi_goal=False,
+                  max_depth=None):
+  
         self.state = state
         self.agent = agent
         self.strategy = strategy
         self.heuristics = heuristics
         self.metrics = metrics
         self.multi_goal = multi_goal
-
+        self.max_depth = max_depth
         self.goal_found = False
         self.expanded = set()  # stores expanded states
 
@@ -77,10 +77,13 @@ class Strategy:
             possible_actions = self.agent.getPossibleActions(s)
 
             for action in possible_actions:
-                state_ = s.create_child(action)
-                self.__is_goal__(self.agent, state_, multi_goal=self.multi_goal)
-                if not self.goal_found:
-                    if state_ not in frontier and state_ not in self.expanded:
+                state_ = s.create_child(action, cost=1)
+                self.__is_goal__(self.agent, state_,multi_goal=self.multi_goal)
+
+
+                if not self.goal_found and self.max_depth is not None and s.cost < self.max_depth:
+                    if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
+                        # print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
                         frontier.append(state_)
 
     def dfs(self):
@@ -222,7 +225,7 @@ class Strategy:
 
     def extract_plan(self, state: 'State'):
         if state:
-            if self.agent.goal in state.atoms:
+            if not self.multi_goal and self.agent.goal in state.atoms:
                 self.agent.reset_plan()
 
             # print(state.cost, state.h_cost, state.__total_cost__(), file=sys.stderr, flush = True)

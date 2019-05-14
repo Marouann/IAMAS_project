@@ -260,8 +260,9 @@ class MasterAgent:
 
             if nb_iter % 5 == 0:
                 self.replanAgentWithStatus(STATUS_REPLAN_NO_PLAN_FOUND)
+                self.replanAgentWithoutGoals()
 
-            # if nb_iter > 50:
+            # if nb_iter > 20:
             #     break
 
 
@@ -275,15 +276,11 @@ class MasterAgent:
                     agent.occupied = False
                     agent.goal = None
 
-    def replanAgentWithStatus(self, status:'int'):
+    def replanAgentWithoutGoals(self):
         for agent in self.agents:
-            if agent.status == status:
-                print('Replanning with status', agent.status, file=sys.stderr)
+            if agent.goal is not None and agent.goal_details is not None and agent.occupied and agent.current_plan == []:
                 agent.plan(self.currentState)
-                if agent.current_plan != []:
-                    agent.status = None
-                    agent.occupied = False
-                    agent.goal = None
+
 
     def getNextJointAction(self):
         # initialize joint_action with 'NoOp' of length number of agents ['NoOp', 'NoOp', 'NoOp', ...]
@@ -482,6 +479,18 @@ class MasterAgent:
         print("who is conflicting", who_is_conflicting_with, file=sys.stderr)
 
 
+        key_to_remove = []
+        for key, value in who_is_conflicting_with.items():
+            if value == []:
+                key_to_remove.append(key)
+        if key_to_remove != []:
+            for agent in self.agents:
+                agent.goal = None
+                agent.status = None
+                agent.occupied = False
+                agent.current_plan = []
+            # who_is_conflicting_with.pop(key)
+
         '''
         Now that we have found the agents that are in the conflict, we need to find
         solution to it.
@@ -492,7 +501,8 @@ class MasterAgent:
 
         '''
 
-        conflict_clusters = get_cluster_conflict(who_is_conflicting_with)
+
+        conflict_clusters = get_cluster_conflict(who_is_conflicting_with, key_to_remove)
 
         for cluster in conflict_clusters:
             prioritization_needed = False
@@ -508,6 +518,11 @@ class MasterAgent:
 
                     # Conflict TYPE 2
                     if conflicting_agent['success']:
+                        # for agent in self.agents:
+                        #     self.agents[agent].current_plan.insert(0, {'action': NoOp,
+                        #                                 'params': [agent.name, self.currentState.find_agent(agent.name)],
+                        #                                 'message':'NoOp',
+                        #                                 'priority':4})
                         self.agents[current_agent_index].current_plan.insert(0, self.previous_actions[current_agent_index][1])
                         self.executeConflictSolution(self.agents[conflicting_agent['agent']],
                                                     conflicting_agent['unmet_precond'],
@@ -528,6 +543,11 @@ class MasterAgent:
                 conflict_solver = who_is_conflicting_with[priority_agent][0]['agent']
                 conflict_solution = who_is_conflicting_with[priority_agent][0]['unmet_precond']
                 print("Conflict solution:", conflict_solution, file=sys.stderr)
+                for agent in self.agents:
+                    self.agents[int(agent.name)].current_plan.insert(0, {'action': NoOp,
+                                                'params': [agent.name, self.currentState.find_agent(agent.name)],
+                                                'message':'NoOp',
+                                                'priority':4})
                 for agent in cluster:
                     self.agents[agent].current_plan.insert(0, self.previous_actions[agent][1])
                 self.executeConflictSolution(self.agents[conflict_solver],
@@ -575,7 +595,8 @@ class MasterAgent:
 
             # at this point we stop keeping in memory information of the previous goal
             # we will need to fully replan after the conflict is solved.
-            self.goalsInAction.remove(goal_details_keep)
+            # self.goalsInAction.remove(goal_details_keep)
+            self.goalsInAction = []
             for agent_index in conflicting_with:
                 self.agents[agent_index].occupied = False
                 self.agents[agent_index].status = None
@@ -617,7 +638,9 @@ class MasterAgent:
         Now we want to find a solution for this.
         The idea here is to plan for a multi goal with bfs. (Add depth limit to stop?)
         '''
+        iter = 0
         while not areGoalsMet(self.currentState, self.currentState.helping_goals):
+            iter += 1
             print("Helping goal:", file=sys.stderr)
             for goal in self.currentState.helping_goals:
                 print(goal, file=sys.stderr)
@@ -656,22 +679,27 @@ class MasterAgent:
                 else:
                     for agent in available_agents:
                         responsible[agent.name].append(goal)
-            print("goal division:", responsible, file=sys.stderr)
+
 
             '''
             All agents now plan for their own goals.
             '''
             for name, goals in responsible.items():
                 self.agents[int(name)].goal = goals
-                self.agents[int(name)].plan(self.currentState, strategy='bfs', multi_goal=True)
+                self.agents[int(name)].plan(self.currentState, strategy='bfs', multi_goal=True, max_depth=3)
 
             nextAction = self.getNextJointAction()
             self.executeAction(nextAction, multi_goal=True)
+
+            if iter < 5:
+                break
+            print("goal division:", responsible, file=sys.stderr)
 
         '''
         Conflict solution has been found, now agents are freed and can be assign to new
         or past goals.
         '''
+        print("Agents available here", available_agents, file=sys.stderr)
         for agent in available_agents:
             agent.goal = None
             agent.status = None
