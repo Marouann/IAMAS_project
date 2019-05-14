@@ -58,6 +58,8 @@ class DistanceBased(Heuristic):
     def f(state: 'State', agent: 'Agent', metrics='Real') -> 'float':
         return state.cost + DistanceBased.h(state, agent, metrics)
 
+class ConnectionHeuristics(Heuristic):
+    pass
 
 class DynamicHeuristics(Heuristic):
     @staticmethod
