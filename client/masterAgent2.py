@@ -37,6 +37,7 @@ class MasterAgent:
         return sortedGoals
 
     def assignGoals(self, agentsToReplan):
+        print("Assigning goals", file=sys.stderr)
         (goalsToAssign, goalsMet) = self.currentState.get_unmet_goals()
         if agentsToReplan != []:
             print('\nFree agents : ' + str([agent.name for agent in agentsToReplan]), file=sys.stderr, flush=True)
@@ -102,7 +103,7 @@ class MasterAgent:
                 # If no boxes can fill the goal right now we skip this goal
                 if boxes_able_to_fill_goal == []:
                     continue
-                
+
                 boxes_able_to_fill_goal = sorted(boxes_able_to_fill_goal,
                                             key=lambda x: self.currentState.find_box_goal_distance(x[0]["name"], prioritized_goal))
 
@@ -138,7 +139,7 @@ class MasterAgent:
                     if not self.currentState.check_if_connected(agent_position, prioritized_goal['position']):
                         # print('Goal:', goal['position'],'is not connected with the agent', 'agent', agent_position, file=sys.stderr, flush=True)
                         continue
-                    
+
                     ''' We can add store the information that agent can achieve this goal'''
                     agents_connected.append((agent, agent_position))
 
@@ -177,7 +178,7 @@ class MasterAgent:
                                     prioritized_goal_is_assigned = True
                                     remaining_agents_to_replan.remove(agent)
 
-                                    agent.plan(self.currentState)
+                                    agent.plan(self.currentState, ghostmode=False)
                                     if agent.current_plan == []:
                                         agent.status = STATUS_REPLAN_NO_PLAN_FOUND
                                 else:
@@ -185,12 +186,12 @@ class MasterAgent:
 
                             else:
                                 print('Box placed in: ', box_pos, 'is not reachable', file=sys.stderr)
-                    
+
                 if not prioritized_goal_is_assigned:
                     print('Goal not assigned yet', file=sys.stderr)
 
                 print(prioritized_goal_is_assigned, file=sys.stderr)
-                    
+
 
         for agent in agentsToReplan:
             print('agent: ' + str(agent.name) + ', has goal: ' + str(agent.goal), file=sys.stderr, flush=True)
@@ -262,8 +263,8 @@ class MasterAgent:
                 self.replanAgentWithStatus(STATUS_REPLAN_NO_PLAN_FOUND)
                 self.replanAgentWithoutGoals()
 
-            # if nb_iter > 20:
-            #     break
+            if nb_iter > 20:
+                break
 
 
     def replanAgentWithStatus(self, status:'int'):
@@ -388,7 +389,7 @@ class MasterAgent:
             who_is_conflicting_with[current_agent_index] = []
 
             action = self.previous_actions[current_agent_index][1]
-
+            print(action, file=sys.stderr)
             preconds = action['action'].preconditions(*action['params'])
             unmet_preconds = []
             for atom in preconds:
