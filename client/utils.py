@@ -49,7 +49,6 @@ def level_adjacency(state: 'State', row=60, col=60) -> 'KnowledgeBase':
     # print('I calculated {} distances'.format(adjacency), file=sys.stderr, flush=True)
     return adjacency
 
-
 def get_level(server_messages):
     initial_state = None
     domain = None

@@ -10,6 +10,7 @@ from agent import *
 from action import *
 from knowledgeBase import KnowledgeBase
 from utils import *
+from Tracker import Tracker
 
 
 class MasterAgent:
@@ -20,6 +21,7 @@ class MasterAgent:
         self.boxes = boxes  # List of { 'name': Box, 'letter': char, 'color': color }
         self.goalsInAction = []
         self.previous_actions = None
+        self.blocked_goals = {}
 
         for agt in sorted(agents, key=lambda k: k['name']):
             agtAt = initial_state.find_agent(agt['name'])
@@ -40,6 +42,11 @@ class MasterAgent:
             print('\nFree agents : ' + str([agent.name for agent in agentsToReplan]), file=sys.stderr, flush=True)
             print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
             print('Goals already met : ' + str(goalsMet), file=sys.stderr, flush=True)
+        else:
+            # We return to not waste time
+            return
+
+        remaining_agents_to_replan = list(agentsToReplan)
 
         boxesHandled = []
         # Boxes already placed on the goal
@@ -52,9 +59,12 @@ class MasterAgent:
             if agent.goal is not None:
                 boxesHandled.append(agent.goal.variables[0])
 
-        # Each agent that is passed to assignGoals either finished doing its job, or it's his 1st one
-        # Hence we if self.goalsInAction contains agent.goal this job has been finished so we need to remove it
-        for agent in agentsToReplan:
+        for agent in remaining_agents_to_replan:
+            # We update the tracker of the remaining agent.
+            agent.update_tracker(self.currentState)
+
+            # Each agent that is passed to assignGoals either finished doing its job, or it's his 1st one
+            # Hence we if self.goalsInAction contains agent.goal this job has been finished so we need to remove it
             if agent.goal_details in self.goalsInAction:
                 self.goalsInAction.remove(agent.goal_details)
 
@@ -62,53 +72,125 @@ class MasterAgent:
             if goal in goalsToAssign:
                 goalsToAssign.remove(goal)
 
+        # We'll store the box tracker to not compute them too many times
+        box_tracker_dict = {}
+
         prioritizedGoals = self.prioritizeGoals(goalsToAssign)
-        # print(prioritizedGoals, file=sys.stderr)
-        if prioritizedGoals != []:
-            for agent in agentsToReplan:
-                if agent.current_plan != []:
+        for prioritized_goal in prioritizedGoals:
+            if remaining_agents_to_replan == []:
+                break
+            elif prioritized_goal in self.goalsInAction:
+                # print('Goal has already been assigned : ' + str(goal), file=sys.stderr, flush=True)
+                continue
+            else:
+                prioritized_goal_is_assigned = False
+                agents_connected = []
 
-                    print(agent.name, agent.current_plan[0], file=sys.stderr, flush=True)
-                else:
-                    print('Agent', agent.name, 'has no plan!', file=sys.stderr, flush=True)
-                # print(agent.occupied, file=sys.stderr)
-                if agent.occupied == False:
-                    print('Agent', agent.name, 'is not occupied!', file=sys.stderr, flush=True)
-                    for goal in prioritizedGoals:
-                        if agent.goal is not None:
-                            # print('Agent already has a goal, continue: ' + str(goal), file=sys.stderr, flush=True)
-                            continue
-                        if goal in self.goalsInAction:
-                            # print('Goal has already been assigned : ' + str(goal), file=sys.stderr, flush=True)
-                            continue
+                '''
+                    We filter the box to retains the one that can fill the goal and that are not already handled
+                    We do it once for all agents.
+                '''
+                boxes_able_to_fill_goal = []
+                for box in self.boxes:
+                    # First we check if the letter is ok and if the box is not already handled (we already have the info)
+                    if box['letter'] == prioritized_goal['letter'] and box['name'] not in boxesHandled:
+                        # If it's ok, we can check if the goal and the box are connected
+                        box_position = self.currentState.find_box_position(box['name'])
+                        if self.currentState.check_if_connected(prioritized_goal['position'], box_position):
+                            boxes_able_to_fill_goal.append((box, box_position))
 
-                        possibleBoxes = []
-                        for box in self.boxes:
-                            if box['color'] == agent.color and \
-                                    box['letter'] == goal['letter'] and \
-                                    box['name'] not in boxesHandled:
-                                possibleBoxes.append(box)
+                # If no boxes can fill the goal right now we skip this goal
+                if boxes_able_to_fill_goal == []:
+                    continue
+                
+                boxes_able_to_fill_goal = sorted(boxes_able_to_fill_goal,
+                                            key=lambda x: self.currentState.find_box_goal_distance(x[0]["name"], prioritized_goal))
 
-                        prioritizedBoxes = sorted (possibleBoxes,
-                                                   key=lambda x: self.currentState.find_box_goal_distance(x["name"], goal))
-                        goalNotAssigned = True
-                        while goalNotAssigned and prioritizedBoxes != []:
-                            box = prioritizedBoxes.pop(0)
-                            boxAlreadyPlaced = False
-                            for goalmet in goalsMet:
-                                boxPlaced = self.currentState.find_box(goalmet['position'])
-                                if boxPlaced.variables[0] == box['name']:
-                                    boxAlreadyPlaced = True
+                for agent in remaining_agents_to_replan:
+                    # If the goal is alreay assigned, we stop searching an agent that can achieve it
+                    if prioritized_goal_is_assigned:
+                        break
+                    # If agent is occupied or if he has already a goal
+                    # or if its color is not the same than the boxes we skip it
+                    if agent.occupied != False or \
+                        agent.goal is not None or \
+                        agent.color != boxes_able_to_fill_goal[0][0]['color']:
+                        # print('Agent already has a goal, continue: ' + str(goal), file=sys.stderr, flush=True)
+                        continue
 
-                            if not boxAlreadyPlaced:
-                                agent.assignGoal(Atom("BoxAt", box['name'], goal['position']), goal)
-                                self.goalsInAction.append(goal)
-                                boxesHandled.append(box['name'])
-                                goalNotAssigned = False
-                                if not agent.goal in self.currentState.atoms:
+                    # Here we know that agent is not occupied and it has no goal.
+                    if agent.current_plan != []:
+                        print(agent.name, agent.current_plan[0], file=sys.stderr, flush=True)
+                    else:
+                        print('Agent', agent.name, 'has no plan!', file=sys.stderr, flush=True)
+
+                    # We get the position of the agent
+                    agent_position = self.currentState.find_agent(agent.name)
+                    '''
+                        We check if the agent and the goal are connected, if not we search for another agent
+                        Right now we know:
+                            - which box can fill the goal
+                            - the agent can move thoses boxes
+
+                        As we already have checked if the boxes_able_to_fill_goal are connected to the goal,
+                        we will not need to check if agent and box are connected
+                    '''
+                    if not self.currentState.check_if_connected(agent_position, prioritized_goal['position']):
+                        # print('Goal:', goal['position'],'is not connected with the agent', 'agent', agent_position, file=sys.stderr, flush=True)
+                        continue
+                    
+                    ''' We can add store the information that agent can achieve this goal'''
+                    agents_connected.append((agent, agent_position))
+
+                    ''' For the box that can fill the goal, we'll try to assign a goal to the agent '''
+                    prioritizedBoxes = list(boxes_able_to_fill_goal)
+                    while prioritizedBoxes != [] and not prioritized_goal_is_assigned:
+                        (box, box_pos) = prioritizedBoxes.pop(0)
+
+                        # We avoid assigning a box that is already placed on a goal.
+                        boxAlreadyPlaced = False
+                        for goalmet in goalsMet:
+                            boxPlaced = self.currentState.find_box(goalmet['position'])
+                            if boxPlaced.variables[0] == box['name']:
+                                boxAlreadyPlaced = True
+
+                        if not boxAlreadyPlaced:
+                            if box_pos in agent.tracker.boundary:
+                                box_tracker = None
+                                # We initiate a tracker at the box position
+                                if str(box_pos) in box_tracker_dict:
+                                    box_tracker = box_tracker_dict[str(box_pos)]
+                                else:
+                                    box_tracker = Tracker(box_pos)
+                                    box_tracker_dict[str(box_pos)] = box_tracker
+                                    box_tracker.estimate(self.currentState)
+
+                                # Then we see if the goal is reachable from the box or if the goal is reachable from agent
+                                # If yes --> we can assign a goal
+                                box_can_reach_goal = prioritized_goal['position'] in box_tracker.reachable
+                                agent_can_reach_goal = prioritized_goal['position'] in agent.tracker.reachable
+                                if box_can_reach_goal or agent_can_reach_goal:
+                                    agent.assignGoal(Atom("BoxAt", box['name'], prioritized_goal['position']), prioritized_goal)
+                                    self.goalsInAction.append(prioritized_goal)
+                                    boxesHandled.append(box['name'])
+                                    # The goal will be assigned to agent, we can update the two following variables
+                                    prioritized_goal_is_assigned = True
+                                    remaining_agents_to_replan.remove(agent)
+
                                     agent.plan(self.currentState)
                                     if agent.current_plan == []:
                                         agent.status = STATUS_REPLAN_NO_PLAN_FOUND
+                                else:
+                                    print('The box and the agent can not reach the goal', file=sys.stderr)
+
+                            else:
+                                print('Box placed in: ', box_pos, 'is not reachable', file=sys.stderr)
+                    
+                if not prioritized_goal_is_assigned:
+                    print('Goal not assigned yet', file=sys.stderr)
+
+                print(prioritized_goal_is_assigned, file=sys.stderr)
+                    
 
         for agent in agentsToReplan:
             print('agent: ' + str(agent.name) + ', has goal: ' + str(agent.goal), file=sys.stderr, flush=True)
