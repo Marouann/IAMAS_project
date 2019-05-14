@@ -2,8 +2,8 @@ from strategy import Strategy
 from action import *
 from Tracker import Tracker
 
-STRATEGY = 'IDA'
-HEURISTICS = 'Dynamic'
+STRATEGY = 'astar'
+HEURISTICS = 'Distance'
 METRICS = 'Real'
 
 
