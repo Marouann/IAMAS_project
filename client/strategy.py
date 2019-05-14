@@ -225,7 +225,7 @@ class Strategy:
 
     def extract_plan(self, state: 'State'):
         if state:
-            if self.agent.goal in state.atoms:
+            if not self.multi_goal and self.agent.goal in state.atoms:
                 self.agent.reset_plan()
 
             # print(state.cost, state.h_cost, state.__total_cost__(), file=sys.stderr, flush = True)
