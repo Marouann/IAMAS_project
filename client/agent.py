@@ -3,7 +3,7 @@ from action import *
 from Tracker import Tracker
 
 STRATEGY = 'astar'
-HEURISTICS = 'Distance'
+HEURISTICS = 'Dynamic'
 METRICS = 'Real'
 
 
@@ -13,6 +13,7 @@ class Agent:
         self.name = name
         #self.position = position
         self.goal = goal
+        self.goal_to_unblock = None
         self.goal_details = None
         self.actions = actions
         self.color = color

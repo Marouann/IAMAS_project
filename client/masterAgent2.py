@@ -21,7 +21,8 @@ class MasterAgent:
         self.boxes = boxes  # List of { 'name': Box, 'letter': char, 'color': color }
         self.goalsInAction = []
         self.previous_actions = None
-        self.blocked_goals = {}
+        self.blockers = []
+        self.goals_blocked = {}
 
         for agt in sorted(agents, key=lambda k: k['name']):
             agtAt = initial_state.find_agent(agt['name'])
@@ -62,6 +63,9 @@ class MasterAgent:
                 boxesHandled.append(agent.goal.variables[0])
 
         for agent in remaining_agents_to_replan:
+            if agent.status == STATUS_WAITING_FOR_BLOCKER:
+                remaining_agents_to_replan.remove(agent)
+                continue
             # We update the tracker of the remaining agent.
             agent.update_tracker(self.currentState)
 
@@ -77,8 +81,59 @@ class MasterAgent:
         # We'll store the box tracker to not compute them too many times
         box_tracker_dict = {}
 
+        key_to_remove = []
+
+        for goal_blocked_position, goal_blocked in self.goals_blocked.items():
+            if goal_blocked['help_ongoing'] == True:
+                continue
+            
+
+            blocker_position = goal_blocked['blocker']['position']
+            if Atom('Free', blocker_position) in self.currentState.atoms:
+                agent_waiting = self.goals_blocked[goal_blocked_position]['agent_waiting']
+                agent_waiting.status = None
+                key_to_remove.append(goal_blocked_position)
+                continue
+
+            blocker = goal_blocked['blocker']
+            if 'agent' == blocker['type']:
+                agent_name = blocker['atom'].variables[0]
+                for agent in remaining_agents_to_replan:
+                    if agent.name == agent_name:
+                        agent.assignGoal(Atom('Free', blocker['position']), {})
+                        agent.plan(self.currentState, strategy='bfs', max_depth=4)
+                        if agent.plan != []:
+                            agent.goal_to_unblock = goal_blocked_position
+                            agent.status = STATUS_REMOVING_BLOCKER
+                            self.goals_blocked[goal_blocked_position]['help_ongoing'] = True
+                            break;
+
+            elif 'box' == blocker['type']:
+                box_name = blocker['atom'].variables[0]
+                box_pos = blocker['position']
+                box_color = self.currentState.find_box_color(box_name)
+                for agent in remaining_agents_to_replan:
+                    if agent.color != box_color:
+                        continue
+
+                    agent_position = self.currentState.find_agent(agent.name)
+                    if box_pos in agent.tracker.boundary:
+                        agent.assignGoal(Atom("BoxAt", box_name, agent_position), {})
+                        print("Planning to help", str(agent.goal), file=sys.stderr)
+                        agent.plan(self.currentState)
+                        if agent.plan != []:
+                            agent.status = STATUS_REMOVING_BLOCKER
+                            agent.goal_to_unblock = goal_blocked_position
+                            self.goals_blocked[goal_blocked_position]['help_ongoing'] = True
+                            break;
+        for key in key_to_remove:
+            del self.goals_blocked[key]
+
         prioritizedGoals = self.prioritizeGoals(goalsToAssign)
         for prioritized_goal in prioritizedGoals:
+            # We are already trying to unblock that goal
+            if str(prioritized_goal['position']) in self.goals_blocked:
+                continue
             if remaining_agents_to_replan == []:
                 break
             elif prioritized_goal in self.goalsInAction:
@@ -190,6 +245,50 @@ class MasterAgent:
                     
                 if not prioritized_goal_is_assigned:
                     print('Goal not assigned yet', file=sys.stderr)
+                    # We first initialize a tracker for the goal
+                    goal_tracker = Tracker(prioritized_goal['position'])
+                    goal_tracker.estimate(self.currentState)
+
+                    # First : try to find a box reachable from goal
+                    # TODO Prioritize this box
+                    box_reachable_from_goal = None
+                    for (box, box_pos) in boxes_able_to_fill_goal:
+                        if box_reachable_from_goal != None:
+                            break
+                        if box_pos in goal_tracker.boundary:
+                            box_reachable_from_goal = (box, box_pos)
+                    
+                    cell_tracker = None
+                    if box_reachable_from_goal != None:
+                        (box, box_pos) = box_reachable_from_goal
+                        if str(box_pos) in box_tracker_dict:
+                            cell_tracker = box_tracker_dict[str(box_pos)]
+                        else:
+                            cell_tracker = Tracker(box_pos)
+                            box_tracker_dict[str(box_pos)] = cell_tracker
+                            cell_tracker.estimate(self.currentState)
+                    else:
+                        cell_tracker = goal_tracker
+
+                    for (agent, agent_position) in agents_connected:
+                        agent_box_boundary_intersection = []
+                        for cell in agent.tracker.boundary:
+                            if cell in cell_tracker.boundary:
+                                distance_from_agent = self.currentState.find_distance(cell, agent_position)
+                                cell_atom = self.currentState.find_object_at_position(cell)
+                                if cell_atom.name == "BoxAt":
+                                    agent_box_boundary_intersection.append({ 'position': cell, 'type': 'box', 'atom': cell_atom, 'distance': distance_from_agent })
+                                if cell_atom.name == "AgentAt":
+                                    agent_box_boundary_intersection.append({ 'position': cell, 'type': 'agent', 'atom': cell_atom, 'distance': distance_from_agent })
+                        
+                        if agent_box_boundary_intersection != []:
+                            agent_box_boundary_intersection = sorted(agent_box_boundary_intersection,
+                                        key=lambda x: (x["type"] == 'box', x["distance"]))
+
+                            agent.status = STATUS_WAITING_FOR_BLOCKER
+                            blocker = agent_box_boundary_intersection.pop(0)
+                            self.goals_blocked[str(prioritized_goal['position'])] = { 'agent_waiting': agent, 'box': box, 'blocker': blocker, 'help_ongoing': False }
+                            remaining_agents_to_replan.remove(agent)
 
                 print(prioritized_goal_is_assigned, file=sys.stderr)
                     
@@ -334,6 +433,12 @@ class MasterAgent:
             for agent in self.agents:
                 if agent.goal in self.currentState.atoms:
                     print("Goal", agent.goal, file=sys.stderr)
+                    if agent.status == STATUS_REMOVING_BLOCKER:
+                        agent_waiting = self.goals_blocked[str(agent.goal_to_unblock)]['agent_waiting']
+                        agent_waiting.status = None
+                        agent.status = None
+                        del self.goals_blocked[str(agent.goal_to_unblock)]
+
                     agent.occupied = False
                     agent.current_plan = []
                     agent.goal = None

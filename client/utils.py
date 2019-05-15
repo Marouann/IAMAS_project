@@ -8,6 +8,8 @@ from multiprocessing import Process, Manager
 STATUS_WAIT_REPLAN = 0
 STATUS_REPLAN_AFTER_CONFLICT = 1
 STATUS_REPLAN_NO_PLAN_FOUND = 2
+STATUS_WAITING_FOR_BLOCKER = 3
+STATUS_REMOVING_BLOCKER = 4
 
 def level_adjacency(state: 'State', row=60, col=60) -> 'KnowledgeBase':
     '''Calculates real distances between cells in a level'''

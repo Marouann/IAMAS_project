@@ -60,3 +60,6 @@ class Tracker(object):
 
     def check_if_reachable(self, coords: '(int,int)'):
         return coords in self.reachable
+
+    def copy(self):
+        return self
