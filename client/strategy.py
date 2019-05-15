@@ -17,8 +17,9 @@ class Strategy:
                   heuristics='Distance',
                   metrics='Real',
                   multi_goal=False,
-                  max_depth=None):
-  
+                  max_depth=None,
+                  ghostmode=False):
+
         self.state = state
         self.agent = agent
         self.strategy = strategy
@@ -27,6 +28,7 @@ class Strategy:
         self.multi_goal = multi_goal
         self.max_depth = max_depth
         self.goal_found = False
+        self.ghostmode = ghostmode
         self.expanded = set()  # stores expanded states
 
         ##### do not touch
@@ -60,7 +62,7 @@ class Strategy:
             possible_actions = self.agent.getPossibleActions(s)
 
             for action in possible_actions:
-                state_ = s.create_child(action, cost=1)
+                state_ = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                 self.__is_goal__(self.agent, state_)
                 if not self.goal_found:
                     if state_ not in frontier and state_ not in self.expanded:
@@ -77,7 +79,7 @@ class Strategy:
             possible_actions = self.agent.getPossibleActions(s)
 
             for action in possible_actions:
-                state_ = s.create_child(action, cost=1)
+                state_ = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                 self.__is_goal__(self.agent, state_,multi_goal=self.multi_goal)
 
 
@@ -96,7 +98,7 @@ class Strategy:
             possible_actions = self.agent.getPossibleActions(s)
 
             for action in possible_actions:
-                state_ = s.create_child(action)
+                state_ = s.create_child(action, ghostmode=self.ghostmode)
                 self.__is_goal__(self.agent, state_)
                 if not self.goal_found:
                     if state_ not in frontier and state_ not in self.expanded:
@@ -120,7 +122,7 @@ class Strategy:
             s = heappop(frontier)
             self.expanded.add(s)
             for action in self.agent.getPossibleActions(s):
-                state_ = s.create_child(action, cost=0)
+                state_ = s.create_child(action, cost=0, ghostmode=self.ghostmode)
                 self.__is_goal__(self.agent, state_)
                 if not self.goal_found:
                     if state_ not in frontier and state_ not in self.expanded:
@@ -138,6 +140,7 @@ class Strategy:
         self.state.reset_state()
         self.agent.reset_plan()
         print('Solving with A*', self.heuristics, self.metrics, file=sys.stderr, flush=True)
+        print('Ghostmode on:', self.ghostmode, file=sys.stderr)
         if self.heuristics == 'GoalCount':
             self.state.h_cost = GoalCount.h(self.state)
         elif self.heuristics == 'Distance':
@@ -167,8 +170,8 @@ class Strategy:
             self.expanded.add(s)
             self.__is_goal__(self.agent, s)
             if not self.goal_found:
-                for action in self.agent.getPossibleActions(s):
-                    state_ = s.create_child(action, cost=1)
+                for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode):
+                    state_ = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if self.heuristics == 'GoalCount':
                         state_.h_cost = GoalCount.h(state_)
                     elif self.heuristics == 'Distance':
@@ -197,13 +200,13 @@ class Strategy:
                 return f
             minimum = INF
             for action in self.agent.getPossibleActions(state):
-                s = state.create_child(action, cost=1)
+                s = state.create_child(action, cost=1, ghostmode=self.ghostmode)
                 self.__is_goal__(self.agent, s)
 
                 if self.goal_found:
                     return True
 
-                temporary = search(state.create_child(action, cost=1), limit)
+                temporary = search(state.create_child(action, cost=1, ghostmode=self.ghostmode), limit)
                 if temporary < minimum and (s,limit, s.cost) not in self.expanded:
                     minimum = temporary
                     self.expanded.add((s,limit, s.cost))

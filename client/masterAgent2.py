@@ -27,7 +27,7 @@ class MasterAgent:
             agtAt = initial_state.find_agent(agt['name'])
             agent = Agent(agt['name'], agtAt, None, [Move, Push, Pull, NoOp], agt['color'])
             self.agents.append(agent)
-        
+
         self.isSAlvl = 1 == len(self.agents)
 
     def prioritizeGoals(self, goals):
@@ -39,6 +39,7 @@ class MasterAgent:
         return sortedGoals
 
     def assignGoals(self, agentsToReplan):
+        print("Assigning goals", file=sys.stderr)
         (goalsToAssign, goalsMet) = self.currentState.get_unmet_goals()
         if agentsToReplan != []:
             print('\nFree agents : ' + str([agent.name for agent in agentsToReplan]), file=sys.stderr, flush=True)
@@ -104,7 +105,7 @@ class MasterAgent:
                 # If no boxes can fill the goal right now we skip this goal
                 if boxes_able_to_fill_goal == []:
                     continue
-                
+
                 boxes_able_to_fill_goal = sorted(boxes_able_to_fill_goal,
                                             key=lambda x: self.currentState.find_box_goal_distance(x[0]["name"], prioritized_goal))
 
@@ -140,7 +141,7 @@ class MasterAgent:
                     if not self.currentState.check_if_connected(agent_position, prioritized_goal['position']):
                         # print('Goal:', goal['position'],'is not connected with the agent', 'agent', agent_position, file=sys.stderr, flush=True)
                         continue
-                    
+
                     ''' We can add store the information that agent can achieve this goal'''
                     agents_connected.append((agent, agent_position))
 
@@ -157,7 +158,7 @@ class MasterAgent:
                                 boxAlreadyPlaced = True
 
                         if not boxAlreadyPlaced:
-                            if box_pos in agent.tracker.boundary:
+                            if box_pos in agent.tracker.boundary or agent.ghostmode:
                                 box_tracker = None
                                 # We initiate a tracker at the box position
                                 if str(box_pos) in box_tracker_dict:
@@ -171,7 +172,8 @@ class MasterAgent:
                                 # If yes --> we can assign a goal
                                 box_can_reach_goal = prioritized_goal['position'] in box_tracker.reachable
                                 agent_can_reach_goal = prioritized_goal['position'] in agent.tracker.reachable
-                                if self.isSAlvl or box_can_reach_goal or agent_can_reach_goal:
+
+                                if self.isSAlvl or box_can_reach_goal or agent_can_reach_goal or agent.ghostmode:
                                     agent.assignGoal(Atom("BoxAt", box['name'], prioritized_goal['position']), prioritized_goal)
                                     self.goalsInAction.append(prioritized_goal)
                                     boxesHandled.append(box['name'])
@@ -179,6 +181,7 @@ class MasterAgent:
                                     prioritized_goal_is_assigned = True
                                     remaining_agents_to_replan.remove(agent)
 
+                                    agent.ghostmode = True
                                     agent.plan(self.currentState)
                                     if agent.current_plan == []:
                                         agent.status = STATUS_REPLAN_NO_PLAN_FOUND
@@ -187,12 +190,12 @@ class MasterAgent:
 
                             else:
                                 print('Box placed in: ', box_pos, 'is not reachable', file=sys.stderr)
-                    
+
                 if not prioritized_goal_is_assigned:
                     print('Goal not assigned yet', file=sys.stderr)
 
                 print(prioritized_goal_is_assigned, file=sys.stderr)
-                    
+
 
         for agent in agentsToReplan:
             print('agent: ' + str(agent.name) + ', has goal: ' + str(agent.goal), file=sys.stderr, flush=True)
@@ -252,6 +255,7 @@ class MasterAgent:
                 print('occupied', agent.occupied, file=sys.stderr)
                 print(agent.goal, file=sys.stderr)
                 print(agent.goal_details, file=sys.stderr)
+                print('plan length', len(agent.current_plan), file=sys.stderr)
 
             print(old_valids, file=sys.stderr)
             if False not in old_valids:
@@ -262,26 +266,33 @@ class MasterAgent:
 
             if nb_iter % 5 == 0:
                 self.replanAgentWithStatus(STATUS_REPLAN_NO_PLAN_FOUND)
-                self.replanAgentWithoutGoals()
+                for agent in self.agents:
+                    if agent.current_plan == [] and agent.goal in self.currentState.atoms:
+                        agent.status = STATUS_REPLAN_GHOST
 
-            # if nb_iter > 20:
-            #     break
+                self.replanAgentWithStatus(STATUS_REPLAN_GHOST)
+
+
+            if nb_iter > 15:
+                break
+
 
 
     def replanAgentWithStatus(self, status:'int'):
         for agent in self.agents:
             if agent.status == status:
                 print('Replanning with status', agent.status, file=sys.stderr)
+
+                if status == STATUS_REPLAN_GHOST:
+                    agent.ghostmode = True
+                else:
+                    agent.ghostmode = False
+
                 agent.plan(self.currentState)
                 if agent.current_plan != []:
                     agent.status = None
                     agent.occupied = False
                     agent.goal = None
-
-    def replanAgentWithoutGoals(self):
-        for agent in self.agents:
-            if agent.goal is not None and agent.goal_details is not None and agent.occupied and agent.current_plan == []:
-                agent.plan(self.currentState)
 
 
     def getNextJointAction(self):
@@ -289,8 +300,7 @@ class MasterAgent:
         joint_action = []
         for agent in self.agents:
             # If there are still actions in current plan pop the first action and
-            if agent.current_plan != []:
-                # print(agent.current_plan, file=sys.stderr)
+            if agent.current_plan != [] :
                 joint_action.append(agent.current_plan.pop(0))
             else:
                 joint_action.append({'action': NoOp,
@@ -326,6 +336,8 @@ class MasterAgent:
 
         print('Server response : ' + str(server_answer), file=sys.stderr, flush=True)
         print('**********************', file=sys.stderr)
+        for agent in self.agents:
+            print(agent.name, self.currentState.find_agent(agent.name), file=sys.stderr)
         for i, answer in enumerate(server_answer):
             if answer == 'true':
                 jointAction[i]['action'].execute(self.currentState, jointAction[i]['params'])
@@ -390,7 +402,7 @@ class MasterAgent:
             who_is_conflicting_with[current_agent_index] = []
 
             action = self.previous_actions[current_agent_index][1]
-
+            print(action, file=sys.stderr)
             preconds = action['action'].preconditions(*action['params'])
             unmet_preconds = []
             for atom in preconds:
@@ -485,12 +497,12 @@ class MasterAgent:
         for key, value in who_is_conflicting_with.items():
             if value == []:
                 key_to_remove.append(key)
-        if key_to_remove != []:
-            for agent in self.agents:
-                agent.goal = None
-                agent.status = None
-                agent.occupied = False
-                agent.current_plan = []
+        # if key_to_remove != []:
+        #     for agent in self.agents:
+        #         agent.goal = None
+        #         agent.status = None
+        #         agent.occupied = False
+        #         agent.current_plan = []
             # who_is_conflicting_with.pop(key)
 
         '''
@@ -636,6 +648,12 @@ class MasterAgent:
 
         self.currentState.helping_goals = self.getHelpingGoals(available_agents)
 
+        print("Agents available here", file=sys.stderr)
+        print(available_agents[0].name, file=sys.stderr)
+        print(self.currentState.find_agent(available_agents[0].name), file=sys.stderr)
+        print(available_agents[1].name, file=sys.stderr)
+        print(self.currentState.find_agent(available_agents[1].name), file=sys.stderr)
+
         '''
         Now we want to find a solution for this.
         The idea here is to plan for a multi goal with bfs. (Add depth limit to stop?)
@@ -688,12 +706,23 @@ class MasterAgent:
             '''
             for name, goals in responsible.items():
                 self.agents[int(name)].goal = goals
-                self.agents[int(name)].plan(self.currentState, strategy='bfs', multi_goal=True, max_depth=3)
+                self.agents[int(name)].ghostmode = False
+                self.agents[int(name)].current_plan = []
+                self.agents[int(name)].plan(self.currentState, strategy='bfs', multi_goal=True, max_depth=5)
 
-            nextAction = self.getNextJointAction()
+            nextAction = []
+            for agent in self.agents:
+                if agent.name in responsible.keys() and agent.current_plan != []:
+                    nextAction.append(agent.current_plan.pop(0))
+                else:
+                    nextAction.append({'action': NoOp,
+                                                'params': [agent.name, self.currentState.find_agent(agent.name)],
+                                                'message':'NoOp',
+                                                'priority':4})
+
             self.executeAction(nextAction, multi_goal=True)
 
-            if iter < 5:
+            if iter >= 3:
                 break
             print("goal division:", responsible, file=sys.stderr)
 
@@ -701,8 +730,8 @@ class MasterAgent:
         Conflict solution has been found, now agents are freed and can be assign to new
         or past goals.
         '''
-        print("Agents available here", available_agents, file=sys.stderr)
-        for agent in available_agents:
+
+        for agent in self.agents:
             agent.goal = None
             agent.status = None
             agent.occupied = False

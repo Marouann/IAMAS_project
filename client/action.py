@@ -15,18 +15,22 @@ class Action:
         self.positive_effects = positive_effects  # type?
         self.negative_effects = negative_effects  # type?
 
-    def checkPreconditions(self, s: 'State', variables):  ## should it be with a *
+    def checkPreconditions(self, s: 'State', variables, ghostmode=False):  ## should it be with a *
         practical = True  ## what does it stands for ?
         i = 0
         preconditions = self.preconditions(*variables)
         while practical and i < len(preconditions):
             actual_atom = preconditions[i]
-            practical = practical and (actual_atom in s.atoms or actual_atom in s.rigid_atoms)
+
+            # print(actual_atom, file=sys.stderr)
+            # print(s.atoms, file=sys.stderr)
+            if not ghostmode or actual_atom.name != "Free":
+                practical = practical and (actual_atom in s.atoms or actual_atom in s.rigid_atoms)
             i += 1
         return practical
 
-    def execute(self, s: 'State', variables):
-        if self.checkPreconditions(s, variables):
+    def execute(self, s: 'State', variables, ghostmode=False):
+        if self.checkPreconditions(s, variables, ghostmode=ghostmode):
 
             for effect in self.negative_effects(*variables):
                 s.remove_atom(effect)
