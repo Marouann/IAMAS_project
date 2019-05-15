@@ -21,7 +21,10 @@ class Action:
         preconditions = self.preconditions(*variables)
         while practical and i < len(preconditions):
             actual_atom = preconditions[i]
-            if actual_atom.name != "Free":
+
+            # print(actual_atom, file=sys.stderr)
+            # print(s.atoms, file=sys.stderr)
+            if not ghostmode or actual_atom.name != "Free":
                 practical = practical and (actual_atom in s.atoms or actual_atom in s.rigid_atoms)
             i += 1
         return practical

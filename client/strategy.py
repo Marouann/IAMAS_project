@@ -140,6 +140,7 @@ class Strategy:
         self.state.reset_state()
         self.agent.reset_plan()
         print('Solving with A*', self.heuristics, self.metrics, file=sys.stderr, flush=True)
+        print('Ghostmode on:', self.ghostmode, file=sys.stderr)
         if self.heuristics == 'GoalCount':
             self.state.h_cost = GoalCount.h(self.state)
         elif self.heuristics == 'Distance':
@@ -169,7 +170,7 @@ class Strategy:
             self.expanded.add(s)
             self.__is_goal__(self.agent, s)
             if not self.goal_found:
-                for action in self.agent.getPossibleActions(s):
+                for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode):
                     state_ = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if self.heuristics == 'GoalCount':
                         state_.h_cost = GoalCount.h(state_)
