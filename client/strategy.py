@@ -195,7 +195,7 @@ class Strategy:
             expanded.add(s)
 
             if not self.goal_found:
-                for action in self.agent.getPossibleActions(s):
+                for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode)):
                     s_child = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if s_child:
                         s_child.h_cost = h_function.h(s_child, self.agent, metrics=self.metrics)
