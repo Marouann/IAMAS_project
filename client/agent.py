@@ -97,7 +97,7 @@ class Agent:
 
     def plan(self, state: 'State', strategy=STRATEGY, multi_goal=False, max_depth= None, ghostmode=False):
         print("Agent:", self.name, file=sys.stderr)
-        print("Planning for goal:", self.goal_details, file=sys.stderr)
+        print("Planning for goal:", self.goal, file=sys.stderr)
         strategy = Strategy(state, self,
                             strategy=strategy,
                             heuristics=HEURISTICS,
