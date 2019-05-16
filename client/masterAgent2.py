@@ -273,7 +273,7 @@ class MasterAgent:
                 self.replanAgentWithStatus(STATUS_REPLAN_GHOST)
 
 
-            if nb_iter > 15:
+            if nb_iter > 10:
                 break
 
 
@@ -490,12 +490,29 @@ class MasterAgent:
                             'priority': len(self.agents[current_agent_index].current_plan)
                         })
 
+            print('Unmet precond:', unmet_preconds[0], file=sys.stderr)
+            box = self.currentState.find_box(unmet_preconds[0].variables[0])
+            if box is not False:
+                print('Ghostmode agent run into a box!', file=sys.stderr)
+                agent = self.agents[current_agent_index]
+
+                agent.ghostmode = False
+                keep_plan = agent.current_plan.copy()
+                agent.plan(self.currentState)
+                if agent.current_plan == []:
+                    #first put last action in plan cause it has not been executed
+                    agent.current_plan = keep_plan
+                    agent.current_plan.insert(0, action)
+                    self.solveGhostBoxConflict(agent, box)
+
+
         print("who is conflicting", who_is_conflicting_with, file=sys.stderr)
 
 
         key_to_remove = []
         for key, value in who_is_conflicting_with.items():
             if value == []:
+
                 key_to_remove.append(key)
         # if key_to_remove != []:
         #     for agent in self.agents:
@@ -753,3 +770,53 @@ class MasterAgent:
                     if box_color == agent.color:
                         goals.append(Atom("Free", neighbour))
         return goals
+
+    def solveGhostBoxConflict(self, agent, box):
+        boxColor = self.currentState.find_box_color(box.variables[0])
+        if agent.color == boxColor:
+            print("Box is the same color as the agent", file=sys.stderr)
+
+
+
+
+            #plan for free
+            freeGoal = [Atom('Free', box.variables[1]),
+            Atom('AgentAt', str(current_agent_index), self.currentState.find_agent(str(current_agent_index)))]
+
+            freeGoal = [Atom('Free', box.variables[1])]
+
+            keep_goal = agent.goal
+            keep_plan = agent.current_plan.copy()
+            agent.ghostmode = False
+            agent.current_plan = []
+
+            agent.goal = freeGoal
+            print(agent.goal[0], agent.goal[1], file=sys.stderr)
+            agent.plan(self.currentState, strategy='bfs', multi_goal=True)
+            print(agent.current_plan, file=sys.stderr)
+            while agent.current_plan != []:
+                nextAction = [{'action': NoOp,
+                                            'params': [agent.name, self.currentState.find_agent(agent.name)],
+                                            'message':'NoOp',
+                                            'priority':4} for agent in self.agents]
+                nextAction[current_agent_index] = agent.current_plan.pop(0)
+                self.executeAction(nextAction, multi_goal=True)
+
+
+
+            agent.goal = keep_goal
+            agent.current_plan = keep_plan
+
+
+        else:
+            print("Box is not of the same other color as the agent, need help", file=sys.stderr)
+            self.agents[1].goal = Atom('BoxAt', box.variables[0], self.currentState.find_agent(self.agents[1].name))
+            self.agents[1].ghostmode = False
+            self.agents[1].plan(self.currentState)
+            while self.agents[1].current_plan != []:
+                nextAction = [{'action': NoOp,
+                                            'params': [agent.name, self.currentState.find_agent(agent.name)],
+                                            'message':'NoOp',
+                                            'priority':4} for agent in self.agents]
+                nextAction[int(self.agents[1].name)] = self.agents[1].current_plan.pop(0)
+                self.executeAction(nextAction, multi_goal=True)

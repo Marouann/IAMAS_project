@@ -79,11 +79,11 @@ class Strategy:
             possible_actions = self.agent.getPossibleActions(s)
 
             for action in possible_actions:
-                state_ = s.create_child(action, cost=1, ghostmode=self.ghostmode)
+                state_ = s.create_child(action, cost=1, ghostmode=False)
                 self.__is_goal__(self.agent, state_,multi_goal=self.multi_goal)
 
 
-                if not self.goal_found and self.max_depth is not None and s.cost < self.max_depth:
+                if not self.goal_found and (self.max_depth is None or self.max_depth is not None and s.cost < self.max_depth):
                     if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
                         # print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
                         frontier.append(state_)
