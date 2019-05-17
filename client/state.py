@@ -2,7 +2,6 @@ import sys
 import math
 from knowledgeBase import KnowledgeBase
 from atom import *
-import numpy as np
 
 
 class State:
@@ -10,10 +9,10 @@ class State:
                  goals: '[dict]',
                  atoms: 'KnowledgeBase',
                  rigid_atoms: 'KnowledgeBase',
-                 cost=0.0,
-                 h_cost=0.0,
+                 cost=0,
+                 h_cost=0,
                  parent=None,
-                 last_action={'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 0.5}
+                 last_action={'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 2}
                  ):
         self.name = name
         self.goals = goals
@@ -191,27 +190,23 @@ class State:
                       cost=self.cost + cost,
                       h_cost=h_cost)
         state.last_action = {'action': action[0], 'params': action[1], 'message': action[2], 'priority': action[4]}
-        return action[0].execute(state, action[1])
+        action[0].execute(state, action[1])
+        return state
 
     def atoms(self):
         return self.atoms + self.rigid_atoms
 
     def reset_state(self):
-        self.last_action = {'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 0.7}
+        self.last_action = {'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 2}
         self.cost = 0
         self.h_cost = 0
         self.parent = None
-
-    def f(self) -> 'float':
-        return np.exp(self.__total_cost__()**2) ### scaling of the value
 
     ############################
     ##Private or implicit methods
 
     def __total_cost__(self) -> 'float':
-        return self.cost + self.h_cost + self.last_action['priority']
-
-
+        return self.cost + self.h_cost
 
     def __eq__(self, other: 'State'):
         return self.atoms == other.atoms

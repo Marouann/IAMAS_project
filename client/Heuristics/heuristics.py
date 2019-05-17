@@ -33,13 +33,13 @@ class DistanceBased(Heuristic):
     @staticmethod
     def h(state: 'State', agent: 'Agent', metrics, scaler = 1.0) -> 'float':
         distance = 0
-        agent_pos = state.find_agent(agent.name)
         if agent.goal:
             for goal in [agent.goal]:
                 min_distance = MAX_DISTANCE
                 for atom in state.atoms:
 
                     if atom.name == 'BoxAt' == goal.name and atom.variables[0] == goal.variables[0]:
+                        agent_pos = state.find_agent(agent.name)
                         if metrics == 'Manhattan':
                             d = manhattan(atom.variables[1], goal.variables[1]) + manhattan(atom.variables[1],
                                                                                             agent_pos)
@@ -52,7 +52,7 @@ class DistanceBased(Heuristic):
                         if d < min_distance:
                             min_distance = d
                 distance += min_distance
-        return float(distance)
+        return distance
 
     @staticmethod
     def f(state: 'State', agent: 'Agent', metrics='Real') -> 'float':
