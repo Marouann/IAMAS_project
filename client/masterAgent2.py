@@ -273,8 +273,8 @@ class MasterAgent:
                 self.replanAgentWithStatus(STATUS_REPLAN_GHOST)
 
 
-            if nb_iter > 10:
-                break
+            # if nb_iter > 10:
+            #     break
 
 
 
