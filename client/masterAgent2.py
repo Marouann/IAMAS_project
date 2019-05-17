@@ -273,8 +273,8 @@ class MasterAgent:
                 self.replanAgentWithStatus(STATUS_REPLAN_GHOST)
 
 
-            if nb_iter > 10:
-                break
+            # if nb_iter > 10:
+            #     break
 
 
 
@@ -398,6 +398,7 @@ class MasterAgent:
 
 
         who_is_conflicting_with = {}
+        key_to_remove = []
         for current_agent_index in remaining_agents_with_conflict:
             who_is_conflicting_with[current_agent_index] = []
 
@@ -495,7 +496,7 @@ class MasterAgent:
             if box is not False:
                 print('Ghostmode agent run into a box!', file=sys.stderr)
                 agent = self.agents[current_agent_index]
-
+                key_to_remove.append(int(agent.name))
                 agent.ghostmode = False
                 keep_plan = agent.current_plan.copy()
                 agent.plan(self.currentState)
@@ -509,7 +510,7 @@ class MasterAgent:
         print("who is conflicting", who_is_conflicting_with, file=sys.stderr)
 
 
-        key_to_remove = []
+
         for key, value in who_is_conflicting_with.items():
             if value == []:
 
@@ -521,7 +522,7 @@ class MasterAgent:
         #         agent.occupied = False
         #         agent.current_plan = []
             # who_is_conflicting_with.pop(key)
-
+        print('key to remove', key_to_remove, file=sys.stderr)
         '''
         Now that we have found the agents that are in the conflict, we need to find
         solution to it.
@@ -534,7 +535,7 @@ class MasterAgent:
 
 
         conflict_clusters = get_cluster_conflict(who_is_conflicting_with, key_to_remove)
-
+        print('conflict clusters', conflict_clusters, file=sys.stderr)
         for cluster in conflict_clusters:
             prioritization_needed = False
             for current_agent_index  in cluster:
@@ -773,11 +774,8 @@ class MasterAgent:
 
     def solveGhostBoxConflict(self, agent, box):
         boxColor = self.currentState.find_box_color(box.variables[0])
-        if agent.color == boxColor:
+        if agent.color == boxColor: ## Could be useful for SA levels
             print("Box is the same color as the agent", file=sys.stderr)
-
-
-
 
             #plan for free
             freeGoal = [Atom('Free', box.variables[1]),
@@ -794,15 +792,8 @@ class MasterAgent:
             print(agent.goal[0], agent.goal[1], file=sys.stderr)
             agent.plan(self.currentState, strategy='bfs', multi_goal=True)
             print(agent.current_plan, file=sys.stderr)
-            while agent.current_plan != []:
-                nextAction = [{'action': NoOp,
-                                            'params': [agent.name, self.currentState.find_agent(agent.name)],
-                                            'message':'NoOp',
-                                            'priority':4} for agent in self.agents]
-                nextAction[current_agent_index] = agent.current_plan.pop(0)
-                self.executeAction(nextAction, multi_goal=True)
 
-
+            self.executeActionOnlyForAgents([agent])
 
             agent.goal = keep_goal
             agent.current_plan = keep_plan
@@ -810,13 +801,81 @@ class MasterAgent:
 
         else:
             print("Box is not of the same other color as the agent, need help", file=sys.stderr)
-            self.agents[1].goal = Atom('BoxAt', box.variables[0], self.currentState.find_agent(self.agents[1].name))
-            self.agents[1].ghostmode = False
-            self.agents[1].plan(self.currentState)
-            while self.agents[1].current_plan != []:
-                nextAction = [{'action': NoOp,
-                                            'params': [agent.name, self.currentState.find_agent(agent.name)],
-                                            'message':'NoOp',
-                                            'priority':4} for agent in self.agents]
-                nextAction[int(self.agents[1].name)] = self.agents[1].current_plan.pop(0)
-                self.executeAction(nextAction, multi_goal=True)
+            helper, boxReachable = self.findHelpingAgent(agent, box)
+            helper.current_plan = []
+            if boxReachable:
+                print("Helper is agent", helper.name, file=sys.stderr)
+                print("He can reach the box! ", file=sys.stderr)
+                helper.goal = Atom('Free', self.currentState.find_box_position(box.variables[0]))
+                helper.ghostmode = False
+                helper.plan(self.currentState, strategy='bfs')
+                self.executeActionOnlyForAgents([helper])
+            else:
+                print("Helper is agent", helper.name, file=sys.stderr)
+                print("He can not reach the box! ", file=sys.stderr)
+                agent.current_plan = []
+
+                agent.goal = [Atom('Free', self.currentState.find_agent(agent.name))]
+                helper.goal = [Atom('Free', self.currentState.find_agent(agent.name)),
+                               Atom('Free', self.currentState.find_box_position(box.variables[0]))]
+
+                agent.ghostmode = False
+                agent.plan(self.currentState, strategy='bfs', multi_goal=True, max_depth=1)
+                print("Agent plan", agent.current_plan, file=sys.stderr)
+                self.executeActionOnlyForAgents([agent], multi_goal=True)
+
+
+                helper.ghostmode = False
+                helper.plan(self.currentState, strategy='bfs', multi_goal=True)
+                self.executeActionOnlyForAgents([helper], multi_goal=True)
+                print("Agent plan", agent.current_plan, file=sys.stderr)
+                print("Helper plan", helper.current_plan, file=sys.stderr)
+
+
+            helper.goal = None
+            agent.goal =None
+            helper.occupied = False
+            agent.ghostmode =True
+            agent.occupied =False
+
+    def findHelpingAgent(self, agentToHelp: 'Agent', boxBlocking: 'Atom') -> 'Agent':
+        '''
+        check if box is same color and reachable by an agent
+         --> yes he is helper
+         --> no, check if box is same color and both agent can reach each other
+            --> yes select this agent and swap places then move box from the way (safe place?)
+        '''
+        boxColor = self.currentState.find_box_color(boxBlocking.variables[0])
+        boxPos = boxBlocking.variables[1]
+        possibleHelpingAgents = [agent for agent in self.agents if agent.color == boxColor]
+
+
+        for agent in possibleHelpingAgents:
+            agent.update_tracker(self.currentState)
+            if boxPos in agent.tracker.boundary:
+                return  (agent, True)
+
+        # if box is not reachable for any agents find agent that can reach the agent that needs help
+
+        for agent in possibleHelpingAgents:
+            agentToHelpPos = self.currentState.find_agent(agentToHelp.name)
+            if agentToHelpPos in agent.tracker.boundary:
+                return  (agent, False)
+
+        print("Helping agent not found", file=sys.stderr)
+        return None
+
+    def executeActionOnlyForAgents(self, agentList, multi_goal=False):
+        while True in [agent.current_plan != [] for agent in agentList]:
+            nextAction = [{'action': NoOp,
+                                        'params': [agent.name, self.currentState.find_agent(agent.name)],
+                                        'message':'NoOp',
+                                        'priority':4} for agent in self.agents]
+            for agent in agentList:
+                if agent.current_plan != []:
+                    nextAction[int(agent.name)] = agent.current_plan.pop(0)
+
+            valid = self.executeAction(nextAction, multi_goal=True)
+            # agents_with_conflict = [i for i in range(len(valid)) if valid[i]=='false']
+            # if agents_with_conflict != []:
+            #     self.solveConflict(agents_with_conflict)
