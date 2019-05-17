@@ -76,17 +76,19 @@ class Strategy:
         while frontier and not self.goal_found:
             s = frontier.popleft()
             self.expanded.add(s)
-            possible_actions = self.agent.getPossibleActions(s)
+            possible_actions = self.agent.getPossibleActions(s, ghostmode=self.ghostmode)
 
             for action in possible_actions:
                 state_ = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                 self.__is_goal__(self.agent, state_,multi_goal=self.multi_goal)
 
 
-                if not self.goal_found and self.max_depth is not None and s.cost < self.max_depth:
+                if not self.goal_found and (self.max_depth is None or (self.max_depth is not None and s.cost < self.max_depth)):
                     if state_ not in frontier and state_ not in self.expanded and not self.goal_found:
                         # print(len(frontier), len(self.expanded), file=sys.stderr, flush=True)
                         frontier.append(state_)
+                elif self.goal_found:
+                    break
 
     def dfs(self):
         frontier = list()
