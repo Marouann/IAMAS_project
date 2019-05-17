@@ -55,6 +55,9 @@ def get_level(server_messages):
     domain = None
     levelName = None
 
+    max_row = 0
+    max_col = 0
+
     try:
         line = server_messages.readline()
         color = False
@@ -112,7 +115,9 @@ def get_level(server_messages):
                     boxColors[obj.replace(' ', '')] = color
 
             if initial:
+                max_row = max(row, max_row)
                 for col, char in enumerate(line):
+                    max_col = max(col, max_col)
                     if char == '+':
                         a = 1
                     elif char in "0123456789":
@@ -211,7 +216,9 @@ def get_level(server_messages):
         'levelName': levelName,
         'agents': agents,
         'goals': goals,
-        'boxes': boxes
+        'boxes': boxes,
+        'rows': max_row,
+        'cols': max_col,
     }
 
 def isAllExecuted(answer):
@@ -251,3 +258,59 @@ def find_cluster_of_agent(agent, clusters):
         if agent in cluster:
             return cluster
     return False
+
+
+def is_safe_cell(state, row, col, i, j):
+    is_goal = False
+    for goal in state.goals:
+        if goal['position'] == (row + i, col + j):
+            is_goal = True
+            break;
+
+    return Atom('Neighbour', (row, col), (row + i, col + j)) in state.rigid_atoms and not is_goal
+
+def identify_cells(state, rows, cols):
+    rigid_atoms_to_add = []
+    for row in range(rows + 1):
+        for col in range(cols + 1):
+            # We check the neighbours
+            safe_cells = [[False for k in range(3)] for l in range(3)]
+            for i in range(3):
+                for j in range(3):
+                    if i == 1 or j == 1:
+                        safe_cells[i][j] = is_safe_cell(state, row, col, i - 1, j - 1)
+            
+            safe_cells[0][0] = safe_cells[1][0] and is_safe_cell(state, row, col - 1, -1, 0) or safe_cells[0][1] and is_safe_cell(state, row - 1, col, 0, -1)
+            safe_cells[2][0] = safe_cells[1][0] and is_safe_cell(state, row, col - 1, 1, 0) or safe_cells[2][1] and is_safe_cell(state, row + 1, col, 0, -1)
+            safe_cells[0][2] = safe_cells[1][2] and is_safe_cell(state, row, col + 1, 0, -1) or safe_cells[0][1] and is_safe_cell(state, row - 1, col, 0, 1)
+            safe_cells[2][2] = safe_cells[1][2] and is_safe_cell(state, row, col + 1, 0, 1) or safe_cells[2][1] and is_safe_cell(state, row + 1, col, 0, 1)
+
+            safe_cells[1][1] = True
+
+            # We first check if the cell is safe
+            if safe_cells[0] == [True, True, True] and safe_cells[1] == [True, True, True]:
+                rigid_atoms_to_add.append(Atom('Safe', (row, col)))
+                continue
+
+            if safe_cells[1] == [True, True, True] and safe_cells[2] == [True, True, True]:
+                rigid_atoms_to_add.append(Atom('Safe', (row, col)))
+                continue
+
+            if [row[0] for row in safe_cells] == [True, True, True] and [row[1] for row in safe_cells] == [True, True, True]:
+                rigid_atoms_to_add.append(Atom('Safe', (row, col)))
+                continue
+
+            if [row[1] for row in safe_cells] == [True, True, True] and [row[2] for row in safe_cells] == [True, True, True]:
+                rigid_atoms_to_add.append(Atom('Safe', (row, col)))
+                continue
+            
+            # We then check if the cell is a tunel
+            if [safe_cells[0][1], safe_cells[2][1], safe_cells[1][0], safe_cells[1][2]] == [False, False, True, True]:
+                rigid_atoms_to_add.append(Atom('Tunnel', (row, col)))
+                continue
+            
+            if [safe_cells[0][1], safe_cells[2][1], safe_cells[1][0], safe_cells[1][2]] == [True, True, False, False]:
+                rigid_atoms_to_add.append(Atom('Tunnel', (row, col)))
+                continue
+
+    print([str(atom) for atom in rigid_atoms_to_add], file=sys.stderr)

@@ -1,7 +1,7 @@
 import argparse
 import sys
 from masterAgent2 import *
-from utils import level_adjacency, get_level
+from utils import level_adjacency, get_level, identify_cells
 from Tracker import Tracker
 
 class SearchClient:
@@ -13,6 +13,7 @@ class SearchClient:
         # We get the level information from the incoming stream.
         level = get_level(server_messages)
         level['initial_state'].rigid_atoms += level_adjacency(level['initial_state']) ## state, max rows and max cols in level
+        identify_cells(level['initial_state'], level['rows'], level['cols'])
         self.domain = level['domain']
         self.levelName = level['levelName']
         self.masterAgent = MasterAgent(level['initial_state'], level['agents'],
