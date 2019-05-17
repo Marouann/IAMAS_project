@@ -27,14 +27,15 @@ class Action:
 
     def execute(self, s: 'State', variables):
         if self.checkPreconditions(s, variables):
-
             for effect in self.negative_effects(*variables):
                 s.remove_atom(effect)
 
             for effect in self.positive_effects(*variables):
                 s.add_atom(effect)
+            return s
         else:
             print("This action is not applicable here.", variables, file=sys.stderr)
+            return False
 
 
 Move = Action(
