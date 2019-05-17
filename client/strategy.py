@@ -79,7 +79,7 @@ class Strategy:
             possible_actions = self.agent.getPossibleActions(s, ghostmode=self.ghostmode)
 
             for action in possible_actions:
-                state_ = s.create_child(action, cost=1, ghostmode=self.ghostmode)
+                state_ = s.create_child(action, cost=1, ghostmode=False)
                 self.__is_goal__(self.agent, state_,multi_goal=self.multi_goal)
 
 
