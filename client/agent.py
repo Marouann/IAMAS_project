@@ -4,17 +4,16 @@ from Tracker import Tracker
 from multiprocessing import Process, Event
 from time import sleep
 
-STRATEGY = 'astar'
+STRATEGY = 'ida' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
 HEURISTICS = 'Distance'
 METRICS = 'Real'
-ASYNC = True
+ASYNC = False
 
 
 
 class Agent:
     def __init__(self, name: 'str', position, goal: 'Atom', actions: '[Action]', color: 'str'):
         self.name = name
-        # self.position = position
         self.goal = goal
         self.goal_details = None
         self.actions = actions
@@ -62,29 +61,30 @@ class Agent:
                         box = s.find_box(boxFrom)
                         if box:
                             boxName = box.variables[0]
-                            if action.checkPreconditions(s, [self.name, agtFrom, boxName, boxFrom, boxTo,
-                                                             self.color]):  # we also need box somehow
-                                possibleActions.append((action,
-                                                        [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
-                                                        "Push(" + dir[2] + "," + second_dir[2] + ")",
-                                                        boxFrom,
-                                                        2))
+                            if boxFrom != boxTo and boxTo != agtFrom and agtFrom != boxFrom:
+                                if action.checkPreconditions(s, [self.name, agtFrom, boxName, boxFrom, boxTo,
+                                                                 self.color]):  # we also need box somehow
+                                    possibleActions.append((action,
+                                                            [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
+                                                            "Push(" + dir[2] + "," + second_dir[2] + ")",
+                                                            boxFrom,
+                                                            0.5))
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
                         box = s.find_box(boxFrom)
                         if box:
                             boxName = box.variables[0]
-                            if action.checkPreconditions(s, [self.name, agtFrom, agtTo, boxName, boxFrom,
-                                                             self.color]):  # we also need box somehow
-                                possibleActions.append((action,
-                                                        [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
-                                                        "Pull(" + dir[2] + "," + second_dir[2] + ")",
-                                                        agtTo,
-                                                        2.5))
+                            if agtFrom != agtTo and agtTo != boxFrom and boxFrom != agtFrom:
+                                if action.checkPreconditions(s, [self.name, agtFrom, agtTo, boxName, boxFrom,
+                                                                 self.color]):  # we also need box somehow
+                                    possibleActions.append((action,
+                                                            [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
+                                                            "Pull(" + dir[2] + "," + second_dir[2] + ")",
+                                                            agtTo,
+                                                            0.55))
                 elif action.name == 'NoOp':
-                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 3))
-        possibleActions.sort(key=lambda tup: tup[4])
+                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 0.7))
 
         return possibleActions
 
