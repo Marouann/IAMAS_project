@@ -1,5 +1,5 @@
 from collections import deque
-from numpy import inf
+from numpy import inf, exp
 from state import State
 from heapq import heapify, heappush, heappop
 from agent import *
@@ -47,7 +47,7 @@ class Strategy:
                 self.best_first()
             elif self.strategy == 'astar':
                 self.a_star()
-            elif self.strategy == 'IDA':
+            elif self.strategy == 'ida':
                 self.IDA()
 
     def async_plan(self):
@@ -166,22 +166,27 @@ class Strategy:
     def a_star(self):
         def evaluate_cost(new_state: 'State', bias=3):
             if new_state in expanded:
-                s = set()
-                s.add(new_state)
-                union = expanded.union(s)
+                s_ = set()
+                s_.add(new_state)
+                union = expanded.union(s_)
                 old_state = union.pop()
                 if (new_state.cost + bias) <= old_state.cost:
                     expanded.remove(old_state)
 
         print('STRATEGY::', 'A* Strategy for ', self.agent.name, file=sys.stderr, flush=True)
-        self.state.reset_state()
+        if self.heuristics == 'Distance':
+            h_function = DistanceBased
+        else:
+            h_function = DynamicHeuristics
+        initial_state = self.state.copy()
+        initial_state.reset_state()
         self.agent.reset_plan()
         self.goal_found = False
-        self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
+        initial_state.h_cost = h_function.h(self.state, self.agent, metrics=self.metrics)
 
         frontier = list()
         expanded = set()
-        heappush(frontier, (self.state.f(), self.state))
+        heappush(frontier, (initial_state.f(), initial_state))
 
         while frontier and not self.goal_found:
             _, s = heappop(frontier)
@@ -191,7 +196,7 @@ class Strategy:
                 for action in self.agent.getPossibleActions(s):
                     s_child = s.create_child(action, cost=1)
                     if s_child:
-                        s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics)
+                        s_child.h_cost = h_function.h(s_child, self.agent, metrics=self.metrics)
                         self.__is_goal__(self.agent, s_child)
                         evaluate_cost(s_child)
                         if self.goal_found:
@@ -219,14 +224,14 @@ class Strategy:
                         print('IDA', 'solution is found', file=sys.stderr)
                         return True
                     temporary = search(s, limit)
-                    if temporary < minimum :
+                    if temporary < minimum and (s,s.cost) not in expanded:
                         minimum = temporary
-
+                        expanded.add((s,  s.cost))
             return minimum
 
         ##IDA starts here
         self.state.h_cost = h_function.h(self.state, self.agent, metrics=self.metrics)
-        threshold = self.state.f()
+        threshold = exp(self.state.h_cost**2)
         while not self.goal_found:
             self.state.reset_state()
             temp = search(self.state, threshold)
@@ -237,6 +242,7 @@ class Strategy:
                 print('IDA', 'solution is not found', file=sys.stderr)
                 return False
             threshold = temp
+        print('IDA', 'solution is not found', file=sys.stderr)
         return False
 
     def extract_plan(self, state: 'State'):

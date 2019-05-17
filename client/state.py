@@ -13,7 +13,7 @@ class State:
                  cost=0.0,
                  h_cost=0.0,
                  parent=None,
-                 last_action={'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 0.5}
+                 last_action={'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 0.7}
                  ):
         self.name = name
         self.goals = goals
