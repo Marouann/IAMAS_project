@@ -38,7 +38,7 @@ class Strategy:
         self.found_event = found_event
 
     def plan(self):
-        if not self.__is_goal__(self.agent, self.state) and self.agent.goal is not None:
+        if not self.__is_goal__(self.agent, self.state, multi_goal=self.multi_goal) and self.agent.goal is not None:
             if self.strategy == 'bfs':
                 self.bfs()
             elif self.strategy == 'dfs':
@@ -101,7 +101,7 @@ class Strategy:
                 for action in self.agent.getPossibleActions(s):
                     s_child = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if s_child:
-                        self.__is_goal__(self.agent, s_child)
+                        self.__is_goal__(self.agent, s_child, multi_goal=self.multi_goal)
                         if self.goal_found:
                             return True
 
@@ -195,7 +195,7 @@ class Strategy:
             expanded.add(s)
 
             if not self.goal_found:
-                for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode)):
+                for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode):
                     s_child = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if s_child:
                         s_child.h_cost = h_function.h(s_child, self.agent, metrics=self.metrics)
@@ -249,33 +249,47 @@ class Strategy:
 
     def extract_plan(self, state: 'State'):
         if state:
-            if self.agent.goal in state.atoms:
-                self.agent.reset_plan()
+            # if self.agent.goal in state.atoms:
+            #     self.agent.reset_plan()
 
             self.agent.current_plan.append(state.last_action)
-            print('STRATEGY::', 'CHOSEN IN PREVIOUS STATE', state.last_action['message'], 'goal::', self.agent.goal,
-                  file=sys.stderr)
-            for action in self.agent.getPossibleActions(state):
-                s_child = state.create_child(action, cost=1)
-                s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics) + \
-                                 ActionPriority.h(s_child)
-                print(action, s_child.__total_cost__(), DistanceBased.h(s_child, self.agent, metrics=self.metrics),
-                      file=sys.stderr)
+            # print('STRATEGY::', 'CHOSEN IN PREVIOUS STATE', state.last_action['message'], 'goal::', self.agent.goal,
+            #       file=sys.stderr)
+            # for action in self.agent.getPossibleActions(state):
+            #     s_child = state.create_child(action, cost=1)
+            #     s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics) + \
+            #                      ActionPriority.h(s_child)
+            #     print(action, s_child.__total_cost__(), DistanceBased.h(s_child, self.agent, metrics=self.metrics),
+            #           file=sys.stderr)
 
             self.extract_plan(state.parent)
         else:
             self.agent.current_plan = self.agent.current_plan[:-1]
             self.agent.current_plan.reverse()
 
-    def __is_goal__(self, agent: 'Agent', state: 'State') -> 'bool':
-        is_goal = True
-        for goal in [agent.goal]:
-            if goal not in state.atoms:
-                is_goal = False
-        if is_goal:
-            self.goal_found = True
-            self.extract_plan(state)
-            print('Plan found for agent : ' + str(agent.name) + ' with goal : ',
-                  file=sys.stderr, flush=True)
 
-        return is_goal
+    def __is_goal__(self, agent: 'Agent', state: 'State', multi_goal=False) -> 'bool':
+        if not multi_goal:
+            if agent.goal in state.atoms and not self.goal_found:
+                self.extract_plan(state)
+                self.goal_found = True
+                # print('Plan found for agent : ' + str(agent.name) + ' with goal : ' + str(agent.goal) + '\n',
+                #     file=sys.stderr, flush=True)  # print out
+                for item in agent.current_plan:
+                    print(item['message'], item['params'], file=sys.stderr, flush=True)
+                return True
+            return False
+        else:
+            is_goal = True
+            for goal in agent.goal:
+                if goal not in state.atoms:
+                    is_goal = False
+            if is_goal:
+                self.goal_found = True
+                self.extract_plan(state)
+                ### print('Plan found for agent : ' + str(agent.name) + ' with goal : ',
+                ####     file=sys.stderr, flush=True)
+                for goal in agent.goal:
+                    print(goal, file=sys.stderr)
+
+            return is_goal

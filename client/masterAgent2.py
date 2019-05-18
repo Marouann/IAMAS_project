@@ -507,7 +507,10 @@ class MasterAgent:
                     keep_plan = agent.current_plan.copy()
                     agent.current_plan = []
                     agent.update_tracker(self.currentState)
-                    if agent.goal.name == 'BoxAt' and agent.goal.variables[1] in agent.tracker.boundary:
+                    print(agent.goal.variables[1] in agent.tracker.boundary, file=sys.stderr)
+                    print('Agent:', agent.name, file=sys.stderr)
+                    print(agent.tracker.boundary, file=sys.stderr)
+                    if agent.goal.name == 'BoxAt' and agent.goal.variables[1] in agent.tracker.reachable:
                         agent.plan(self.currentState)
                     if agent.current_plan == []:
                         #first put last action in plan cause it has not been executed
