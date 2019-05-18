@@ -1,17 +1,19 @@
 from strategy import Strategy
 from action import *
 from Tracker import Tracker
+from multiprocessing import Process, Event
+from time import sleep
 
-STRATEGY = 'astar'
-HEURISTICS = 'Distance'
-METRICS = 'Real'
+STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
+HEURISTICS = 'Dynamic' #['Distance', 'Dynamic']
+METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
+ASYNC = False
 
 
 
 class Agent:
     def __init__(self, name: 'str', position, goal: 'Atom', actions: '[Action]', color: 'str'):
         self.name = name
-        #self.position = position
         self.goal = goal
         self.goal_details = None
         self.actions = actions
@@ -59,29 +61,30 @@ class Agent:
                         box = s.find_box(boxFrom)
                         if box:
                             boxName = box.variables[0]
-                            if action.checkPreconditions(s, [self.name, agtFrom, boxName, boxFrom, boxTo,
-                                                             self.color]):  # we also need box somehow
-                                possibleActions.append((action,
-                                                        [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
-                                                        "Push(" + dir[2] + "," + second_dir[2] + ")",
-                                                        boxFrom,
-                                                        2))
+                            if boxFrom != boxTo and boxTo != agtFrom and agtFrom != boxFrom:
+                                if action.checkPreconditions(s, [self.name, agtFrom, boxName, boxFrom, boxTo,
+                                                                 self.color]):  # we also need box somehow
+                                    possibleActions.append((action,
+                                                            [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
+                                                            "Push(" + dir[2] + "," + second_dir[2] + ")",
+                                                            boxFrom,
+                                                            0.5))
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
                         box = s.find_box(boxFrom)
                         if box:
                             boxName = box.variables[0]
-                            if action.checkPreconditions(s, [self.name, agtFrom, agtTo, boxName, boxFrom,
-                                                             self.color]):  # we also need box somehow
-                                possibleActions.append((action,
-                                                        [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
-                                                        "Pull(" + dir[2] + "," + second_dir[2] + ")",
-                                                        agtTo,
-                                                        2.5))
+                            if agtFrom != agtTo and agtTo != boxFrom and boxFrom != agtFrom:
+                                if action.checkPreconditions(s, [self.name, agtFrom, agtTo, boxName, boxFrom,
+                                                                 self.color]):  # we also need box somehow
+                                    possibleActions.append((action,
+                                                            [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
+                                                            "Pull(" + dir[2] + "," + second_dir[2] + ")",
+                                                            agtTo,
+                                                            0.55))
                 elif action.name == 'NoOp':
-                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 3))
-        possibleActions.sort(key=lambda tup: tup[4])
+                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 0.7))
 
         return possibleActions
 
@@ -92,8 +95,45 @@ class Agent:
         self.tracker = Tracker(state.find_agent(self.name))
         self.tracker.estimate(state)
 
-    def plan(self, state: 'State', strategy=STRATEGY, multi_goal=False, max_depth= None):
-        print("Agent:", self.name, file=sys.stderr)
-        print("Planning for goal:", self.goal_details, file=sys.stderr)
-        strategy = Strategy(state, self, strategy=strategy, heuristics=HEURISTICS, metrics=METRICS, multi_goal=multi_goal, max_depth=max_depth)
-        strategy.plan()
+    def plan(self, state: 'State', strategy=STRATEGY,
+             multi_goal=False, max_depth=None,
+             async_mode=ASYNC):
+        if not async_mode:
+            print("Agent:", self.name, file=sys.stderr)
+            print("Planning for goal:", self.goal_details, file=sys.stderr)
+            strategy = Strategy(state, self, strategy=strategy, heuristics=HEURISTICS, metrics=METRICS,
+                                multi_goal=multi_goal, max_depth=max_depth)
+            strategy.plan()
+        else:
+            found_event = Event()
+            quit_event = Event()
+
+
+            print('STRATEGY::','Agent', self.name, file=sys.stderr, flush=True)
+            print('STRATEGY::', 'ASYNC Planning for goal:', self.goal_details, file=sys.stderr, flush=True)
+
+            #### STRATEGY SPECIFICATIONS
+            strategies = list()
+            strategies.append(Strategy(state, self, strategy='astar', heuristics='Dynamic',
+                                       metrics='Real', found_event=found_event, quit_event=quit_event))
+            strategies.append(Strategy(state, self, strategy='IDA', heuristics='Distance',
+                                       metrics='Real', found_event=found_event, quit_event=quit_event))
+
+            #### PROCESSES SPECIFICATION
+            processes = list()
+            process = Process(target=strategies[0].async_plan(), name='A* Process', group=None)
+            process.start()
+            print('STRATEGY::', process.name, 'started', file=sys.stderr, flush = True)
+            processes.append(process)
+            process = Process(target=strategies[0].async_plan(), name='IDA* Process', group=None)
+            process.start()
+            print('STRATEGY::', process.name, 'started', file=sys.stderr, flush=True)
+            processes.append(process)
+            found_event.wait() #wait for the event
+
+            print('STRATEGY::','Found the solution', file=sys.stderr, flush=True)
+            quit_event.set()
+            print('STRATEGY::', 'Set QUIT EVENT to the TRUE', file=sys.stderr, flush=True)
+            for p in processes:
+                print('STRATEGY::', p.name, 'terminated', file=sys.stderr, flush=True)
+                p.terminate()
