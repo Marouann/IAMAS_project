@@ -516,6 +516,22 @@ class MasterAgent:
                         self.solveGhostBoxConflict(agent, box)
 
 
+            print('Unmet precond:', unmet_preconds[0], file=sys.stderr)
+            box = self.currentState.find_box(unmet_preconds[0].variables[0])
+            if box is not False:
+                print('Ghostmode agent run into a box!', file=sys.stderr)
+                agent = self.agents[current_agent_index]
+                key_to_remove.append(int(agent.name))
+                agent.ghostmode = False
+                keep_plan = agent.current_plan.copy()
+                agent.plan(self.currentState)
+                if agent.current_plan == []:
+                    #first put last action in plan cause it has not been executed
+                    agent.current_plan = keep_plan
+                    agent.current_plan.insert(0, action)
+                    self.solveGhostBoxConflict(agent, box)
+
+
         print("who is conflicting", who_is_conflicting_with, file=sys.stderr)
 
 

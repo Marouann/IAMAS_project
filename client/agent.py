@@ -3,7 +3,7 @@ from action import *
 from Tracker import Tracker
 
 STRATEGY = 'astar'
-HEURISTICS = 'Distance'
+HEURISTICS = 'Dynamic'
 METRICS = 'Real'
 
 
