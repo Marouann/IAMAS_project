@@ -37,8 +37,12 @@ class Action:
 
             for effect in self.positive_effects(*variables):
                 s.add_atom(effect)
+        elif self.name == 'NoOp':
+            print("NoOp action with wrong variables.", variables, file=sys.stderr)
         else:
+            print('\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*', file=sys.stderr)
             print("This action is not applicable here.", variables, file=sys.stderr)
+            print('\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*', file=sys.stderr)
 
 
 Move = Action(
