@@ -5,7 +5,7 @@ from multiprocessing import Process, Event
 from time import sleep
 
 STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
-HEURISTICS = 'Distance' #['Distance', 'Dynamic']
+HEURISTICS = 'Dynamic' #['Distance', 'Dynamic']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 ASYNC = False
 

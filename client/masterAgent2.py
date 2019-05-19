@@ -239,10 +239,15 @@ class MasterAgent:
 
             # First we loop over agent to free them if their goal are met
             free_agents = [agent for agent in self.agents if agent.occupied == False]
+
+            '''
+            Only re-assign goal if some agents have finished their task in the previous
+            iteration. That prevents to go through all goals when no potential agent
+            can pick a goal. Particularly helpful for levels that have many goals.
+            '''
+
             old_nb_free_agents = nb_free_agents
             nb_free_agents = len(free_agents)
-            print(old_nb_free_agents, file=sys.stderr)
-            print(nb_free_agents, file=sys.stderr)
 
             if nb_free_agents != old_nb_free_agents:
                 self.assignGoals(free_agents)
@@ -277,7 +282,7 @@ class MasterAgent:
             if False not in old_valids:
                 self.replanAgentWithStatus(STATUS_REPLAN_AFTER_CONFLICT)
 
-            # Replan for agents that have goals but no plan (i.e. status "W")
+            # Replan for agents that have goals but no plan
             self.replanAgentWithStatus(STATUS_WAIT_REPLAN)
 
             if nb_iter % 5 == 0:
@@ -288,9 +293,9 @@ class MasterAgent:
 
                 self.replanAgentWithStatus(STATUS_REPLAN_GHOST)
 
-            #
-            if nb_iter > 250:
-                break
+
+            # if nb_iter > 250:
+            #     break
 
 
 
@@ -315,14 +320,19 @@ class MasterAgent:
                         agent.status = None
                         agent.occupied = True
                 else:
+                    '''
+                    if an agent cannot be replan without ghost mode, it will try to replan
+                    at next iteration with ghost mode.
+                    '''
                     print("agent is not replan", agent.name, file=sys.stderr)
                     agent.status = STATUS_REPLAN_GHOST
 
 
             elif agent.status == status and agent.goal is None:
+                # agent without goals are freed.
                 agent.occupied = False
                 agent.status = None
-                # agent.goal_details = None
+
 
 
     def getNextJointAction(self):
@@ -525,15 +535,27 @@ class MasterAgent:
                         unmet_preconds.remove(unmet_precond_due_to_other_agent)
 
             if unmet_preconds != []:
+                '''
+                If there are still some unmet preconditions, it means that agent is in ghostmode
+                and tries to move into a box.
+
+                In that case:
+                    --> first we try to replan without ghostmode
+                    --> if the goal or the box is not reachable have to solve the conflict.
+                '''
                 print('Unmet precond:', unmet_preconds[0], file=sys.stderr)
                 box = self.currentState.find_box(unmet_preconds[0].variables[0])
                 if box is not False:
                     print('Ghostmode agent run into a box!', file=sys.stderr)
                     agent = self.agents[current_agent_index]
+
+                    #the agent problem is taken into account we don't want it in the rest of conflict solving
                     key_to_remove.append(int(agent.name))
                     agent.ghostmode = False
                     keep_plan = agent.current_plan.copy()
                     agent.current_plan = []
+
+                    #update tracker of the agent so he has the current state
                     agent.update_tracker(self.currentState)
 
                     print('Agent:', agent.name, file=sys.stderr)
@@ -830,6 +852,24 @@ class MasterAgent:
                         goals.append(Atom("Free", neighbour))
         return goals
 
+
+    '''
+    Solving issue when agents run into boxes when being in ghostmode.
+
+    Two cases:
+    - the box is of the same color: plan for free the cell of the box and agent at the same place
+        (might be improved by using safe spaces, careful that safe spaces are actually reachables)
+      then continue plan.
+    - the box is of another color: need help.
+       --> find an helping agent and make it plan for Free the cell (might be improved by using safe spaces as well)
+       --> then the helper agent may not be able to reach the problematic box. In that case, the other agent also plan
+            to free its own cell as he is probably blocking the helper.
+
+            Example: ++++++++  where 1 and B are blue and A and 0 red.
+                      10 BAA+
+                     ++++++++
+            More examples can be found in level BoxBlocking_v2.lvl
+    '''
     def solveGhostBoxConflict(self, agent, box):
         boxColor = self.currentState.find_box_color(box.variables[0])
         agentsOfSameColor = [agent for agent in self.agents if agent.color == boxColor]
@@ -910,7 +950,7 @@ class MasterAgent:
         check if box is same color and reachable by an agent
          --> yes he is helper
          --> no, check if box is same color and both agent can reach each other
-            --> yes select this agent and swap places then move box from the way (safe place?)
+            --> yes select this agent
         '''
         boxColor = self.currentState.find_box_color(boxBlocking.variables[0])
         boxPos = boxBlocking.variables[1]
