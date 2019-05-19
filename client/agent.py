@@ -5,7 +5,7 @@ from multiprocessing import Process, Event
 from time import sleep
 
 STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
-HEURISTICS = 'Dynamic' #['Distance', 'Dynamic']
+HEURISTICS = 'Distance' #['Distance', 'Dynamic']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 ASYNC = False
 
@@ -100,6 +100,7 @@ class Agent:
         if not async_mode:
             print("Agent:", self.name, file=sys.stderr)
             print("Planning for goal:", self.goal_details, file=sys.stderr)
+            print("Ghost mode is on", self.ghostmode, file=sys.stderr)
             strategy = Strategy(state, self,
                                 strategy=strategy,
                                 heuristics=HEURISTICS,
@@ -111,8 +112,8 @@ class Agent:
         else:
             found_event = Event()
             quit_event = Event()
-        
-                            
+
+
 
 
             print('STRATEGY::','Agent', self.name, file=sys.stderr, flush=True)

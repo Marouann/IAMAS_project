@@ -38,6 +38,7 @@ class Strategy:
         self.found_event = found_event
 
     def plan(self):
+        print(self.agent.goal, file=sys.stderr)
         if not self.__is_goal__(self.agent, self.state, multi_goal=self.multi_goal) and self.agent.goal is not None:
             if self.strategy == 'bfs':
                 self.bfs()
@@ -199,7 +200,8 @@ class Strategy:
                     s_child = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if s_child:
                         s_child.h_cost = h_function.h(s_child, self.agent, metrics=self.metrics)
-                        self.__is_goal__(self.agent, s_child)
+                        # print(s_child.h_cost, file=sys.stderr)
+                        self.__is_goal__(self.agent, s_child, self.multi_goal)
                         evaluate_cost(s_child)
                         if self.goal_found:
                             return True
