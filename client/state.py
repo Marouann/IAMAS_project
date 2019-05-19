@@ -236,6 +236,3 @@ class State:
 
     def __gt__(self, other: 'State'):
         return self.__total_cost__() > other.__total_cost__()
-
-    def __len__(self):
-        return len(self.all_atoms())

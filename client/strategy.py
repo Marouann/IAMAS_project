@@ -15,9 +15,9 @@ class Strategy:
     """"Strategy class is responsible for the planning and searching strategies"""
 
     def __init__(self, state: 'State', agent: 'Agent',
-                 strategy='best-first',
-                 heuristics='Distance',
-                 metrics='Real',
+                 strategy,
+                 heuristics,
+                 metrics,
                  multi_goal=False,
                  max_depth=None,
                  quit_event=Event(),
@@ -167,26 +167,29 @@ class Strategy:
         if self.max_depth:
             bound = self.max_depth
 
-        def evaluate_cost(new_state: 'State', bias=20):
+        def evaluate_cost(new_state: 'State', bias=0.5):
             if new_state in expanded:
                 s_ = set()
                 s_.add(new_state)
                 union = expanded.union(s_)
                 old_state = union.pop()
-                if (new_state.f() + bias) <= old_state.f():
+                if (new_state.cost + bias) <= old_state.cost:
                     expanded.remove(old_state)
 
         print('STRATEGY::', 'A* Strategy for ', self.agent.name, file=sys.stderr, flush=True)
-        frontier = list()
-        expanded = set()
-        if self.heuristics == 'Distance':
-            h_function = DistanceBased
-        else:
-            h_function = DynamicHeuristics
+
         self.state.reset_state()
         self.agent.reset_plan()
         self.goal_found = False
-        self.state.h_cost = h_function.h(self.state, self.agent, metrics=self.metrics)
+        if self.heuristics == 'Distance':
+            self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
+        elif self.heuristics == 'Dynamic':
+            self.state.h_cost = DynamicHeuristics.h(self.state,self.agent, self.metrics, 0)
+        else:
+            raise Exception('STARTEGY::', 'Wrong Heuristics')
+
+        frontier = list()
+        expanded = set()
 
         heappush(frontier, (self.state.f(), self.state))
 
@@ -198,7 +201,13 @@ class Strategy:
                 for action in self.agent.getPossibleActions(s):
                     s_child = s.create_child(action, cost=1)
                     if s_child:
-                        s_child.h_cost = h_function.h(s_child, self.agent, metrics=self.metrics)
+                        if self.heuristics == 'Distance':
+                            s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics)
+                        elif self.heuristics == 'Dynamic':
+                            s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics, expanded_len=len(expanded))
+                        else:
+                            raise Exception('STARTEGY::', 'Wrong Heuristics')
+
                         self.__is_goal__(self.agent, s_child)
                         evaluate_cost(s_child)
                         if self.goal_found:
