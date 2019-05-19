@@ -31,8 +31,8 @@ class ActionPriority(Heuristic):
 
 class DistanceBased(Heuristic):
     @staticmethod
-    def h(state: 'State', agent: 'Agent', metrics, scaler = 1.0) -> 'float':
-        distance = 0
+    def h(state: 'State', agent: 'Agent', metrics, expanded_len = None, scaler=1.0) -> 'float':
+        distance = 0.0
         agent_pos = state.find_agent(agent.name)
         if agent.goal:
             for goal in [agent.goal]:
@@ -52,26 +52,31 @@ class DistanceBased(Heuristic):
                         if d < min_distance:
                             min_distance = d
                 distance += min_distance
-        return float(distance)
+        return distance
 
     @staticmethod
     def f(state: 'State', agent: 'Agent', metrics='Real') -> 'float':
         return state.cost + DistanceBased.h(state, agent, metrics)
 
+
 class ConnectionHeuristics(Heuristic):
     pass
+
 
 class DynamicHeuristics(Heuristic):
     @staticmethod
     def h(state: 'State', agent: 'Agent', metrics,
-          action_scaler=1, goal_scaler=100., decay= 1000,
-          distance_scaler = 1) -> 'float':
+           expanded_len,
+          goal_scaler=50., distance_scaler=10.0) -> 'float':
 
-        weight = math.exp((-state.cost)/decay)
-        h = DistanceBased.h(state, agent, metrics, distance_scaler) + weight * ActionPriority.h(state, action_scaler) + \
-            weight * GoalCount.h(state,  goal_scaler)
+        weight = math.exp(-expanded_len/len(state))
+        h = DistanceBased.h(state, agent, metrics, weight * distance_scaler) + weight * GoalCount.h(state, goal_scaler)
+        print(math.log100((expanded_len+1)), file=sys.stderr)
         return h
+    @staticmethod
+    def evaluate_state(state:'State'):
+        pass
 
     @staticmethod
     def f(state: 'State', agent: 'Agent', metrics='Real') -> 'float':
-        return state.cost + DynamicHeuristics.h(state, agent, metrics)
+        return state.cost + DynamicHeuristics.h(state, agent, metrics, expanded_len=0)

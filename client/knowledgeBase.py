@@ -1,4 +1,4 @@
-from atom import Atom, DynamicAtom
+from atom import Atom
 
 
 # Knowledge Base contain the literals for the state

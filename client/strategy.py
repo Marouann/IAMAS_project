@@ -163,30 +163,32 @@ class Strategy:
 
         return False
 
-    def a_star(self):
-        def evaluate_cost(new_state: 'State', bias=3):
+    def a_star(self, bound=INF):
+        if self.max_depth:
+            bound = self.max_depth
+
+        def evaluate_cost(new_state: 'State', bias=20):
             if new_state in expanded:
                 s_ = set()
                 s_.add(new_state)
                 union = expanded.union(s_)
                 old_state = union.pop()
-                if (new_state.cost + bias) <= old_state.cost:
+                if (new_state.f() + bias) <= old_state.f():
                     expanded.remove(old_state)
 
         print('STRATEGY::', 'A* Strategy for ', self.agent.name, file=sys.stderr, flush=True)
+        frontier = list()
+        expanded = set()
         if self.heuristics == 'Distance':
             h_function = DistanceBased
         else:
             h_function = DynamicHeuristics
-        initial_state = self.state.copy()
-        initial_state.reset_state()
+        self.state.reset_state()
         self.agent.reset_plan()
         self.goal_found = False
-        initial_state.h_cost = h_function.h(self.state, self.agent, metrics=self.metrics)
+        self.state.h_cost = h_function.h(self.state, self.agent, metrics=self.metrics)
 
-        frontier = list()
-        expanded = set()
-        heappush(frontier, (initial_state.f(), initial_state))
+        heappush(frontier, (self.state.f(), self.state))
 
         while frontier and not self.goal_found:
             _, s = heappop(frontier)
@@ -202,7 +204,8 @@ class Strategy:
                         if self.goal_found:
                             return True
                         elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
-                            heappush(frontier, (s_child.f(), s_child))
+                            if s_child.cost < bound:
+                                heappush(frontier, (s_child.f(), s_child))
 
         return False
 

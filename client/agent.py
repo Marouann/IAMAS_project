@@ -5,9 +5,10 @@ from multiprocessing import Process, Event
 from time import sleep
 
 STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
-HEURISTICS = 'Dynamic' #['Distance', 'Dynamic']
+HEURISTICS = 'Distance' #['Distance', 'Dynamic']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 ASYNC = False
+BOUND = 1500 #['None', integer]
 
 
 
@@ -51,9 +52,11 @@ class Agent:
         for action in self.actions:
             for dir in [N, S, E, W]:
                 agtTo = (agtFrom[0] + dir[0], agtFrom[1] + dir[1])
+
                 if action.name == "Move":
                     if action.checkPreconditions(s, [self.name, agtFrom, agtTo]):
                         possibleActions.append((action, [self.name, agtFrom, agtTo], "Move(" + dir[2] + ")", agtTo, 0))
+
                 elif action.name == "Push":
                     for second_dir in [N, S, E, W]:
                         boxFrom = agtTo  # the agent will take the place of box
@@ -96,7 +99,7 @@ class Agent:
         self.tracker.estimate(state)
 
     def plan(self, state: 'State', strategy=STRATEGY,
-             multi_goal=False, max_depth=None,
+             multi_goal=False, max_depth=BOUND,
              async_mode=ASYNC):
         if not async_mode:
             print("Agent:", self.name, file=sys.stderr)
