@@ -186,7 +186,7 @@ class Strategy:
         elif self.heuristics == 'Dynamic':
             self.state.h_cost = DynamicHeuristics.h(self.state,self.agent, self.metrics, 0)
         else:
-            raise Exception('STARTEGY::', 'Wrong Heuristics')
+            raise Exception('STRATEGY::', 'Wrong Heuristics')
 
         frontier = list()
         expanded = set()
@@ -206,15 +206,18 @@ class Strategy:
                         elif self.heuristics == 'Dynamic':
                             s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics, expanded_len=len(expanded))
                         else:
-                            raise Exception('STARTEGY::', 'Wrong Heuristics')
+                            raise Exception('STRATEGY::', 'Wrong Heuristics')
 
                         self.__is_goal__(self.agent, s_child)
                         evaluate_cost(s_child)
                         if self.goal_found:
                             return True
                         elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
-                            if s_child.cost < bound:
+                            if len(expanded) < bound:
+                                print(len(expanded), file= sys.stderr)
                                 heappush(frontier, (s_child.f(), s_child))
+                            else:
+                                return False
 
         return False
 
