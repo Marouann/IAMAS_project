@@ -9,33 +9,52 @@ from Heuristics.heuristics import *
 class Goals:
     @staticmethod
     def prioritize(state: 'State', goals):
-        WEIGHT_NEIGHBOURS = 10  # weights for priority
-        WEIGHT_DISTANCE = 10  # weight for goal to a box distance
-        sorted_goals = list()
+        goals_sorted = list()
 
-        priority = 0
+        goals = Goals.prioritize_by_neigbours(state, goals)
+        goals = Goals.prioritize_by_distance(state, goals)
+        sorted_ = sorted(goals, key=lambda x: x[3])
 
-        for name, letter, pos in Goals.prioritize_by_neigbours(state, goals):
-            # current_priority = priority +
+        for name, letter, pos, priority in sorted_:
+            goals_sorted.append((name,letter,pos))
 
-            sorted_goals.append((name, letter, pos, priority))
 
-            priority += WEIGHT_NEIGHBOURS
-
-        return sorted_goals
+        return goals_sorted
 
     @staticmethod
     def prioritize_by_neigbours(state: 'State', goals):
+        WEIGHT_NEIGHBOURS = 20
         # Sort goals 1st by number of free neighbour fields, then by number of neighbour goals)
         sorted_by_neighbour = sorted(goals,
                                      key=lambda x: (state.getNeithbourFieldsWithoutGoals(x[2]).__len__(),
                                                     state.getNeithbourGoals(x[2]).__len__()))
-        return sorted_by_neighbour
+        sorted_with_priority = list()
+        priority = 0
+        for name, letter, pos in sorted_by_neighbour:
+            sorted_with_priority.append((name, letter, pos, priority))
+            priority += WEIGHT_NEIGHBOURS
+
+        return sorted_with_priority
 
     @staticmethod
-    def prioritize_by_disctance(state: 'State', goals):
-        pass
+    def prioritize_by_distance(state: 'State', goals):
+        goals_with_priority = list()
 
+        for name, letter, pos, priority in goals:
+            distance = 1000
+            for box_name in state.return_matching_boxes(name):
+                dist = state.find_distance(state.find_box_position(box_name), pos)
+                if (dist < distance):
+                    distance = dist
+            goals_with_priority.append((name, letter, pos, priority+distance))
+        return goals_with_priority
+
+
+
+
+
+
+##############################################################################################
     @staticmethod
     def assign(state: 'State', free_agents, goalsInAction):
         print("Assigning goals", file=sys.stderr)

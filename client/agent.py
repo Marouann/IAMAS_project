@@ -38,7 +38,6 @@ class Agent:
     '''
 
     def assign_goal(self, goal):
-        print('MY GOAAAALLLLL', goal, file= sys.stderr)
         self.goal = goal
         self.occupied = True
 

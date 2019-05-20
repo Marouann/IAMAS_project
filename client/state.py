@@ -138,7 +138,6 @@ class State:
     def return_matching_boxes(self, goal_name):
         '''Returns a list of boxes that can be placed on the goal'''
         goal_letter = self.find_letter(goal_name)
-
         boxes = list()
 
         number = 1
