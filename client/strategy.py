@@ -138,14 +138,33 @@ class Strategy:
         return False
 
     def best_first(self):
-        print('STRATEGY::', 'Best-First Search for ', self.agent.name, file=sys.stderr, flush=True)
+        if self.max_depth:
+            bound = self.max_depth
+
+        def evaluate_cost(new_state: 'State', bias=0.5):
+            if new_state in expanded:
+                s_ = set()
+                s_.add(new_state)
+                union = expanded.union(s_)
+                old_state = union.pop()
+                if (new_state.cost + bias) <= old_state.cost:
+                    expanded.remove(old_state)
+
+        print('STRATEGY::', 'Best-First Strategy for ', self.agent.name, file=sys.stderr, flush=True)
+
         self.state.reset_state()
         self.agent.reset_plan()
         self.goal_found = False
-        self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
+        if self.heuristics == 'Distance':
+            self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
+        elif self.heuristics == 'Dynamic':
+            self.state.h_cost = DynamicHeuristics.h(self.state,self.agent, self.metrics, 0)
+        else:
+            raise Exception('STRATEGY::', 'Wrong Heuristics')
 
         frontier = list()
         expanded = set()
+
         heappush(frontier, (self.state.f(), self.state))
 
         while frontier and not self.goal_found:
@@ -153,15 +172,30 @@ class Strategy:
             expanded.add(s)
 
             if not self.goal_found:
-                for action in self.agent.getPossibleActions(s):
-                    s_child = s.create_child(action, cost=0)
+                for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode):
+                    # print(action, file=sys.stderr)
+                    s_child = s.create_child(action, cost=0, ghostmode=self.ghostmode)
                     if s_child:
-                        s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics)
+
+                        if self.heuristics == 'Distance':
+                            s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics)
+                        elif self.heuristics == 'Dynamic':
+                            s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics, expanded_len=len(expanded))
+                        else:
+                            raise Exception('STRATEGY::', 'Wrong Heuristics')
+
                         self.__is_goal__(self.agent, s_child)
+
+                        #evaluate_cost(s_child)
                         if self.goal_found:
                             return True
                         elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
-                            heappush(frontier, (s_child.f(), s_child))
+                            if len(expanded) < bound:
+                                # print(len(expanded), file= sys.stderr)
+                                heappush(frontier, (s_child.f(), s_child))
+                            else:
+                                print("Bound reached", file=sys.stderr)
+                                return False
 
         return False
 
@@ -201,7 +235,8 @@ class Strategy:
 
             if not self.goal_found:
                 for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode):
-                    s_child = s.create_child(action, cost=1, ghostmode=self.ghostmode)
+                    # print(action, file=sys.stderr)
+                    s_child = s.create_child(action, cost=int(not self.ghostmode), ghostmode=self.ghostmode)
                     if s_child:
 
                         if self.heuristics == 'Distance':
@@ -218,9 +253,10 @@ class Strategy:
                             return True
                         elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
                             if len(expanded) < bound:
-                               # print(len(expanded), file= sys.stderr)
+                                # print(len(expanded), file= sys.stderr)
                                 heappush(frontier, (s_child.f(), s_child))
                             else:
+                                print("Bound reached", file=sys.stderr)
                                 return False
 
         return False
