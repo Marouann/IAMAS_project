@@ -14,9 +14,7 @@ class GoalCount(Heuristic):
         goal_count = len(state.get_unmet_goals()[0])
         return goal_count * scaler
 
-    @staticmethod
-    def f(state: 'State', scaler=1.0) -> 'float':
-        return state.cost + GoalCount.h(state, scaler=scaler)
+
 
 
 class ActionPriority(Heuristic):
@@ -24,15 +22,13 @@ class ActionPriority(Heuristic):
     def h(state: 'State', scaler=1.0) -> 'float':
         return state.last_action['priority'] * scaler
 
-    @staticmethod
-    def f(state: 'State', scaler=1.0) -> 'float':
-        return state.cost + ActionPriority.h(state, scaler=scaler)
+
 
 
 class DistanceBased(Heuristic):
     @staticmethod
-    def h(state: 'State', agent: 'Agent', metrics, scaler = 1.0) -> 'float':
-        distance = 0
+    def h(state: 'State', agent: 'Agent', metrics, expanded_len = None, scaler= 1.0, scaler_2 = 1.0) -> 'float':
+        distance = 0.0
         agent_pos = state.find_agent(agent.name)
         if agent.goal:
             goals = []
@@ -43,6 +39,22 @@ class DistanceBased(Heuristic):
 
             for goal in goals:
                 min_distance = MAX_DISTANCE
+
+                #atom = StaticAtom('BoxAt^', goal.variables[0])
+                #if atom in state.atoms:
+                 #   pos = state.atoms[atom].property()
+                  #  if metrics == 'Manhattan':
+                   #     d = manhattan(pos, goal.variables[1]) + manhattan(pos, agent_pos)
+                    #elif metrics == 'Euclidean':
+                     #   d = euclidean(pos, goal.variables[1]) + euclidean(pos, agent_pos)
+                    #else:  # real metrics
+                    #    d = state.find_distance(pos, goal.variables[1]) + \
+                    #         state.find_distance(pos, agent_pos)
+                    #if d < min_distance:
+                    #    min_distance = d
+                #distance += min_distance
+       # return distance
+
                 if goal.name == 'Free':
                     if metrics == 'Manhattan':
                         d = manhattan(agent_pos, goal.variables[0])
@@ -74,24 +86,19 @@ class DistanceBased(Heuristic):
                     distance += min_distance
         return float(distance)
 
-    @staticmethod
-    def f(state: 'State', agent: 'Agent', metrics='Real') -> 'float':
-        return state.cost + DistanceBased.h(state, agent, metrics)
 
 class ConnectionHeuristics(Heuristic):
     pass
 
+
 class DynamicHeuristics(Heuristic):
     @staticmethod
-    def h(state: 'State', agent: 'Agent', metrics,
-          action_scaler=1, goal_scaler=100., decay= 1000,
-          distance_scaler = 1) -> 'float':
+    def h(state: 'State', agent: 'Agent', metrics, expanded_len,
+          goal_scaler=50., distance_scaler=5.0) -> 'float':
 
-        weight = math.exp((-state.cost)/decay)
-        h = DistanceBased.h(state, agent, metrics, distance_scaler) + weight * ActionPriority.h(state, action_scaler) + \
-            weight * GoalCount.h(state,  goal_scaler)
+        weight = math.exp(-expanded_len/len(state.rigid_atoms))
+        weight = 1
+
+        h = DistanceBased.h(state, agent, metrics, distance_scaler, weight * distance_scaler) + \
+            weight * GoalCount.h(state, goal_scaler)
         return h
-
-    @staticmethod
-    def f(state: 'State', agent: 'Agent', metrics='Real') -> 'float':
-        return state.cost + DynamicHeuristics.h(state, agent, metrics)

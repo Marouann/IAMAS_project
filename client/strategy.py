@@ -15,9 +15,9 @@ class Strategy:
     """"Strategy class is responsible for the planning and searching strategies"""
 
     def __init__(self, state: 'State', agent: 'Agent',
-                 strategy='best-first',
-                 heuristics='Distance',
-                 metrics='Real',
+                 strategy,
+                 heuristics,
+                 metrics,
                  multi_goal=False,
                  max_depth=None,
                  ghostmode=False,
@@ -166,8 +166,11 @@ class Strategy:
 
         return False
 
-    def a_star(self):
-        def evaluate_cost(new_state: 'State', bias=3):
+    def a_star(self, bound=INF):
+        if self.max_depth:
+            bound = self.max_depth
+
+        def evaluate_cost(new_state: 'State', bias=0.5):
             if new_state in expanded:
                 s_ = set()
                 s_.add(new_state)
@@ -177,19 +180,21 @@ class Strategy:
                     expanded.remove(old_state)
 
         print('STRATEGY::', 'A* Strategy for ', self.agent.name, file=sys.stderr, flush=True)
-        if self.heuristics == 'Distance':
-            h_function = DistanceBased
-        else:
-            h_function = DynamicHeuristics
-        initial_state = self.state.copy()
-        initial_state.reset_state()
+
+        self.state.reset_state()
         self.agent.reset_plan()
         self.goal_found = False
-        initial_state.h_cost = h_function.h(self.state, self.agent, metrics=self.metrics)
+        if self.heuristics == 'Distance':
+            self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
+        elif self.heuristics == 'Dynamic':
+            self.state.h_cost = DynamicHeuristics.h(self.state,self.agent, self.metrics, 0)
+        else:
+            raise Exception('STRATEGY::', 'Wrong Heuristics')
 
         frontier = list()
         expanded = set()
-        heappush(frontier, (initial_state.f(), initial_state))
+
+        heappush(frontier, (self.state.f(), self.state))
 
         while frontier and not self.goal_found:
             _, s = heappop(frontier)
@@ -199,14 +204,29 @@ class Strategy:
                 for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode):
                     s_child = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if s_child:
-                        s_child.h_cost = h_function.h(s_child, self.agent, metrics=self.metrics)
+
+                        if self.heuristics == 'Distance':
+                            s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics)
+                        elif self.heuristics == 'Dynamic':
+                            s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics, expanded_len=len(expanded))
+                        else:
+                            raise Exception('STRATEGY::', 'Wrong Heuristics')
+
+                        self.__is_goal__(self.agent, s_child)
+
+                        #s_child.h_cost = h_function.h(s_child, self.agent, metrics=self.metrics)
                         # print(s_child.h_cost, file=sys.stderr)
-                        self.__is_goal__(self.agent, s_child, self.multi_goal)
+                        #self.__is_goal__(self.agent, s_child, self.multi_goal)
+
                         evaluate_cost(s_child)
                         if self.goal_found:
                             return True
                         elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
-                            heappush(frontier, (s_child.f(), s_child))
+                            if len(expanded) < bound:
+                                print(len(expanded), file= sys.stderr)
+                                heappush(frontier, (s_child.f(), s_child))
+                            else:
+                                return False
 
         return False
 

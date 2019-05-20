@@ -47,36 +47,48 @@ class Action:
 
 Move = Action(
     'Move',
-    lambda agt, agtFrom, agtTo: [Atom('AgentAt', agt, agtFrom), Atom('Free', agtTo), Atom('Neighbour', agtFrom, agtTo)],
-    lambda agt, agtFrom, agtTo: [Atom('AgentAt', agt, agtTo), Atom('Free', agtFrom)],
-    lambda agt, agtFrom, agtTo: [Atom('AgentAt', agt, agtFrom), Atom('Free', agtTo)],
+    lambda agt, agtFrom, agtTo: [Atom('AgentAt', agt, agtFrom), DynamicAtom('AgentAt^', agtFrom, agt),
+                                 Atom('Free', agtTo), Atom('Neighbour', agtFrom, agtTo)],
+    lambda agt, agtFrom, agtTo: [Atom('AgentAt', agt, agtTo), DynamicAtom('AgentAt^', agtTo, agt),
+                                 Atom('Free', agtFrom)],
+    lambda agt, agtFrom, agtTo: [Atom('AgentAt', agt, agtFrom), DynamicAtom('AgentAt^', agtFrom, agt),
+                                 Atom('Free', agtTo)],
 )
 
 Push = Action(
     'Push',
-    lambda agt, agtFrom, box, boxFrom, boxTo, color: [Atom('AgentAt', agt, agtFrom),
+    lambda agt, agtFrom, box, boxFrom, boxTo, color: [Atom('AgentAt', agt, agtFrom), DynamicAtom('AgentAt^', agtFrom, agt),
                                                       Atom('Neighbour', agtFrom, boxFrom),
-                                                      Atom('BoxAt', box, boxFrom), Atom('Neighbour', boxFrom, boxTo),
+                                                      Atom('BoxAt', box, boxFrom), DynamicAtom('BoxAt^', boxFrom, box),
+                                                      Atom('Neighbour', boxFrom, boxTo),
                                                       Atom('Free', boxTo),
                                                       Atom('IsColor', color), Atom('Color', agt, color),
                                                       Atom('Color', box, color)],
-    lambda agt, agtFrom, box, boxFrom, boxTo, color: [Atom('AgentAt', agt, boxFrom), Atom('Free', agtFrom),
-                                                      Atom('BoxAt', box, boxTo)],
-    lambda agt, agtFrom, box, boxFrom, boxTo, color: [Atom('AgentAt', agt, agtFrom), Atom('Free', boxTo),
-                                                      Atom('BoxAt', box, boxFrom), Atom('Free', boxFrom)],
+    lambda agt, agtFrom, box, boxFrom, boxTo, color: [Atom('AgentAt', agt, boxFrom), DynamicAtom('AgentAt^', boxFrom, agt),
+                                                      Atom('Free', agtFrom),
+                                                      Atom('BoxAt', box, boxTo), DynamicAtom('BoxAt^', boxTo, box)],
+    lambda agt, agtFrom, box, boxFrom, boxTo, color: [Atom('AgentAt', agt, agtFrom), DynamicAtom('AgentAt^', agtFrom, agt),
+                                                      Atom('Free', boxTo),
+                                                      Atom('BoxAt', box, boxFrom), DynamicAtom('BoxAt^', boxFrom, box),
+                                                      Atom('Free', boxFrom)],
 )
 
 Pull = Action(
     'Pull',
-    lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', agt, agtFrom), Atom('Neighbour', agtFrom, agtTo),
-                                                      Atom('BoxAt', box, boxFrom), Atom('Neighbour', boxFrom, agtFrom),
+    lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', agt, agtFrom), DynamicAtom('AgentAt^', agtFrom, agt),
+                                                      Atom('Neighbour', agtFrom, agtTo),
+                                                      Atom('BoxAt', box, boxFrom), DynamicAtom('BoxAt^', boxFrom, box),
+                                                      Atom('Neighbour', boxFrom, agtFrom),
                                                       Atom('Free', agtTo),
                                                       Atom('IsColor', color), Atom('Color', agt, color),
                                                       Atom('Color', box, color)],
-    lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', agt, agtTo), Atom('Free', boxFrom),
-                                                      Atom('BoxAt', box, agtFrom)],
-    lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', agt, agtFrom), Atom('Free', agtTo),
-                                                      Atom('BoxAt', box, boxFrom), Atom('Free', agtFrom)],
+    lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', agt, agtTo), DynamicAtom('AgentAt^', agtTo, agt),
+                                                      Atom('Free', boxFrom),
+                                                      Atom('BoxAt', box, agtFrom), DynamicAtom('BoxAt^', agtFrom, box)],
+    lambda agt, agtFrom, agtTo, box, boxFrom, color: [Atom('AgentAt', agt, agtFrom), DynamicAtom('AgentAt^', agtFrom, agt),
+                                                      Atom('Free', agtTo),
+                                                      Atom('BoxAt', box, boxFrom), DynamicAtom('BoxAt^', boxFrom, box),
+                                                      Atom('Free', agtFrom)],
 )
 
 NoOp = Action(
