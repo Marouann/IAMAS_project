@@ -138,6 +138,7 @@ class State:
     def return_matching_boxes(self, goal_name):
         '''Returns a list of boxes that can be placed on the goal'''
         goal_letter = self.find_letter(goal_name)
+        #print(goal_name, goal_letter, file=sys.stderr )
         boxes = list()
 
         number = 1
@@ -150,6 +151,7 @@ class State:
                 number += 1
             else:
                 search = False
+        #print(boxes, file=sys.stderr)
         return boxes
 
     def find_agent_by_position(self, position):  #### WHAT DOES IT DO ??
@@ -272,7 +274,7 @@ class State:
         return self.cost + self.h_cost + self.last_action['priority']
 
     def __eq__(self, other: 'State'):
-        return (self.atoms == other.atoms) and self.last_action['priority'] == other.last_action['priority']
+        return self.atoms == other.atoms #and self.last_action['priority'] == other.last_action['priority']
 
     def __str__(self):
         state_str = "State " + self.name + "\n"
@@ -281,8 +283,11 @@ class State:
 
         return (state_str)
 
-    def __hash__(self):
-        return hash(self.atoms)
+    def __hash__(self) -> 'int':
+        hash_value = 0
+        for atom in self.atoms:
+            hash_value += hash(atom)
+        return hash_value
 
     def __cmp__(self, other: 'State'):
         if self.__total_cost__() > other.__total_cost__():

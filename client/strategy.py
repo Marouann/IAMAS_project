@@ -170,7 +170,7 @@ class Strategy:
         if self.max_depth:
             bound = self.max_depth
 
-        def evaluate_cost(new_state: 'State', bias=0.5):
+        def evaluate_cost(new_state: 'State', bias=0):
             if new_state in expanded:
                 s_ = set()
                 s_.add(new_state)
@@ -194,10 +194,10 @@ class Strategy:
         frontier = list()
         expanded = set()
 
-        heappush(frontier, (self.state.f(), self.state))
+        heappush(frontier,  self.state)
 
         while frontier and not self.goal_found:
-            _, s = heappop(frontier)
+            s = heappop(frontier)
             expanded.add(s)
 
             if not self.goal_found:
@@ -217,10 +217,9 @@ class Strategy:
                         #evaluate_cost(s_child)
                         if self.goal_found:
                             return True
-                        elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
+                        elif (s_child not in frontier) and not s_child in expanded:
                             if len(expanded) < bound:
-                               # print(len(expanded), file= sys.stderr)
-                                heappush(frontier, (s_child.f(), s_child))
+                                heappush(frontier,s_child)
                             else:
                                 print('STRATEGY::', self.agent.name, 'reached a bound', file=sys.stderr)
                                 return False

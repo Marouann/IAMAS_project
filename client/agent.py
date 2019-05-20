@@ -8,7 +8,7 @@ STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
 HEURISTICS = 'Distance' #['Distance', 'Dynamic']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 ASYNC = False
-BOUND = 2000 #['None', integer]
+BOUND = 5000 #['None', integer]
 
 
 
@@ -71,7 +71,7 @@ class Agent:
                                                             [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
                                                             "Push(" + dir[2] + "," + second_dir[2] + ")",
                                                             boxFrom,
-                                                            0.5))
+                                                            0.2 + self.priority_direction(second_dir[2])))
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
@@ -85,11 +85,21 @@ class Agent:
                                                             [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                             "Pull(" + dir[2] + "," + second_dir[2] + ")",
                                                             agtTo,
-                                                            0.55))
+                                                            0.5 + self.priority_direction(second_dir[2])))
                 elif action.name == 'NoOp':
-                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 0.7))
+                    possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 0.75))
 
         return possibleActions
+    @staticmethod
+    def priority_direction( direction:'str'):
+        if direction == 'N':
+            return 0.5
+        elif direction == 'S':
+            return 0.1
+        elif direction == 'E':
+            return 0.15
+        else:
+            return 0.2
 
     def reset_plan(self):
         self.current_plan = []

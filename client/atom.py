@@ -19,7 +19,7 @@ class Atom:
     def __eq__(self, other):
         """" Comparison of Atoms"""
         if not isinstance(other, Atom): return False
-        return self.name == other.name and self.arity == other.arity and self.variables == other.variables
+        return self.name == other.name and self.variables == other.variables
 
     def __str__(self):
         var_string = ""
@@ -31,7 +31,7 @@ class Atom:
 
     def __hash__(self):
         """" Defines the hashing function for the Atom Object"""
-        return int(hash(self.name) + hash(self.variables))
+        return  int(hash(self.name) + hash(self.variables))
 
 
 class StaticAtom(Atom):
