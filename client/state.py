@@ -3,6 +3,7 @@ import math
 from knowledgeBase import KnowledgeBase
 from atom import *
 import numpy as np
+from Tracker import *
 
 
 class State:
@@ -228,7 +229,8 @@ class State:
         return self.cost + self.h_cost + self.last_action['priority']
 
     def __eq__(self, other: 'State'):
-        return (self.atoms == other.atoms) and self.last_action['priority'] == other.last_action['priority']
+        #return (self.atoms == other.atoms) and self.last_action['priority'] == other.last_action['priority']
+        return self.__hash__() == other.__hash__()
 
     def __str__(self):
         state_str = "State " + self.name + "\n"
@@ -238,7 +240,7 @@ class State:
         return (state_str)
 
     def __hash__(self):
-        return hash(self.atoms)
+        return hash(self.atoms) + hash(self.last_action['priority'])
 
     def __cmp__(self, other: 'State'):
         if self.__total_cost__() > other.__total_cost__():

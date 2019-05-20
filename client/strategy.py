@@ -250,7 +250,7 @@ class Strategy:
 
         ##IDA starts here
         self.state.h_cost = h_function.h(self.state, self.agent, metrics=self.metrics)
-        threshold = exp(self.state.h_cost**2)
+        threshold = self.state.h_cost
         while not self.goal_found:
             self.state.reset_state()
             temp = search(self.state, threshold)

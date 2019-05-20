@@ -19,7 +19,7 @@ class Atom:
     def __eq__(self, other):
         """" Comparison of Atoms"""
         if not isinstance(other, Atom): return False
-        return self.name == other.name and self.arity == other.arity and self.variables == other.variables
+        return self.__hash__() == other.__hash__()
 
     def __str__(self):
         var_string = ""
@@ -86,5 +86,5 @@ class DynamicAtom(StaticAtom):
 
 
         var_string = var_string[:-2]
-        pro_string = pro_string[:-2]
+
         return "Atom^: " + self.name + "(" + var_string + " | " + pro_string + ")"

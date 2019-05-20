@@ -1,6 +1,6 @@
 from atom import Atom
 
-
+import sys
 # Knowledge Base contain the literals for the state
 # kb is a dictionary
 # kb[key] = value , key is a hashed version of atom and value is the atom itself
@@ -67,7 +67,7 @@ class KnowledgeBase:
     def __eq__(self, other) -> 'bool':
         """"Check if two Knowledge Bases contain same set of Atoms"""
         if not isinstance(other, KnowledgeBase): return False
-        return self.__kb == other.kb()
+        return self.__hash__() == other.__hash__()
 
     def __iter__(self):
         """"Specifies how to iterate throught the Knowledge Base's dictionary"""
