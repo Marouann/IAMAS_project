@@ -10,6 +10,8 @@ class State:
                  goals: '[dict]',
                  atoms: 'KnowledgeBase',
                  rigid_atoms: 'KnowledgeBase',
+                 safe_cells = [],
+                 tunnel_cells = [],
                  cost=0.0,
                  h_cost=0.0,
                  parent=None,
@@ -20,6 +22,8 @@ class State:
         self.helping_goals = []
         self.atoms = atoms
         self.rigid_atoms = rigid_atoms
+        self.safe_cells = safe_cells
+        self.tunnel_cells = tunnel_cells
         self.parent = parent
         self.last_action = last_action
 

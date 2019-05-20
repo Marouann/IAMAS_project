@@ -3,13 +3,12 @@ hospital
 #levelname
 Conflict_v1
 #colors
-red: 0, 2
-green: 1, A
+red: 0, A
 #initial
 +++++++++
-+  2++  +
-+   0  A+
-+1  ++  +
++   ++  +
++      A+
++0  ++  +
 +++++++++
 #goal
 +++++++++
