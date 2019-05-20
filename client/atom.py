@@ -34,9 +34,9 @@ class Atom:
         return int(hash(self.name) + hash(self.variables))
 
 
-class DynamicAtom(Atom):
+class StaticAtom(Atom):
     def __init__(self, name: 'str', *variables):
-        self.properties = None
+        self.properties = []
         super().__init__(name, *variables)
 
     def assign_property(self, *properties):
@@ -65,3 +65,26 @@ class DynamicAtom(Atom):
         var_string = var_string[:-2]
         pro_string = pro_string[:-2]
         return "Atom*: " + self.name + "(" + var_string + " | " + pro_string + ")"
+
+
+class DynamicAtom(StaticAtom):
+    def __init__(self, name: 'str', properties, *variables):
+        super().__init__(name, *variables)
+        self.assign_property(properties)
+
+    def assign_property(self, properties):
+        self.properties = properties
+
+    def __str__(self):
+        var_string = ""
+        pro_string = ""
+        for var in self.variables:
+            var_string += str(var)
+            var_string += ", "
+
+        pro_string += str(self.properties)
+
+
+        var_string = var_string[:-2]
+        pro_string = pro_string[:-2]
+        return "Atom^: " + self.name + "(" + var_string + " | " + pro_string + ")"

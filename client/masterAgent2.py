@@ -77,9 +77,11 @@ class MasterAgent:
 
         # We'll store the box tracker to not compute them too many times
         box_tracker_dict = {}
-
+        print("-------------", file=sys.stderr)
+        print(goalsToAssign, file=sys.stderr)
         prioritizedGoals = self.prioritizeGoals(goalsToAssign)
         for prioritized_goal in prioritizedGoals:
+
             if remaining_agents_to_replan == []:
                 break
             elif prioritized_goal in self.goalsInAction:
@@ -111,6 +113,7 @@ class MasterAgent:
 
                 for agent in remaining_agents_to_replan:
                     # If the goal is alreay assigned, we stop searching an agent that can achieve it
+
                     if prioritized_goal_is_assigned:
                         break
                     # If agent is occupied or if he has already a goal
@@ -174,6 +177,7 @@ class MasterAgent:
                                 agent_can_reach_goal = prioritized_goal['position'] in agent.tracker.reachable
 
                                 if self.isSAlvl or box_can_reach_goal or agent_can_reach_goal or agent.ghostmode:
+                                    agent.occupied = True
                                     agent.assignGoal(Atom("BoxAt", box['name'], prioritized_goal['position']), prioritized_goal)
                                     self.goalsInAction.append(prioritized_goal)
                                     boxesHandled.append(box['name'])
@@ -181,15 +185,17 @@ class MasterAgent:
                                     prioritized_goal_is_assigned = True
                                     remaining_agents_to_replan.remove(agent)
 
-                                    agent.ghostmode = True
+
                                     agent.plan(self.currentState)
                                     if agent.current_plan == []:
                                         agent.status = STATUS_REPLAN_NO_PLAN_FOUND
                                 else:
                                     print('The box and the agent can not reach the goal', file=sys.stderr)
+                                    agent.ghostmode = True
 
                             else:
                                 print('Box placed in: ', box_pos, 'is not reachable', file=sys.stderr)
+                                agent.ghostmode = True
 
                 if not prioritized_goal_is_assigned:
                     print('Goal not assigned yet', file=sys.stderr)
@@ -202,6 +208,7 @@ class MasterAgent:
 
     def solveLevel(self):
         # We need to check the goal.
+
         self.assignGoals(self.agents)
 
         # Store previous and current joint actions
@@ -223,13 +230,27 @@ class MasterAgent:
         # remember if last action has been successful because during conflict solving action are performed successfuly
         # even if the conflict is not totally solved
         old_valids = [False,False, False]
+        old_nb_free_agents = 0
+        nb_free_agents = 0
         # stop util reached goal
         while self.currentState.get_unmet_goals()[0] != []:
             # print(self.currentState.get_unmet_goals()[0], file=sys.stderr)
             nb_iter += 1
 
             # First we loop over agent to free them if their goal are met
-            self.assignGoals([agent for agent in self.agents if agent.occupied == False])
+            free_agents = [agent for agent in self.agents if agent.occupied == False]
+
+            '''
+            Only re-assign goal if some agents have finished their task in the previous
+            iteration. That prevents to go through all goals when no potential agent
+            can pick a goal. Particularly helpful for levels that have many goals.
+            '''
+
+            old_nb_free_agents = nb_free_agents
+            nb_free_agents = len(free_agents)
+
+            if nb_free_agents != old_nb_free_agents:
+                self.assignGoals(free_agents)
 
             # Gets the first actions from each agent (joint action on first row)
             actions_to_execute = self.getNextJointAction()
@@ -261,38 +282,57 @@ class MasterAgent:
             if False not in old_valids:
                 self.replanAgentWithStatus(STATUS_REPLAN_AFTER_CONFLICT)
 
-            # Replan for agents that have goals but no plan (i.e. status "W")
+            # Replan for agents that have goals but no plan
             self.replanAgentWithStatus(STATUS_WAIT_REPLAN)
 
             if nb_iter % 5 == 0:
                 self.replanAgentWithStatus(STATUS_REPLAN_NO_PLAN_FOUND)
                 for agent in self.agents:
-                    if agent.current_plan == [] and agent.goal in self.currentState.atoms:
+                    if agent.current_plan == [] and agent.goal not in self.currentState.atoms and agent.status == None:
                         agent.status = STATUS_REPLAN_GHOST
 
                 self.replanAgentWithStatus(STATUS_REPLAN_GHOST)
 
 
-            # if nb_iter > 10:
+            # if nb_iter > 250:
             #     break
+
 
 
 
     def replanAgentWithStatus(self, status:'int'):
         for agent in self.agents:
-            if agent.status == status:
+            if agent.status == status and agent.goal is not None:
                 print('Replanning with status', agent.status, file=sys.stderr)
 
                 if status == STATUS_REPLAN_GHOST:
                     agent.ghostmode = True
                 else:
                     agent.ghostmode = False
+                isGoalReachable = True
+                if agent.ghostmode == False:
+                    agent.update_tracker(self.currentState)
+                    boxPos = self.currentState.find_box_position(agent.goal.variables[0])
+                    isGoalReachable = boxPos in agent.tracker.reachable and agent.goal.variables[1] in agent.tracker.reachable
+                if isGoalReachable:
+                    agent.plan(self.currentState)
+                    if agent.current_plan != []:
+                        agent.status = None
+                        agent.occupied = True
+                else:
+                    '''
+                    if an agent cannot be replan without ghost mode, it will try to replan
+                    at next iteration with ghost mode.
+                    '''
+                    print("agent is not replan", agent.name, file=sys.stderr)
+                    agent.status = STATUS_REPLAN_GHOST
 
-                agent.plan(self.currentState)
-                if agent.current_plan != []:
-                    agent.status = None
-                    agent.occupied = False
-                    agent.goal = None
+
+            elif agent.status == status and agent.goal is None:
+                # agent without goals are freed.
+                agent.occupied = False
+                agent.status = None
+
 
 
     def getNextJointAction(self):
@@ -437,7 +477,7 @@ class MasterAgent:
                         neg_effects = other_action['action'].negative_effects(*other_action['params'])
 
                         for atom in unmet_preconds:
-                            if atom in neg_effects:
+                            if atom in neg_effects and not other_agent_is_the_problem:
                                 other_agent_is_the_problem = True
                                 unmet_precond_due_to_other_agent = atom
                                 last_action = other_action
@@ -451,6 +491,8 @@ class MasterAgent:
                             'unmet_precond': unmet_precond_due_to_other_agent,
                             'priority': len(self.agents[current_agent_index].current_plan)
                         })
+                        unmet_preconds.remove(unmet_precond_due_to_other_agent)
+
 
                 else:
                     '''
@@ -475,7 +517,7 @@ class MasterAgent:
                         neg_effects = other_action['action'].negative_effects(*other_action['params'])
                         for atom in unmet_preconds:
 
-                            if atom in neg_effects:
+                            if atom in neg_effects and not other_agent_is_the_problem:
                                 other_agent_is_the_problem = True
                                 unmet_precond_due_to_other_agent = atom
                                 last_action = other_action
@@ -490,21 +532,43 @@ class MasterAgent:
                             'unmet_precond': unmet_precond_due_to_other_agent,
                             'priority': len(self.agents[current_agent_index].current_plan)
                         })
+                        unmet_preconds.remove(unmet_precond_due_to_other_agent)
 
-            print('Unmet precond:', unmet_preconds[0], file=sys.stderr)
-            box = self.currentState.find_box(unmet_preconds[0].variables[0])
-            if box is not False:
-                print('Ghostmode agent run into a box!', file=sys.stderr)
-                agent = self.agents[current_agent_index]
-                key_to_remove.append(int(agent.name))
-                agent.ghostmode = False
-                keep_plan = agent.current_plan.copy()
-                agent.plan(self.currentState)
-                if agent.current_plan == []:
-                    #first put last action in plan cause it has not been executed
-                    agent.current_plan = keep_plan
-                    agent.current_plan.insert(0, action)
-                    self.solveGhostBoxConflict(agent, box)
+            if unmet_preconds != []:
+                '''
+                If there are still some unmet preconditions, it means that agent is in ghostmode
+                and tries to move into a box.
+
+                In that case:
+                    --> first we try to replan without ghostmode
+                    --> if the goal or the box is not reachable have to solve the conflict.
+                '''
+                print('Unmet precond:', unmet_preconds[0], file=sys.stderr)
+                box = self.currentState.find_box(unmet_preconds[0].variables[0])
+                if box is not False:
+                    print('Ghostmode agent run into a box!', file=sys.stderr)
+                    agent = self.agents[current_agent_index]
+
+                    #the agent problem is taken into account we don't want it in the rest of conflict solving
+                    key_to_remove.append(int(agent.name))
+                    agent.ghostmode = False
+                    keep_plan = agent.current_plan.copy()
+                    agent.current_plan = []
+
+                    #update tracker of the agent so he has the current state
+                    agent.update_tracker(self.currentState)
+
+                    print('Agent:', agent.name, file=sys.stderr)
+                    print(agent.goal.variables[1], file=sys.stderr)
+                    print(agent.tracker.boundary, file=sys.stderr)
+                    goalBoxPosition = self.currentState.find_box_position(agent.goal.variables[0])
+                    if agent.goal.name == 'BoxAt' and goalBoxPosition in agent.tracker.boundary:
+                        agent.plan(self.currentState)
+                    if agent.current_plan == []:
+                        #first put last action in plan cause it has not been executed
+                        agent.current_plan = keep_plan
+                        agent.current_plan.insert(0, action)
+                        self.solveGhostBoxConflict(agent, box)
 
 
         print("who is conflicting", who_is_conflicting_with, file=sys.stderr)
@@ -515,13 +579,12 @@ class MasterAgent:
             if value == []:
 
                 key_to_remove.append(key)
-        # if key_to_remove != []:
-        #     for agent in self.agents:
-        #         agent.goal = None
-        #         agent.status = None
-        #         agent.occupied = False
-        #         agent.current_plan = []
-            # who_is_conflicting_with.pop(key)
+                agent_to_replan = self.agents[key]
+                # agent_to_replan.goal = None
+                agent_to_replan.ghostmode = False
+                agent_to_replan.status = STATUS_WAIT_REPLAN
+                # agent_to_replan.occupied = False
+
         print('key to remove', key_to_remove, file=sys.stderr)
         '''
         Now that we have found the agents that are in the conflict, we need to find
@@ -600,17 +663,32 @@ class MasterAgent:
         agent.occupied = True
         agent.goal = solution
         agent.goal_details = None
+        agent.status = STATUS_SOLVING_CONFLICT
 
         # plan for the solution and set other agents in conflict's actions to NoOp
-        agent.plan(self.currentState, strategy="bfs")
-        for other_agent in conflicting_with:
-            if other_agent != int(agent.name):
-                self.agents[other_agent].current_plan.insert(0,{
-                    'action': NoOp,
-                    'params': [other_agent, self.currentState.find_agent(other_agent)],
-                    'message':'NoOp',
-                    'priority':4,
-                })
+        agent.ghostmode = False
+        object_in_conflict = self.currentState.find_object_at_position(solution.variables[0])
+        if object_in_conflict is not False:
+            if object_in_conflict.name == "BoxAt" and agent.color == self.currentState.find_box_color(object_in_conflict.variables[0]):
+                agent.plan(self.currentState, strategy="bfs")
+                for other_agent in conflicting_with:
+                    if other_agent != int(agent.name):
+                        self.agents[other_agent].current_plan.insert(0,{
+                            'action': NoOp,
+                            'params': [other_agent, self.currentState.find_agent(other_agent)],
+                            'message':'NoOp',
+                            'priority':4,
+                        })
+            elif object_in_conflict.name == "AgentAt" and object_in_conflict.variables[0] == agent.name:
+                agent.plan(self.currentState, strategy="bfs")
+                for other_agent in conflicting_with:
+                    if other_agent != int(agent.name):
+                        self.agents[other_agent].current_plan.insert(0,{
+                            'action': NoOp,
+                            'params': [other_agent, self.currentState.find_agent(other_agent)],
+                            'message':'NoOp',
+                            'priority':4,
+                        })
 
         if len(agent.current_plan) == 0:
             '''
@@ -624,6 +702,7 @@ class MasterAgent:
             print(conflicting_with, file=sys.stderr)
             agent.occupied = False
             agent.status = None
+            agent.ghostmode = False
 
             # at this point we stop keeping in memory information of the previous goal
             # we will need to fully replan after the conflict is solved.
@@ -643,6 +722,7 @@ class MasterAgent:
 
             agent.goal = goal_keep
             agent.goal_details = goal_details_keep
+            agent.ghostmode = False
             agent.status = STATUS_REPLAN_AFTER_CONFLICT
 
 
@@ -772,78 +852,105 @@ class MasterAgent:
                         goals.append(Atom("Free", neighbour))
         return goals
 
+
+    '''
+    Solving issue when agents run into boxes when being in ghostmode.
+
+    Two cases:
+    - the box is of the same color: plan for free the cell of the box and agent at the same place
+        (might be improved by using safe spaces, careful that safe spaces are actually reachables)
+      then continue plan.
+    - the box is of another color: need help.
+       --> find an helping agent and make it plan for Free the cell (might be improved by using safe spaces as well)
+       --> then the helper agent may not be able to reach the problematic box. In that case, the other agent also plan
+            to free its own cell as he is probably blocking the helper.
+
+            Example: ++++++++  where 1 and B are blue and A and 0 red.
+                      10 BAA+
+                     ++++++++
+            More examples can be found in level BoxBlocking_v2.lvl
+    '''
     def solveGhostBoxConflict(self, agent, box):
         boxColor = self.currentState.find_box_color(box.variables[0])
-        if agent.color == boxColor: ## Could be useful for SA levels
-            print("Box is the same color as the agent", file=sys.stderr)
+        agentsOfSameColor = [agent for agent in self.agents if agent.color == boxColor]
+        if agent in agentsOfSameColor: ## Could be useful for SA levels
+            if len(agentsOfSameColor) == 1:
 
-            #plan for free
-            freeGoal = [Atom('Free', box.variables[1]),
-            Atom('AgentAt', str(current_agent_index), self.currentState.find_agent(str(current_agent_index)))]
+                print("Box is the same color as the agent", file=sys.stderr)
 
-            freeGoal = [Atom('Free', box.variables[1])]
+                #plan for free
+                freeGoal = [Atom('Free', box.variables[1]),
+                Atom('AgentAt', agent.name, self.currentState.find_agent(agent.name))]
 
-            keep_goal = agent.goal
-            keep_plan = agent.current_plan.copy()
-            agent.ghostmode = False
-            agent.current_plan = []
+                # freeGoal = [Atom('Free', box.variables[1])]
 
-            agent.goal = freeGoal
-            print(agent.goal[0], agent.goal[1], file=sys.stderr)
-            agent.plan(self.currentState, strategy='bfs', multi_goal=True)
-            print(agent.current_plan, file=sys.stderr)
+                keep_goal = agent.goal
+                keep_plan = agent.current_plan.copy()
+                agent.ghostmode = False
+                agent.current_plan = []
 
-            self.executeActionOnlyForAgents([agent])
+                agent.goal = freeGoal
+                # print(agent.goal[0], agent.goal[1], file=sys.stderr)
+                agent.plan(self.currentState, strategy='astar', multi_goal=True)
+                print(agent.current_plan, file=sys.stderr)
 
-            agent.goal = keep_goal
-            agent.current_plan = keep_plan
+                self.executeActionOnlyForAgents([agent])
 
+                agent.goal = keep_goal
+                agent.current_plan = keep_plan
+            else:
+                agent.goal = None
+                agent.status = None
+                agent.occupied = False
+                agent.current_plan = []
 
         else:
             print("Box is not of the same other color as the agent, need help", file=sys.stderr)
             helper, boxReachable = self.findHelpingAgent(agent, box)
-            helper.current_plan = []
-            if boxReachable:
-                print("Helper is agent", helper.name, file=sys.stderr)
-                print("He can reach the box! ", file=sys.stderr)
-                helper.goal = Atom('Free', self.currentState.find_box_position(box.variables[0]))
-                helper.ghostmode = False
-                helper.plan(self.currentState, strategy='bfs')
-                self.executeActionOnlyForAgents([helper])
-            else:
-                print("Helper is agent", helper.name, file=sys.stderr)
-                print("He can not reach the box! ", file=sys.stderr)
-                agent.current_plan = []
+            if helper is not None:
+                helper.current_plan = []
+                if boxReachable:
+                    print("Helper is agent", helper.name, file=sys.stderr)
+                    print("He can reach the box! ", file=sys.stderr)
+                    helper.goal = Atom('Free', self.currentState.find_box_position(box.variables[0]))
+                    helper.ghostmode = False
+                    helper.plan(self.currentState, strategy='astar')
+                    self.executeActionOnlyForAgents([helper])
+                elif boxReachable is not None:
+                    print("Helper is agent", helper.name, file=sys.stderr)
+                    print("He can not reach the box! ", file=sys.stderr)
+                    agent.current_plan = []
 
-                agent.goal = [Atom('Free', self.currentState.find_agent(agent.name))]
-                helper.goal = [Atom('Free', self.currentState.find_agent(agent.name)),
-                               Atom('Free', self.currentState.find_box_position(box.variables[0]))]
+                    agent.goal = [Atom('Free', self.currentState.find_agent(agent.name))]
+                    helper.goal = [Atom('Free', self.currentState.find_agent(agent.name)),
+                                   Atom('Free', self.currentState.find_box_position(box.variables[0]))]
 
+                    agent.ghostmode = False
+                    agent.plan(self.currentState, strategy='bfs', multi_goal=True, max_depth=1)
+                    print("Agent plan", agent.current_plan, file=sys.stderr)
+                    self.executeActionOnlyForAgents([agent], multi_goal=True)
+
+
+                    helper.ghostmode = False
+                    helper.plan(self.currentState, strategy='astar', multi_goal=True)
+                    self.executeActionOnlyForAgents([helper], multi_goal=True)
+                    print("Agent plan", agent.current_plan, file=sys.stderr)
+                    print("Helper plan", helper.current_plan, file=sys.stderr)
+
+
+                helper.goal = None
+                agent.goal =None
+                helper.occupied = False
                 agent.ghostmode = False
-                agent.plan(self.currentState, strategy='bfs', multi_goal=True, max_depth=1)
-                print("Agent plan", agent.current_plan, file=sys.stderr)
-                self.executeActionOnlyForAgents([agent], multi_goal=True)
-
-
                 helper.ghostmode = False
-                helper.plan(self.currentState, strategy='bfs', multi_goal=True)
-                self.executeActionOnlyForAgents([helper], multi_goal=True)
-                print("Agent plan", agent.current_plan, file=sys.stderr)
-                print("Helper plan", helper.current_plan, file=sys.stderr)
-
-
-            helper.goal = None
-            agent.goal =None
-            helper.occupied = False
-            agent.ghostmode =True
-            agent.occupied =False
+                agent.occupied =False
 
     def findHelpingAgent(self, agentToHelp: 'Agent', boxBlocking: 'Atom') -> 'Agent':
         '''
         check if box is same color and reachable by an agent
          --> yes he is helper
          --> no, check if box is same color and both agent can reach each other
-            --> yes select this agent and swap places then move box from the way (safe place?)
+            --> yes select this agent
         '''
         boxColor = self.currentState.find_box_color(boxBlocking.variables[0])
         boxPos = boxBlocking.variables[1]
@@ -863,7 +970,7 @@ class MasterAgent:
                 return  (agent, False)
 
         print("Helping agent not found", file=sys.stderr)
-        return None
+        return (None, None)
 
     def executeActionOnlyForAgents(self, agentList, multi_goal=False):
         while True in [agent.current_plan != [] for agent in agentList]:

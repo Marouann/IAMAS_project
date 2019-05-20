@@ -1,6 +1,6 @@
 import sys, time
 from state import State
-from atom import Atom, DynamicAtom
+from atom import Atom, StaticAtom, DynamicAtom
 from knowledgeBase import KnowledgeBase
 from heapq import heapify, heappush, heappop
 from multiprocessing import Process, Manager
@@ -9,6 +9,8 @@ STATUS_WAIT_REPLAN = 0
 STATUS_REPLAN_AFTER_CONFLICT = 1
 STATUS_REPLAN_NO_PLAN_FOUND = 2
 STATUS_REPLAN_GHOST = 3
+STATUS_SOLVING_CONFLICT = 4
+
 
 def level_adjacency(state: 'State', row=60, col=60) -> 'KnowledgeBase':
     '''Calculates real distances between cells in a level'''
@@ -41,14 +43,15 @@ def level_adjacency(state: 'State', row=60, col=60) -> 'KnowledgeBase':
     for r in range(row):
         for c in range(col):
             for distance, cell in distance_calculator((r, c)):
-                atom = DynamicAtom('Distance', (r, c), cell)
+                atom = StaticAtom('Distance', (r, c), cell)
                 atom.assign_property(distance)
                 adjacency.update(atom)
 
-    print('Distances computed in %.2f seconds' %(time.time() - start_time), file=sys.stderr, flush=True)
+    print('Distances computed in %.2f seconds' % (time.time() - start_time), file=sys.stderr, flush=True)
 
     # print('I calculated {} distances'.format(adjacency), file=sys.stderr, flush=True)
     return adjacency
+
 
 def get_level(server_messages):
     initial_state = None
@@ -124,14 +127,14 @@ def get_level(server_messages):
                         AgentAt = Atom('AgentAt', char, (row, col))
                         atoms.update(AgentAt)
 
-                        AgentAt = DynamicAtom('AgentAt*', char)
-                        AgentAt.assign_property((row,col))
+                        AgentAt = DynamicAtom('AgentAt^', (row, col), char)
+                        AgentAt.assign_property((row, col))
                         atoms.update(AgentAt)
 
                         Color = Atom('Color', char, boxColors[char])
                         rigidAtoms.update(Color)
 
-                        Color = DynamicAtom('Color*', char)
+                        Color = StaticAtom('Color*', char)
                         Color.assign_property(boxColors[char])
                         rigidAtoms.update(Color)
 
@@ -143,22 +146,22 @@ def get_level(server_messages):
                         Color = Atom('Color', Box, boxColors[char])
                         rigidAtoms.update(Color)
 
-                        Color = DynamicAtom('Color*', Box)
+                        Color = StaticAtom('Color*', Box)
                         Color.assign_property(boxColors[char])
                         rigidAtoms.update(Color)
 
                         Letter = Atom('Letter', Box, char)
                         rigidAtoms.update(Letter)
 
-                        Letter = DynamicAtom('Letter*', Box)
+                        Letter = StaticAtom('Letter*', Box)
                         Letter.assign_property(char)
                         rigidAtoms.update(Letter)
 
                         BoxAt = Atom('BoxAt', Box, (row, col))
                         atoms.update(BoxAt)
 
-                        BoxAt = DynamicAtom('BoxAt*', Box)
-                        BoxAt.assign_property((row,col))
+                        BoxAt = DynamicAtom('BoxAt^', (row, col), Box)
+                        BoxAt.assign_property((row, col))
                         atoms.update(BoxAt)
 
                         boxes.append({'name': Box, 'letter': char, 'color': boxColors[char]})
@@ -221,6 +224,7 @@ def get_level(server_messages):
         'cols': max_col,
     }
 
+
 def isAllExecuted(answer):
     isExecuted = True
     for bool in answer:
@@ -228,11 +232,13 @@ def isAllExecuted(answer):
             isExecuted = False
     return isExecuted
 
-def areGoalsMet(state: 'State', goals)-> 'bool':
+
+def areGoalsMet(state: 'State', goals) -> 'bool':
     for goal in goals:
         if goal not in state.atoms:
             return False
     return True
+
 
 def get_cluster_conflict(who_is_conflicting_with, key_to_remove):
     clusters = []
@@ -253,6 +259,7 @@ def get_cluster_conflict(who_is_conflicting_with, key_to_remove):
                 clusters.append(cluster)
     return clusters
 
+
 def find_cluster_of_agent(agent, clusters):
     for cluster in clusters:
         if agent in cluster:
@@ -270,7 +277,7 @@ def is_safe_cell(state, row, col, i, j):
     return Atom('Neighbour', (row, col), (row + i, col + j)) in state.rigid_atoms and not is_goal
 
 def identify_cells(state, rows, cols):
-    rigid_atoms_to_add = []
+    result = { 'safe': [], 'tunnel': [] }
     for row in range(rows + 1):
         for col in range(cols + 1):
             # We check the neighbours
@@ -289,28 +296,28 @@ def identify_cells(state, rows, cols):
 
             # We first check if the cell is safe
             if safe_cells[0] == [True, True, True] and safe_cells[1] == [True, True, True]:
-                rigid_atoms_to_add.append(Atom('Safe', (row, col)))
+                result['safe'].append((row, col))
                 continue
 
             if safe_cells[1] == [True, True, True] and safe_cells[2] == [True, True, True]:
-                rigid_atoms_to_add.append(Atom('Safe', (row, col)))
+                result['safe'].append((row, col))
                 continue
 
             if [row[0] for row in safe_cells] == [True, True, True] and [row[1] for row in safe_cells] == [True, True, True]:
-                rigid_atoms_to_add.append(Atom('Safe', (row, col)))
+                result['safe'].append((row, col))
                 continue
 
             if [row[1] for row in safe_cells] == [True, True, True] and [row[2] for row in safe_cells] == [True, True, True]:
-                rigid_atoms_to_add.append(Atom('Safe', (row, col)))
+                result['safe'].append((row, col))
                 continue
             
             # We then check if the cell is a tunel
             if [safe_cells[0][1], safe_cells[2][1], safe_cells[1][0], safe_cells[1][2]] == [False, False, True, True]:
-                rigid_atoms_to_add.append(Atom('Tunnel', (row, col)))
+                result['tunnel'].append((row, col))
                 continue
             
             if [safe_cells[0][1], safe_cells[2][1], safe_cells[1][0], safe_cells[1][2]] == [True, True, False, False]:
-                rigid_atoms_to_add.append(Atom('Tunnel', (row, col)))
+                result['tunnel'].append((row, col))
                 continue
 
-    print([str(atom) for atom in rigid_atoms_to_add], file=sys.stderr)
+    return result

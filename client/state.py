@@ -2,6 +2,7 @@ import sys
 import math
 from knowledgeBase import KnowledgeBase
 from atom import *
+import numpy as np
 
 
 class State:
@@ -9,16 +10,20 @@ class State:
                  goals: '[dict]',
                  atoms: 'KnowledgeBase',
                  rigid_atoms: 'KnowledgeBase',
-                 cost=0,
-                 h_cost=0,
+                 safe_cells = [],
+                 tunnel_cells = [],
+                 cost=0.0,
+                 h_cost=0.0,
                  parent=None,
-                 last_action={'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 2}
+                 last_action={'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 0.7}
                  ):
         self.name = name
         self.goals = goals
         self.helping_goals = []
         self.atoms = atoms
         self.rigid_atoms = rigid_atoms
+        self.safe_cells = safe_cells
+        self.tunnel_cells = tunnel_cells
         self.parent = parent
         self.last_action = last_action
 
@@ -55,8 +60,8 @@ class State:
         return neighbours
 
     def find_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
-        if DynamicAtom('Distance', start, end) in self.rigid_atoms:
-            return self.rigid_atoms[DynamicAtom('Distance', start, end)].property_()
+        if StaticAtom('Distance', start, end) in self.rigid_atoms:
+            return self.rigid_atoms[StaticAtom('Distance', start, end)].property_()
         return -1
 
     def update_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
@@ -67,7 +72,7 @@ class State:
         pass
 
     def check_if_connected(self, start: ('int', 'int'), end: ('int', 'int')) -> 'bool':
-        return DynamicAtom('Distance', start, end) in self.rigid_atoms
+        return StaticAtom('Distance', start, end) in self.rigid_atoms
 
     def find_box(self, position):  #### WHAT DOES IT DO ??
         for atom in self.atoms:
@@ -75,37 +80,36 @@ class State:
                 return atom
         return False
 
-    def find_box_position(self, box: 'str') -> ('int', 'int'):
-        for atom in self.atoms:
-            if atom.name == "BoxAt" and atom.variables[0] == box:
-                return atom.variables[1]
+    def find_box_position(self, name: 'str'):
+        atom = StaticAtom('BoxAt^', name)
+        if atom in self.atoms:
+            return self.atoms[atom].property()
         return False
 
     def find_box_color(self, box: 'str') -> ('str'):
-        atom = DynamicAtom('Color*', box)
+        atom = StaticAtom('Color*', box)
         if atom in self.rigid_atoms:
             return self.rigid_atoms[atom].property_()
         return False
 
-    def find_box_goal_distance(self, name: 'str', goal):
-        boxAtom = Atom
-        for atom in self.atoms:
-            if atom.name == "BoxAt" and atom.variables[0] == name:
-                boxAtom = atom
-                break
-        distance = self.find_distance(boxAtom.variables[1], goal["position"])
-        return distance
+    def find_box_goal_distance(self, name: 'str', goal) -> 'int':
+        atom = StaticAtom('BoxAt^', name)
+        if atom in self.atoms:
+            pos = self.atoms[atom].property()
+            distance = self.find_distance(pos, goal["position"])
+            return distance
+        return -1
 
     def find_box_letter(self, box_name: 'str'):  ##### WHAT DOES IT DO?
-        atom = DynamicAtom('Letter*', box_name)
+        atom = StaticAtom('Letter*', box_name)
         if atom in self.rigid_atoms:
             return self.rigid_atoms[atom].property_()
 
-    def find_agent(self, agt: 'str'):
-
-        for atom in self.atoms:
-            if atom.name == "AgentAt" and atom.variables[0] == agt:
-                return atom.variables[1]
+    def find_agent(self, name: 'str'):
+        atom = StaticAtom('AgentAt^', name)
+        if atom in self.atoms:
+            return self.atoms[atom].property()
+        return False
 
     def find_agent_by_position(self, position):  #### WHAT DOES IT DO ??
         for atom in self.atoms:
@@ -193,23 +197,26 @@ class State:
         action[0].execute(state, action[1], ghostmode)
         return state
 
-    def atoms(self):
+    def all_atoms(self) -> 'KnowledgeBase':
         return self.atoms + self.rigid_atoms
 
     def reset_state(self):
-        self.last_action = {'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 2}
+        self.last_action = {'action': 'NoOp', 'params': [], 'message': ['NoOp'], 'priority': 0.7}
         self.cost = 0
         self.h_cost = 0
         self.parent = None
+
+    def f(self) -> 'float':
+        return self.__total_cost__()
 
     ############################
     ##Private or implicit methods
 
     def __total_cost__(self) -> 'float':
-        return self.cost + self.h_cost
+        return self.cost + self.h_cost + self.last_action['priority']
 
     def __eq__(self, other: 'State'):
-        return self.atoms == other.atoms
+        return (self.atoms == other.atoms) and self.last_action['priority'] == other.last_action['priority']
 
     def __str__(self):
         state_str = "State " + self.name + "\n"

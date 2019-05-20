@@ -1,4 +1,4 @@
-from atom import Atom, DynamicAtom
+from atom import Atom, StaticAtom
 
 
 class Tracker(object):
@@ -36,7 +36,7 @@ class Tracker(object):
             return 2  # if it is currently reachable
         elif self.boundary & other_reachable.boundary:
             return 1  # it there is exactly one oclussion on the way
-        elif DynamicAtom('Distance', self.position, other_reachable.position) in state.rigid_atoms:
+        elif StaticAtom('Distance', self.position, other_reachable.position) in state.rigid_atoms:
             return 0  # more than one occlusion
         else:  ## not reachable at all
             return -1

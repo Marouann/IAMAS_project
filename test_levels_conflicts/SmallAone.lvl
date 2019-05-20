@@ -1,0 +1,31 @@
+#domain
+hospital
+#levelname
+MAAlphaOne
+#colors
+red: 0, A
+green: 1, B
+blue: 2, C
+grey: 3, D
+cyan: 4, E
+purple: 5, F
+pink: 6
+#initial
++++++++++++++
++ + + + + + +
++A+B+C+D+E+F+
++           +
++           +
+++++++6++++++
++0 1 2 3 4 5+
++++++++++++++
+#goal
++++++++++++++
++A+B+C+D+E+F+
++ + + + + + +
++           +
++           +
+++++++ ++++++
++           +
++++++++++++++
+#end
