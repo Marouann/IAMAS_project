@@ -32,7 +32,7 @@ class DistanceBased(Heuristic):
         agent_pos = state.find_agent(agent.name)
         if agent.goal:
             goals = []
-            if isinstance(agent.goal, list,):
+            if isinstance(agent.goal, list):
                 goals = agent.goal
             else:
                 goals = [agent.goal]
@@ -40,45 +40,45 @@ class DistanceBased(Heuristic):
             for goal in goals:
                 min_distance = MAX_DISTANCE
 
+
                 if goal.name == 'Free':
+                    goal_pos = goal.variables[0]
                     if metrics == 'Manhattan':
-                        d = manhattan(agent_pos, goal.variables[0])
+                        d = manhattan(agent_pos, goal_pos)
                     elif metrics == 'Euclidean':
-                        d = euclidean(agent_pos, goal.variables[0])
+                        d = euclidean(agent_pos, goal_pos)
                     else:  # real metrics
-                        d = scaler * state.find_distance(agent_pos, goal.variables[0])
+                        d = state.find_distance(agent_pos, goal_pos)
                     if d < min_distance:
                         min_distance = d
                     distance += min_distance
                 else:
+                    goal_pos = goal.variables[1]
                     atom = StaticAtom('BoxAt^', goal.variables[0])
                     if atom in state.atoms:
                         pos = state.atoms[atom].property()
                         if metrics == 'Manhattan':
-                           d = manhattan(pos, goal.variables[1]) + manhattan(pos, agent_pos)
+                           d = manhattan(pos,goal_pos) + manhattan(pos, agent_pos)
                         elif metrics == 'Euclidean':
-                           d = euclidean(pos, goal.variables[1]) + euclidean(pos, agent_pos)
+                           d = euclidean(pos, goal_pos) + euclidean(pos, agent_pos)
                         else:  # real metrics
-                           d = state.find_distance(pos, goal.variables[1]) + \
+                           d = state.find_distance(pos, goal_pos) + \
                                state.find_distance(pos, agent_pos)
                         if d < min_distance:
                             min_distance = d
-                    distance += min_distance
+                        distance += min_distance
         return float(distance)
 
 
 class ConnectionHeuristics(Heuristic):
     pass
 
-
 class DynamicHeuristics(Heuristic):
     @staticmethod
     def h(state: 'State', agent: 'Agent', metrics, expanded_len,
-          goal_scaler=50., distance_scaler=5.0) -> 'float':
+          goal_scaler=25., distance_scaler=5.0) -> 'float':
 
-        weight = math.exp(-expanded_len/len(state.rigid_atoms))
-        weight = 1
+        weight = math.exp(-expanded_len/len(state.atoms))
 
-        h = DistanceBased.h(state, agent, metrics, distance_scaler, weight * distance_scaler) + \
-            weight * GoalCount.h(state, goal_scaler)
+        h = DistanceBased.h(state, agent, metrics, distance_scaler, distance_scaler) + GoalCount.h(state, goal_scaler)
         return h
