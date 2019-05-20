@@ -214,16 +214,12 @@ class Strategy:
 
                         self.__is_goal__(self.agent, s_child)
 
-                        #s_child.h_cost = h_function.h(s_child, self.agent, metrics=self.metrics)
-                        # print(s_child.h_cost, file=sys.stderr)
-                        #self.__is_goal__(self.agent, s_child, self.multi_goal)
-
-                        evaluate_cost(s_child)
+                        #evaluate_cost(s_child)
                         if self.goal_found:
                             return True
                         elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
                             if len(expanded) < bound:
-                                print(len(expanded), file= sys.stderr)
+                               # print(len(expanded), file= sys.stderr)
                                 heappush(frontier, (s_child.f(), s_child))
                             else:
                                 return False
@@ -291,6 +287,9 @@ class Strategy:
 
 
     def __is_goal__(self, agent: 'Agent', state: 'State', multi_goal=False) -> 'bool':
+        if isinstance(agent.goal, list):
+            multi_goal = True
+
         if not multi_goal:
             if agent.goal in state.atoms and not self.goal_found:
                 self.extract_plan(state)

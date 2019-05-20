@@ -102,7 +102,7 @@ class Agent:
 
     def plan(self, state: 'State', strategy=STRATEGY,
              multi_goal=False, max_depth=BOUND,
-             async_mode=ASYNC):
+             async_mode=ASYNC, metrics =METRICS, heuristics=HEURISTICS):
 
         if not async_mode:
             print("Agent:", self.name, file=sys.stderr)
@@ -110,8 +110,8 @@ class Agent:
             print("Ghost mode is on", self.ghostmode, file=sys.stderr)
             strategy = Strategy(state, self,
                                 strategy=strategy,
-                                heuristics=HEURISTICS,
-                                metrics=METRICS,
+                                heuristics=heuristics,
+                                metrics=metrics,
                                 multi_goal=multi_goal,
                                 max_depth=max_depth,
                                 ghostmode=self.ghostmode)
