@@ -8,6 +8,8 @@ from multiprocessing import Process, Manager
 STATUS_WAIT_REPLAN = 0
 STATUS_REPLAN_AFTER_CONFLICT = 1
 STATUS_REPLAN_NO_PLAN_FOUND = 2
+STATUS_REPLAN_GHOST = 3
+STATUS_SOLVING_CONFLICT = 4
 
 def level_adjacency(state: 'State', row=60, col=60) -> 'KnowledgeBase':
     '''Calculates real distances between cells in a level'''
@@ -237,11 +239,12 @@ def get_cluster_conflict(who_is_conflicting_with, key_to_remove):
                     cluster.add(conflicting_agent['agent'])
         else:
             cluster = set()
-            cluster.add(agent)
-            for conflicting_agent in who_is_conflicting_with[agent]:
-                if conflicting_agent['status'] == 'blocked' and conflicting_agent['agent'] not in key_to_remove:
-                    cluster.add(conflicting_agent['agent'])
-            clusters.append(cluster)
+            if agent not in key_to_remove:
+                cluster.add(agent)
+                for conflicting_agent in who_is_conflicting_with[agent]:
+                    if conflicting_agent['status'] == 'blocked' and conflicting_agent['agent'] not in key_to_remove:
+                        cluster.add(conflicting_agent['agent'])
+                clusters.append(cluster)
     return clusters
 
 def find_cluster_of_agent(agent, clusters):

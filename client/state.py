@@ -179,7 +179,7 @@ class State:
                      parent=self.parent,
                      cost=self.cost)
 
-    def create_child(self, action, cost=0, h_cost=0):
+    def create_child(self, action, cost=0, h_cost=0, ghostmode=False):
         atoms_copy = KnowledgeBase("Atoms")
         atoms_copy.copy(self.atoms)
 
@@ -191,7 +191,8 @@ class State:
                       cost=self.cost + cost,
                       h_cost=h_cost)
         state.last_action = {'action': action[0], 'params': action[1], 'message': action[2], 'priority': action[4]}
-        return action[0].execute(state, action[1])
+        action[0].execute(state, action[1], ghostmode)
+        return state
 
     def atoms(self):
         return self.atoms + self.rigid_atoms
