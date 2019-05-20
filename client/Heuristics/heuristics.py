@@ -27,7 +27,7 @@ class ActionPriority(Heuristic):
 
 class DistanceBased(Heuristic):
     @staticmethod
-    def h(state: 'State', agent: 'Agent', metrics, expanded_len = None, scaler= 1.0, scaler_2 = 1.0) -> 'float':
+    def h(state: 'State', agent: 'Agent', metrics, scaler= 1.0, scaler_2 = 1.0) -> 'float':
         distance = 0.0
         agent_pos = state.find_agent(agent.name)
         if agent.goal:
@@ -62,16 +62,21 @@ class DistanceBased(Heuristic):
                         elif metrics == 'Euclidean':
                            d = euclidean(pos, goal_pos) + euclidean(pos, agent_pos)
                         else:  # real metrics
-                           d = state.find_distance(pos, goal_pos) + \
-                               state.find_distance(pos, agent_pos)
+                           d =  1 * state.find_distance(pos, goal_pos) + \
+                               1 * state.find_distance(pos, agent_pos) #+ #0.2 *  state.find_distance(agent_pos, goal_pos)
                         if d < min_distance:
                             min_distance = d
                         distance += min_distance
         return float(distance)
 
 
-class ConnectionHeuristics(Heuristic):
-    pass
+class TieBreaking(Heuristic):
+    @staticmethod
+    def h(state: 'State', agent: 'Agent', metrics) -> 'float':
+        h = DistanceBased.h(state, agent, metrics)
+        p= 1/500
+        h *= (1+ p)
+        return h
 
 class DynamicHeuristics(Heuristic):
     @staticmethod

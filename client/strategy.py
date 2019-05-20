@@ -5,7 +5,7 @@ from heapq import heapify, heappush, heappop
 from agent import *
 from multiprocessing import Event
 
-from Heuristics.heuristics import GoalCount, DistanceBased, ActionPriority, DynamicHeuristics
+from Heuristics.heuristics import GoalCount, DistanceBased, TieBreaking
 import sys
 
 INF = inf
@@ -169,7 +169,7 @@ class Strategy:
         if self.max_depth:
             bound = self.max_depth
 
-        def evaluate_cost(new_state: 'State', bias=0.5):
+        def evaluate_cost(new_state: 'State', bias=1):
             if new_state in expanded:
                 s_ = set()
                 s_.add(new_state)
@@ -186,17 +186,18 @@ class Strategy:
         if self.heuristics == 'Distance':
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
         elif self.heuristics == 'Dynamic':
-            self.state.h_cost = DynamicHeuristics.h(self.state,self.agent, self.metrics, 0)
+            self.state.h_cost = TieBreaking.h(self.state,self.agent, self.metrics)
+            init_pos = self.state.find_agent('0')
         else:
             raise Exception('STRATEGY::', 'Wrong Heuristics')
 
         frontier = list()
         expanded = set()
 
-        heappush(frontier, (self.state.f(), self.state))
+        heappush(frontier,self.state)
 
         while frontier and not self.goal_found:
-            _, s = heappop(frontier)
+            s = heappop(frontier)
             expanded.add(s)
 
             if not self.goal_found:
@@ -207,7 +208,9 @@ class Strategy:
                         if self.heuristics == 'Distance':
                             s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics)
                         elif self.heuristics == 'Dynamic':
-                            s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics, expanded_len=len(expanded))
+                            s_child.h_cost = TieBreaking.h(s_child, self.agent, metrics=self.metrics)
+                            new_pos = s_child.find_agent('0')
+                            print(s_child.find_distance(init_pos, new_pos), "%.2f" % s_child.f(), s_child.last_action['message'], file=sys.stderr)
                         else:
                             raise Exception('STRATEGY::', 'Wrong Heuristics')
 
@@ -216,10 +219,9 @@ class Strategy:
                         #evaluate_cost(s_child)
                         if self.goal_found:
                             return True
-                        elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
+                        elif (s_child not in frontier) and not (s_child in expanded):
                             if len(expanded) < bound:
-                               # print(len(expanded), file= sys.stderr)
-                                heappush(frontier, (s_child.f(), s_child))
+                                heappush(frontier, s_child)
                             else:
                                 return False
 
@@ -230,7 +232,7 @@ class Strategy:
         expanded = set()
 
         def search(state, limit):
-            state.h_cost = h_function.h(state, self.agent, metrics=self.metrics)
+            state.h_cost = TieBreaking.h(state, self.agent, metrics=self.metrics)
             if state.f() > limit:
                 return state.f()
 
@@ -249,7 +251,7 @@ class Strategy:
             return minimum
 
         ##IDA starts here
-        self.state.h_cost = h_function.h(self.state, self.agent, metrics=self.metrics)
+        self.state.h_cost = TieBreaking.h(self.state, self.agent, metrics=self.metrics)
         threshold = self.state.h_cost
         while not self.goal_found:
             self.state.reset_state()

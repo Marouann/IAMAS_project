@@ -65,13 +65,6 @@ class State:
             return self.rigid_atoms[StaticAtom('Distance', start, end)].property_()
         return -1
 
-    def update_distance(self, start: ('int', 'int'), end: ('int', 'int')) -> 'int':
-        '''If shortest path is ocluded by an object, then change the distance'''
-        pass
-
-    def shortest_path(self, start: ('int', 'int'), end: ('int', 'int')) -> []:
-        pass
-
     def check_if_connected(self, start: ('int', 'int'), end: ('int', 'int')) -> 'bool':
         return StaticAtom('Distance', start, end) in self.rigid_atoms
 
@@ -229,8 +222,8 @@ class State:
         return self.cost + self.h_cost + self.last_action['priority']
 
     def __eq__(self, other: 'State'):
-        #return (self.atoms == other.atoms) and self.last_action['priority'] == other.last_action['priority']
-        return self.__hash__() == other.__hash__()
+        return (self.atoms == other.atoms) and self.last_action['priority'] == other.last_action['priority']
+        #return self.__hash__() == other.__hash__()
 
     def __str__(self):
         state_str = "State " + self.name + "\n"
