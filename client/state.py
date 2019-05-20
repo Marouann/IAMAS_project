@@ -206,6 +206,18 @@ class State:
         self.h_cost = 0
         self.parent = None
 
+    def isGoalAchievable(self, agent, goal):
+        if goal.name == 'BoxAt':
+            agent.update_tracker(self)
+            boxPos = self.find_box_position(goal.variables[0])
+            if boxPos in agent.tracker.boundary:
+                box_tracker = Tracker(box_pos)
+
+                box_tracker.estimate(self.currentState)
+                if goal.variables[1] in box_tracker.reachable:
+                    return True
+
+        return False
     def f(self) -> 'float':
         return self.__total_cost__()
 
