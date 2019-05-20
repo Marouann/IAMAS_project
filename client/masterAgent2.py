@@ -177,7 +177,7 @@ class MasterAgent:
                                 box_can_reach_goal = prioritized_goal['position'] in box_tracker.reachable
                                 agent_can_reach_goal = prioritized_goal['position'] in agent.tracker.reachable
 
-                                if self.isSAlvl or box_can_reach_goal or agent_can_reach_goal or agent.ghostmode:
+                                if  box_can_reach_goal or agent_can_reach_goal or agent.ghostmode:
                                     agent.occupied = True
                                     agent.assignGoal(Atom("BoxAt", box['name'], prioritized_goal['position']), prioritized_goal)
                                     self.goalsInAction.append(prioritized_goal)
@@ -187,7 +187,7 @@ class MasterAgent:
                                     remaining_agents_to_replan.remove(agent)
 
 
-                                    agent.plan(self.currentState)
+                                    agent.plan(self.currentState, strategy="astar")
                                     if agent.current_plan == []:
                                         agent.status = STATUS_REPLAN_NO_PLAN_FOUND
                                 else:
@@ -251,7 +251,7 @@ class MasterAgent:
             nb_free_agents = len(free_agents)
             print(nb_free_agents, file=sys.stderr)
             print(old_nb_free_agents, file=sys.stderr)
-            if nb_free_agents != old_nb_free_agents or nb_iter % 5 == 0 :
+            if nb_free_agents != old_nb_free_agents or nb_iter % 20 == 0 :
                 self.assignGoals(free_agents)
 
             # Gets the first actions from each agent (joint action on first row)
@@ -298,8 +298,8 @@ class MasterAgent:
 
                 self.replanAgentWithStatus(STATUS_REPLAN_GHOST)
 
-
-            # if nb_iter > 30:
+            # #
+            # if nb_iter > 15:
             #     break
 
 
@@ -330,6 +330,7 @@ class MasterAgent:
                     at next iteration with ghost mode.
                     '''
                     print("agent is not replan", agent.name, file=sys.stderr)
+                    print(self.currentState.find_agent(agent.name), file=sys.stderr)
                     agent.status = STATUS_REPLAN_GHOST
 
 
@@ -565,10 +566,14 @@ class MasterAgent:
 
                     print('Agent:', agent.name, file=sys.stderr)
                     print(agent.goal.variables[1], file=sys.stderr)
-                    print(agent.tracker.boundary, file=sys.stderr)
+                    print("Boundary", agent.tracker.boundary, file=sys.stderr)
                     goalBoxPosition = self.currentState.find_box_position(agent.goal.variables[0])
-                    if agent.goal.name == 'BoxAt' and goalBoxPosition in agent.tracker.boundary:
+                    box_tracker = Tracker(goalBoxPosition)
+                    box_tracker.estimate(self.currentState)
+                    if agent.goal.name == 'BoxAt' and goalBoxPosition in agent.tracker.boundary \
+                        and (agent.goal.variables[1] in box_tracker.boundary or agent.goal.variables[1] in box_tracker.reachable) :
                         agent.plan(self.currentState)
+                        print("here", file=sys.stderr)
                     if agent.current_plan == []:
                         #first put last action in plan cause it has not been executed
                         agent.current_plan = keep_plan
@@ -581,10 +586,11 @@ class MasterAgent:
 
 
         for key, value in who_is_conflicting_with.items():
-            if value == []:
+            if value == [] and key not in key_to_remove:
 
                 key_to_remove.append(key)
                 agent_to_replan = self.agents[key]
+                agent_to_replan.current_plan = []
                 # agent_to_replan.goal = None
                 agent_to_replan.ghostmode = False
                 agent_to_replan.status = STATUS_WAIT_REPLAN
@@ -837,10 +843,7 @@ class MasterAgent:
             self.executeActionOnlyForAgents([self.agents[int(key)] for key in responsible.keys()], multi_goal=True)
 
 
-            print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", file=sys.stderr)
-            print(priority_agent.name, goal, file=sys.stderr)
-            print(self.currentState.isGoalAchievable(priority_agent, goal), file=sys.stderr)
-            print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", file=sys.stderr)
+
             if self.currentState.isGoalAchievable(priority_agent, goal) or iter > 5:
                 break
             print("goal division:", responsible, file=sys.stderr)
@@ -898,17 +901,32 @@ class MasterAgent:
             More examples can be found in level BoxBlocking_v2.lvl
     '''
     def solveGhostBoxConflict(self, agent, box):
+        print(box, file=sys.stderr)
         boxColor = self.currentState.find_box_color(box.variables[0])
         agentsOfSameColor = [agent for agent in self.agents if agent.color == boxColor]
         if agent in agentsOfSameColor: ## Could be useful for SA levels
             if len(agentsOfSameColor) == 1:
-
+                agentPos = self.currentState.find_agent(agent.name)
                 print("Box is the same color as the agent", file=sys.stderr)
 
-                #plan for free
-                freeGoal = [Atom('Free', box.variables[1]),
-                Atom('AgentAt', agent.name, self.currentState.find_agent(agent.name))]
 
+                actual_safe_cells = list(map(lambda cell: (self.currentState.find_distance(cell, agentPos), cell),
+                                            self.currentState.safe_cells))
+
+                sorted_actual_safe_cells = sorted([cell for cell in actual_safe_cells if cell[0]>0], key=lambda cell: cell[0])
+
+
+                cell_found = False
+                while not cell_found and sorted_actual_safe_cells != []:
+                    cell = sorted_actual_safe_cells.pop()
+
+                    if not self.currentState.find_object_at_position(cell):
+                        freeGoal = [Atom('BoxAt', box.variables[0], cell[1])]
+                        self.currentState.safe_cells.remove(cell[1])
+                        cell_found = True
+
+                if sorted_actual_safe_cells == []:
+                    freeGoal = [Atom('Free', box.variables[1])]
                 # freeGoal = [Atom('Free', box.variables[1])]
 
                 keep_goal = agent.goal
@@ -924,7 +942,8 @@ class MasterAgent:
                 self.executeActionOnlyForAgents([agent])
 
                 agent.goal = keep_goal
-                agent.current_plan = keep_plan
+                agent.ghostmode = True
+                agent.plan(self.currentState)
             else:
                 agent.goal = None
                 agent.status = None

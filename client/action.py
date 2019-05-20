@@ -43,6 +43,7 @@ class Action:
             print('\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*', file=sys.stderr)
             print("This action is not applicable here.", variables, file=sys.stderr)
             print('\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*', file=sys.stderr)
+            print(fuc)
 
 
 Move = Action(

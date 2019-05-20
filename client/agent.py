@@ -8,7 +8,7 @@ STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
 HEURISTICS = 'Distance' #['Distance', 'Dynamic']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 ASYNC = False
-BOUND = 1000 #['None', integer]
+BOUND = 50000 #['None', integer]
 
 
 
@@ -50,6 +50,9 @@ class Agent:
         W = (0, -1, 'W')
         agtFrom = s.find_agent(self.name)
 
+        # if self.goal and self.goal.name == "BoxAt":
+        #     boxOfGoal = self.goal.variables[0]
+
         for action in self.actions:
             for dir in [N, S, E, W]:
                 agtTo = (agtFrom[0] + dir[0], agtFrom[1] + dir[1])
@@ -63,6 +66,7 @@ class Agent:
                         boxFrom = agtTo  # the agent will take the place of box
                         boxTo = (boxFrom[0] + second_dir[0], boxFrom[1] + second_dir[1])
                         box = s.find_box(boxFrom)
+                        # if (box and not ghostmode) or (ghostmode and box and box.variables[0] == boxOfGoal)
                         if box:
                             boxName = box.variables[0]
                             if boxFrom != boxTo and boxTo != agtFrom and agtFrom != boxFrom:
