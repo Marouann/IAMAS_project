@@ -31,23 +31,60 @@ class DistanceBased(Heuristic):
         distance = 0.0
         agent_pos = state.find_agent(agent.name)
         if agent.goal:
-            for goal in [agent.goal]:
+            goals = []
+            if isinstance(agent.goal, list,):
+                goals = agent.goal
+            else:
+                goals = [agent.goal]
+
+            for goal in goals:
                 min_distance = MAX_DISTANCE
-                atom = StaticAtom('BoxAt^', goal.variables[0])
-                if atom in state.atoms:
-                    pos = state.atoms[atom].property()
+
+                #atom = StaticAtom('BoxAt^', goal.variables[0])
+                #if atom in state.atoms:
+                 #   pos = state.atoms[atom].property()
+                  #  if metrics == 'Manhattan':
+                   #     d = manhattan(pos, goal.variables[1]) + manhattan(pos, agent_pos)
+                    #elif metrics == 'Euclidean':
+                     #   d = euclidean(pos, goal.variables[1]) + euclidean(pos, agent_pos)
+                    #else:  # real metrics
+                    #    d = state.find_distance(pos, goal.variables[1]) + \
+                    #         state.find_distance(pos, agent_pos)
+                    #if d < min_distance:
+                    #    min_distance = d
+                #distance += min_distance
+       # return distance
+
+                if goal.name == 'Free':
                     if metrics == 'Manhattan':
-                        d = manhattan(pos, goal.variables[1]) + manhattan(pos, agent_pos)
+                        d = manhattan(agent_pos, goal.variables[0])
                     elif metrics == 'Euclidean':
-                        d = euclidean(pos, goal.variables[1]) + euclidean(pos, agent_pos)
+                        d = euclidean(agent_pos, goal.variables[0])
                     else:  # real metrics
-                        d = state.find_distance(pos, goal.variables[1]) + \
-                             state.find_distance(pos, agent_pos)
+                        d = scaler * state.find_distance(agent_pos, goal.variables[0])
                     if d < min_distance:
                         min_distance = d
-                distance += min_distance
-        return distance
+                    distance += min_distance
+                else:
+                    for atom in state.atoms:
 
+                        if atom.name == 'BoxAt' == goal.name and atom.variables[0] == goal.variables[0]:
+                            if metrics == 'Manhattan':
+                                d = manhattan(atom.variables[1], goal.variables[1]) + manhattan(atom.variables[1],
+                                                                                                agent_pos)
+                            elif metrics == 'Euclidean':
+                                d = euclidean(atom.variables[1], goal.variables[1]) + euclidean(atom.variables[1],
+                                                                                                agent_pos)
+                            else:  # real metrics
+
+                                d = scaler * state.find_distance(atom.variables[1], goal.variables[1]) + \
+                                    state.find_distance(agent_pos, atom.variables[1])
+                            if d < min_distance:
+                                min_distance = d
+
+
+                    distance += min_distance
+        return float(distance)
 
 
 class ConnectionHeuristics(Heuristic):

@@ -23,6 +23,7 @@ class Agent:
         self.occupied = False
         self.status = None
         self.tracker = None
+        self.ghostmode = True
 
     '''
     getPossibleActions return a list of tuple that represents the different actions the agent
@@ -41,7 +42,7 @@ class Agent:
         self.goal_details = goal_details
         self.occupied = True
 
-    def getPossibleActions(self, s: 'State') -> '[Action]':
+    def getPossibleActions(self, s: 'State', ghostmode:'Bool'=False) -> '[Action]':
         possibleActions = list()
         N = (-1, 0, 'N')
         S = (1, 0, 'S')
@@ -54,7 +55,7 @@ class Agent:
                 agtTo = (agtFrom[0] + dir[0], agtFrom[1] + dir[1])
 
                 if action.name == "Move":
-                    if action.checkPreconditions(s, [self.name, agtFrom, agtTo]):
+                    if action.checkPreconditions(s, [self.name, agtFrom, agtTo], ghostmode=ghostmode):
                         possibleActions.append((action, [self.name, agtFrom, agtTo], "Move(" + dir[2] + ")", agtTo, 0))
 
                 elif action.name == "Push":
@@ -66,7 +67,7 @@ class Agent:
                             boxName = box.variables[0]
                             if boxFrom != boxTo and boxTo != agtFrom and agtFrom != boxFrom:
                                 if action.checkPreconditions(s, [self.name, agtFrom, boxName, boxFrom, boxTo,
-                                                                 self.color]):  # we also need box somehow
+                                                                 self.color], ghostmode=ghostmode):  # we also need box somehow
                                     possibleActions.append((action,
                                                             [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
                                                             "Push(" + dir[2] + "," + second_dir[2] + ")",
@@ -80,7 +81,7 @@ class Agent:
                             boxName = box.variables[0]
                             if agtFrom != agtTo and agtTo != boxFrom and boxFrom != agtFrom:
                                 if action.checkPreconditions(s, [self.name, agtFrom, agtTo, boxName, boxFrom,
-                                                                 self.color]):  # we also need box somehow
+                                                                 self.color], ghostmode=ghostmode):  # we also need box somehow
                                     possibleActions.append((action,
                                                             [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                             "Pull(" + dir[2] + "," + second_dir[2] + ")",
@@ -98,18 +99,28 @@ class Agent:
         self.tracker = Tracker(state.find_agent(self.name))
         self.tracker.estimate(state)
 
+
     def plan(self, state: 'State', strategy=STRATEGY,
              multi_goal=False, max_depth=BOUND,
              async_mode=ASYNC):
+
         if not async_mode:
             print("Agent:", self.name, file=sys.stderr)
             print("Planning for goal:", self.goal_details, file=sys.stderr)
-            strategy = Strategy(state, self, strategy=strategy, heuristics=HEURISTICS, metrics=METRICS,
-                                multi_goal=multi_goal, max_depth=max_depth)
+            print("Ghost mode is on", self.ghostmode, file=sys.stderr)
+            strategy = Strategy(state, self,
+                                strategy=strategy,
+                                heuristics=HEURISTICS,
+                                metrics=METRICS,
+                                multi_goal=multi_goal,
+                                max_depth=max_depth,
+                                ghostmode=self.ghostmode)
             strategy.plan()
         else:
             found_event = Event()
             quit_event = Event()
+
+
 
 
             print('STRATEGY::','Agent', self.name, file=sys.stderr, flush=True)
