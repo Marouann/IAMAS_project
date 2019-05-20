@@ -97,9 +97,8 @@ class Strategy:
         while frontier and not self.goal_found:
             s = frontier.popleft()
             expanded.add(s)
-
             if not self.goal_found:
-                for action in self.agent.getPossibleActions(s):
+                for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode):
                     s_child = s.create_child(action, cost=1, ghostmode=self.ghostmode)
                     if s_child:
                         self.__is_goal__(self.agent, s_child, multi_goal=self.multi_goal)
