@@ -88,16 +88,29 @@ class State:
             return self.rigid_atoms[atom].property_()
         return False
 
-    def find_box_goal_distance(self, name: 'str', goal) -> 'int':
-        atom = StaticAtom('BoxAt^', name)
-        if atom in self.atoms:
-            pos = self.atoms[atom].property()
-            distance = self.find_distance(pos, goal["position"])
-            return distance
-        return -1
+    def find_box_goal_distance(self, box_name: 'str', goal_name: 'str') -> 'int':
+        box_atom = StaticAtom('BoxAt^', box_name)
+        if box_atom in self.atoms:
+            box_pos = self.atoms[box_atom].property()
+        else:
+            return -1
+
+        goal_atom = StaticAtom('GoalAt*', goal_name)
+        if goal_atom in self.rigid_atoms:
+            goal_pos = self.rigid_atoms[goal_atom].property()
+        else:
+            return -1
+
+        distance = self.find_distance(box_pos, goal_pos)
+        return distance
 
     def find_box_letter(self, box_name: 'str'):  ##### WHAT DOES IT DO?
         atom = StaticAtom('Letter*', box_name)
+        if atom in self.rigid_atoms:
+            return self.rigid_atoms[atom].property_()
+
+    def find_letter(self, name: 'str'):
+        atom = StaticAtom('Letter*', name)
         if atom in self.rigid_atoms:
             return self.rigid_atoms[atom].property_()
 
@@ -106,6 +119,39 @@ class State:
         if atom in self.atoms:
             return self.atoms[atom].property()
         return False
+
+    def return_agents(self):  # returns name - color - position
+        number = 0
+        search = True
+        agents = []
+        while search:
+            name = str(number)
+            atom = StaticAtom('AgentAt^', name)
+            if atom in self.atoms:
+                color = self.rigid_atoms[StaticAtom('Color*', name)].property_()
+                agents.append((name, color, self.atoms[atom].property()))
+                number += 1
+            else:
+                search = False
+        return agents
+
+    def return_matching_boxes(self, goal_name):
+        '''Returns a list of boxes that can be placed on the goal'''
+        goal_letter = self.find_letter(goal_name)
+
+        boxes = list()
+
+        number = 1
+        search = True
+        while search:
+            name = 'B' + str(number)
+            if StaticAtom('BoxAt^', name) in self.atoms:
+                if self.find_letter(name) == goal_letter:
+                    boxes.append(name)
+                number += 1
+            else:
+                search = False
+        return boxes
 
     def find_agent_by_position(self, position):  #### WHAT DOES IT DO ??
         for atom in self.atoms:
@@ -121,21 +167,35 @@ class State:
                 return atom
         return False
 
-    def get_unmet_goals(self):
-        metGoals = []
-        unmetGoals = []
-        for goal in self.goals:
-            box = self.find_box(goal['position'])
-            if False == box:
-                unmetGoals.append(goal)
+    def return_goals(self):  # return list of Goal Name - goal position
+        number = 1
+        search = True
+        goals = []
+        while search:
+            name = 'G' + str(number)
+            atom = StaticAtom('GoalAt*', name)
+            if atom in self.rigid_atoms:
+                goals.append((name, self.find_letter(name), self.rigid_atoms[atom].property_()))
+                number += 1
             else:
-                boxLetter = self.find_box_letter(box.variables[0])
-                letter = boxLetter
-                if letter != goal['letter']:
-                    unmetGoals.append(goal)
+                search = False
+        return goals
+
+    def progression(self):  # returns list of met and unmet goals
+        met = []
+        unmet = []
+        goals = self.return_goals()
+
+        for name, letter, pos in goals:
+            box = self.find_box(pos)
+            if not box:
+                unmet.append((name, letter, pos))
+            else:
+                if self.find_letter(box.variables[0]) != letter:
+                    unmet.append((name, letter, pos))
                 else:
-                    metGoals.append(goal)
-        return [unmetGoals, metGoals]
+                    met.append((name, letter, pos))
+        return [unmet, met]
 
     def getNeithbourGoals(self, position):
         neighbourLocations = []
@@ -160,6 +220,7 @@ class State:
 
         result = neighbourLocations
 
+        atom = StaticAtom('GoalAt*')
         for atom in self.rigid_atoms:
             if atom.name == "GoalAt":
                 for location in neighbourLocations:

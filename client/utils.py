@@ -191,7 +191,14 @@ def get_level(server_messages):
                         Letter = Atom('Letter', Goal, char)
                         rigidAtoms.update(Letter)
 
+                        Letter = StaticAtom('Letter*', Goal)
+                        Letter.assign_property(char)
+                        rigidAtoms.update(Letter)
+
                         GoalAt = Atom('GoalAt', Goal, (row, col))
+                        rigidAtoms.update(GoalAt)
+                        GoalAt = StaticAtom('GoalAt*',Goal)
+                        GoalAt.assign_property((row,col))
                         rigidAtoms.update(GoalAt)
 
                         goals.append({'name': Goal, 'position': (row, col), 'letter': char})

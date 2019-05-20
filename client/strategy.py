@@ -222,6 +222,7 @@ class Strategy:
                                # print(len(expanded), file= sys.stderr)
                                 heappush(frontier, (s_child.f(), s_child))
                             else:
+                                print('STRATEGY::', self.agent.name, 'reached a bound', file=sys.stderr)
                                 return False
 
         return False

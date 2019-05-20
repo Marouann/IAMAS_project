@@ -9,6 +9,7 @@ from atom import Atom
 from agent import *
 from action import *
 from knowledgeBase import KnowledgeBase
+from Goal.Goal import *
 from utils import *
 from Tracker import Tracker
 
@@ -30,31 +31,24 @@ class MasterAgent:
 
         self.isSAlvl = 1 == len(self.agents)
 
-    def prioritizeGoals(self, goals):
-        # Sort goals 1st by number of free neighbour fields, then by number of neighbour goals)
-        sortedGoals = sorted(goals,
-                                key=lambda x: (self.currentState.getNeithbourFieldsWithoutGoals(x["position"]).__len__(),
-                                self.currentState.getNeithbourGoals(x["position"]).__len__()))
-
-        return sortedGoals
 
     def assignGoals(self, agentsToReplan):
         print("Assigning goals", file=sys.stderr)
-        (goalsToAssign, goalsMet) = self.currentState.get_unmet_goals()
+        (unmet, met) = self.currentState.progression()
         if agentsToReplan != []:
             print('\nFree agents : ' + str([agent.name for agent in agentsToReplan]), file=sys.stderr, flush=True)
-            print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
-            print('Goals already met : ' + str(goalsMet), file=sys.stderr, flush=True)
+            print('Goals unmet : ' + str(unmet), file=sys.stderr, flush=True)
+            print('Goals already met : ' + str(met), file=sys.stderr, flush=True)
         else:
             # We return to not waste time
-            return
+            return False
 
         remaining_agents_to_replan = list(agentsToReplan)
 
         boxesHandled = []
         # Boxes already placed on the goal
-        for goal in goalsMet:
-            boxOnGoal = self.currentState.find_box(goal['position'])
+        for name, letter, pos in met:
+            boxOnGoal = self.currentState.find_box(pos)
             boxesHandled.append(boxOnGoal.variables[0])
 
         # Boxes that are currently handled by agents
@@ -72,14 +66,14 @@ class MasterAgent:
                 self.goalsInAction.remove(agent.goal_details)
 
         for goal in self.goalsInAction:
-            if goal in goalsToAssign:
-                goalsToAssign.remove(goal)
+            if goal in unmet:
+                unmet.remove(goal)
 
         # We'll store the box tracker to not compute them too many times
         box_tracker_dict = {}
         print("-------------", file=sys.stderr)
-        print(goalsToAssign, file=sys.stderr)
-        prioritizedGoals = self.prioritizeGoals(goalsToAssign)
+        print(unmet, file=sys.stderr)
+        prioritizedGoals = Goals.prioritize(self.currentState, unmet)
         for prioritized_goal in prioritizedGoals:
 
             if remaining_agents_to_replan == []:
@@ -98,10 +92,10 @@ class MasterAgent:
                 boxes_able_to_fill_goal = []
                 for box in self.boxes:
                     # First we check if the letter is ok and if the box is not already handled (we already have the info)
-                    if box['letter'] == prioritized_goal['letter'] and box['name'] not in boxesHandled:
+                    if box['letter'] == prioritized_goal[1] and box['name'] not in boxesHandled:
                         # If it's ok, we can check if the goal and the box are connected
                         box_position = self.currentState.find_box_position(box['name'])
-                        if self.currentState.check_if_connected(prioritized_goal['position'], box_position):
+                        if self.currentState.check_if_connected(prioritized_goal[2], box_position):
                             boxes_able_to_fill_goal.append((box, box_position))
 
                 # If no boxes can fill the goal right now we skip this goal
@@ -141,7 +135,7 @@ class MasterAgent:
                         As we already have checked if the boxes_able_to_fill_goal are connected to the goal,
                         we will not need to check if agent and box are connected
                     '''
-                    if not self.currentState.check_if_connected(agent_position, prioritized_goal['position']):
+                    if not self.currentState.check_if_connected(agent_position, prioritized_goal[2]):
                         # print('Goal:', goal['position'],'is not connected with the agent', 'agent', agent_position, file=sys.stderr, flush=True)
                         continue
 
@@ -155,8 +149,8 @@ class MasterAgent:
 
                         # We avoid assigning a box that is already placed on a goal.
                         boxAlreadyPlaced = False
-                        for goalmet in goalsMet:
-                            boxPlaced = self.currentState.find_box(goalmet['position'])
+                        for goalmet in met:
+                            boxPlaced = self.currentState.find_box(goalmet[2])
                             if boxPlaced.variables[0] == box['name']:
                                 boxAlreadyPlaced = True
 
@@ -173,12 +167,12 @@ class MasterAgent:
 
                                 # Then we see if the goal is reachable from the box or if the goal is reachable from agent
                                 # If yes --> we can assign a goal
-                                box_can_reach_goal = prioritized_goal['position'] in box_tracker.reachable
-                                agent_can_reach_goal = prioritized_goal['position'] in agent.tracker.reachable
+                                box_can_reach_goal = prioritized_goal[2] in box_tracker.reachable
+                                agent_can_reach_goal = prioritized_goal[2] in agent.tracker.reachable
 
                                 if self.isSAlvl or box_can_reach_goal or agent_can_reach_goal or agent.ghostmode:
                                     agent.occupied = True
-                                    agent.assignGoal(Atom("BoxAt", box['name'], prioritized_goal['position']), prioritized_goal)
+                                    agent.assign_goal(Atom("BoxAt", box['name'], prioritized_goal[2]))
                                     self.goalsInAction.append(prioritized_goal)
                                     boxesHandled.append(box['name'])
                                     # The goal will be assigned to agent, we can update the two following variables
@@ -233,7 +227,7 @@ class MasterAgent:
         old_nb_free_agents = 0
         nb_free_agents = 0
         # stop util reached goal
-        while self.currentState.get_unmet_goals()[0] != []:
+        while self.currentState.progression()[0] != []:
             # print(self.currentState.get_unmet_goals()[0], file=sys.stderr)
             nb_iter += 1
 

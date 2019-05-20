@@ -18,7 +18,6 @@ class SearchClient:
         self.masterAgent = MasterAgent(level['initial_state'], level['agents'],
                                        level['boxes'])
 
-
 def main():
     # We first declare our name. The server will receive it and be ready to start with us.
     print('Best group', flush=True)

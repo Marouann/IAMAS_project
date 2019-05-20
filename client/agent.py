@@ -8,7 +8,7 @@ STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
 HEURISTICS = 'Distance' #['Distance', 'Dynamic']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 ASYNC = False
-BOUND = 1000 #['None', integer]
+BOUND = 2000 #['None', integer]
 
 
 
@@ -37,9 +37,9 @@ class Agent:
     - priority of the action.
     '''
 
-    def assignGoal(self, goal, goal_details):
+    def assign_goal(self, goal):
+        print('MY GOAAAALLLLL', goal, file= sys.stderr)
         self.goal = goal
-        self.goal_details = goal_details
         self.occupied = True
 
     def getPossibleActions(self, s: 'State', ghostmode:'Bool'=False) -> '[Action]':
