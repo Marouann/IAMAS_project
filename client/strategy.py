@@ -158,7 +158,7 @@ class Strategy:
         if self.heuristics == 'Distance':
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
         elif self.heuristics == 'Dynamic':
-            self.state.h_cost = DynamicHeuristics.h(self.state,self.agent, self.metrics, 0)
+            self.state.h_cost = DynamicHeuristics.h(self.state, self.agent, self.metrics, 0)
         elif self.heuristics == 'Tie Breaking':
             self.state.h_cost = TieBreaking.h(self.state, self.agent, metrics=self.metrics)
         else:
@@ -181,7 +181,8 @@ class Strategy:
                         if self.heuristics == 'Distance':
                             s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics)
                         elif self.heuristics == 'Dynamic':
-                            s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics, expanded_len=len(expanded))
+                            s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics,
+                                                                 expanded_len=len(expanded))
                         elif self.heuristics == 'Tie Breaking':
                             s_child.h_cost = TieBreaking.h(s_child, self.agent, metrics=self.metrics)
                         else:
@@ -189,7 +190,7 @@ class Strategy:
 
                         self.__is_goal__(self.agent, s_child)
 
-                        #evaluate_cost(s_child)
+                        # evaluate_cost(s_child)
                         if self.goal_found:
                             return True
                         elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
@@ -215,7 +216,8 @@ class Strategy:
                 if (new_state.cost + bias) <= old_state.cost:
                     expanded.remove(old_state)
 
-        print('STRATEGY::', 'A* Strategy for ', self.agent.name, file=sys.stderr, flush=True)
+        print('STRATEGY::', 'A* Strategy', '(', self.heuristics, ')', 'for ', self.agent.name, file=sys.stderr,
+              flush=True)
 
         self.state.reset_state()
         self.agent.reset_plan()
@@ -223,7 +225,7 @@ class Strategy:
         if self.heuristics == 'Distance':
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
         elif self.heuristics == 'Dynamic':
-            self.state.h_cost = DynamicHeuristics.h(self.state,self.agent, self.metrics, 0)
+            self.state.h_cost = DynamicHeuristics.h(self.state, self.agent, self.metrics, 0)
         elif self.heuristics == 'Tie Breaking':
             self.state.h_cost = TieBreaking.h(self.state, self.agent, metrics=self.metrics)
         else:
@@ -247,7 +249,8 @@ class Strategy:
                         if self.heuristics == 'Distance':
                             s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics)
                         elif self.heuristics == 'Dynamic':
-                            s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics, expanded_len=len(expanded))
+                            s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics,
+                                                                 expanded_len=len(expanded))
                         elif self.heuristics == 'Tie Breaking':
                             s_child.h_cost = TieBreaking.h(s_child, self.agent, metrics=self.metrics)
                         else:
@@ -259,35 +262,36 @@ class Strategy:
                             return True
                         elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
                             if len(expanded) < bound:
-                                # print(len(expanded), file= sys.stderr)
                                 heappush(frontier, (s_child.f(), s_child))
                             else:
                                 print("Bound reached", file=sys.stderr)
                                 return False
-
         return False
 
     def IDA(self, h_function=DistanceBased):
-        print('STRATEGY::', 'IDA* Strategy for', self.heuristics, self.metrics, file=sys.stderr, flush=True)
+        print('STRATEGY::', 'IDA* Strategy', '(', self.heuristics, ')', 'for ', self.agent.name, file=sys.stderr,
+              flush=True)
+
         expanded = set()
 
         def search(state, limit):
             state.h_cost = h_function.h(state, self.agent, metrics=self.metrics)
+            expanded.add((state, state.cost))
             if state.f() > limit:
                 return state.f()
 
             minimum = INF
-            for action in self.agent.getPossibleActions(state):
-                s = state.create_child(action, cost=1, ghostmode=self.ghostmode)
-                if s:
-                    self.__is_goal__(self.agent, s)
-                    if self.goal_found:
-                        print('IDA', 'solution is found', file=sys.stderr)
-                        return True
-                    temporary = search(s, limit)
-                    if temporary < minimum and (s,s.cost) not in expanded:
-                        minimum = temporary
-                        expanded.add((s,  s.cost))
+            if not self.goal_found:
+                for action in self.agent.getPossibleActions(state):
+                    s = state.create_child(action, cost=1, ghostmode=self.ghostmode)
+                    if s:
+                        self.__is_goal__(self.agent, s)
+                        if self.goal_found:
+                            print('IDA', 'solution is found', file=sys.stderr)
+                            return True
+                        temporary = search(s, limit)
+                        if temporary < minimum and (s, s.cost) not in expanded:
+                            minimum = temporary
             return minimum
 
         ##IDA starts here
@@ -295,6 +299,8 @@ class Strategy:
         threshold = self.state.h_cost
         while not self.goal_found:
             self.state.reset_state()
+            expanded.clear()
+            expanded.add((self.state, 0))
             temp = search(self.state, threshold)
             if self.goal_found:
                 print('IDA', 'solution is found', file=sys.stderr)
@@ -325,7 +331,6 @@ class Strategy:
         else:
             self.agent.current_plan = self.agent.current_plan[:-1]
             self.agent.current_plan.reverse()
-
 
     def __is_goal__(self, agent: 'Agent', state: 'State', multi_goal=False) -> 'bool':
         if isinstance(agent.goal, list):

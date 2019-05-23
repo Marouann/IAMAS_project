@@ -5,11 +5,11 @@ from multiprocessing import Process, Event
 from time import sleep
 
 STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
-HEURISTICS = 'Distance' #['Distance', 'Dynamic', 'Tie Breaking']
+HEURISTICS = 'Tie Breaking' #['Distance', 'Dynamic', 'Tie Breaking']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 
 STRATEGY_GHOST = 'astar'
-HEURISTICS_GHOST = 'Tie Breaking'
+HEURISTICS_GHOST = 'Distance'
 
 
 ASYNC = False
@@ -28,7 +28,7 @@ class Agent:
         self.occupied = False
         self.status = None
         self.tracker = None
-        self.ghostmode = True
+        self.ghostmode = False
 
     '''
     getPossibleActions return a list of tuple that represents the different actions the agent
@@ -54,9 +54,6 @@ class Agent:
         E = (0, 1, 'E')
         W = (0, -1, 'W')
         agtFrom = s.find_agent(self.name)
-
-        # if self.goal and self.goal.name == "BoxAt":
-        #     boxOfGoal = self.goal.variables[0]
 
         for action in self.actions:
             for dir in [N, S, E, W]:
@@ -112,14 +109,25 @@ class Agent:
     def plan(self, state: 'State', strategy=STRATEGY,
              multi_goal=False, max_depth=BOUND,
              async_mode=ASYNC, metrics =METRICS, heuristics=HEURISTICS):
+
         print("Agent:", self.name, file=sys.stderr)
         print("Planning for goal:", self.goal_details, file=sys.stderr)
         print("Ghost mode is on", self.ghostmode, file=sys.stderr)
-        strategy = Strategy(state, self,
-                                strategy=strategy,
+        if not self.ghostmode:
+            strategy = Strategy(state, self,
+                                strategy=STRATEGY,
                                 heuristics=heuristics,
                                 metrics=metrics,
                                 multi_goal=multi_goal,
                                 max_depth=max_depth,
                                 ghostmode=self.ghostmode)
+        else:
+            strategy = Strategy(state, self,
+                                strategy=STRATEGY_GHOST,
+                                heuristics=HEURISTICS_GHOST,
+                                metrics=metrics,
+                                multi_goal=multi_goal,
+                                max_depth=max_depth,
+                                ghostmode=self.ghostmode)
+
         strategy.plan()
