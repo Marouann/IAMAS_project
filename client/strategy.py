@@ -238,7 +238,7 @@ class Strategy:
         if self.heuristics == 'Distance':
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
         elif self.heuristics == 'Dynamic':
-            self.state.h_cost = DynamicHeuristics.h(self.state, self.agent, self.metrics, 0)
+            self.state.h_cost = DynamicHeuristics.h(self.state, self.agent, self.metrics)
         elif self.heuristics == 'Tie Breaking':
             self.state.h_cost = TieBreaking.h(self.state, self.agent, metrics=self.metrics)
         else:
@@ -265,8 +265,7 @@ class Strategy:
                         if self.heuristics == 'Distance':
                             s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics)
                         elif self.heuristics == 'Dynamic':
-                            s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics,
-                                                                 expanded_len=len(expanded))
+                            s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics)
                         elif self.heuristics == 'Tie Breaking':
                             s_child.h_cost = TieBreaking.h(s_child, self.agent, metrics=self.metrics)
                         else:

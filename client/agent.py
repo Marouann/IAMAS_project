@@ -14,7 +14,7 @@ HEURISTICS_GHOST = 'Distance'
 
 
 ASYNC = False
-BOUND = 000 #['None', integer]
+BOUND = 10000 #['None', integer]
 
 
 
