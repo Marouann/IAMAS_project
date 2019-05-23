@@ -4,6 +4,7 @@ from atom import Atom, StaticAtom, DynamicAtom
 from knowledgeBase import KnowledgeBase
 from heapq import heapify, heappush, heappop
 from multiprocessing import Process, Manager
+import numpy as np
 
 STATUS_WAIT_REPLAN = 0
 STATUS_REPLAN_AFTER_CONFLICT = 1
@@ -381,6 +382,23 @@ def identify_cells(state, rows, cols):
                 result['safe'].append((row, col))
                 continue
 
+            #add corners as free cells
+            if list(np.array(safe_cells).reshape(-1)) == [True, True, False, True, True, False, False, False, False]:
+                result['safe'].append((row, col))
+                continue
+
+            if list(np.array(safe_cells).reshape(-1)) == [False,True, True, False, True, True, False, False, False]:
+                result['safe'].append((row, col))
+                continue
+
+            if list(np.array(safe_cells).reshape(-1)) == [False, False, False, False, True, True, False, True, True]:
+                result['safe'].append((row, col))
+                continue
+
+            if list(np.array(safe_cells).reshape(-1)) == [False, False, False, True, True, False, True, True, False]:
+                result['safe'].append((row, col))
+                continue
+
             # We then check if the cell is a tunel
             if [safe_cells[0][1], safe_cells[2][1], safe_cells[1][0], safe_cells[1][2]] == [False, False, True, True]:
                 result['tunnel'].append((row, col))
@@ -389,6 +407,8 @@ def identify_cells(state, rows, cols):
             if [safe_cells[0][1], safe_cells[2][1], safe_cells[1][0], safe_cells[1][2]] == [True, True, False, False]:
                 result['tunnel'].append((row, col))
                 continue
+
+
 
     for safe_cell in result['safe']:
         for tunnel_cell in result['tunnel']:

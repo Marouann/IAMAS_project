@@ -202,6 +202,19 @@ class MasterAgent:
 
                 if not prioritized_goal_is_assigned:
                     print('Goal not assigned yet', file=sys.stderr)
+                    # if not self.isSAlvl:
+                    #
+                    #     agentPos = self.currentState.find_agent(agent.name)
+                    #     actual_safe_cells = list(map(lambda cell: (self.currentState.find_distance(cell, agentPos), cell),
+                    #                                 self.currentState.safe_cells))
+                    #
+                    #     sorted_actual_safe_cells = sorted([cell for cell in actual_safe_cells if cell[0]>0], key=lambda cell: cell[0])
+                    #
+                    #     self.freeSafeCells = updateSafeCells(self.currentState, sorted_actual_safe_cells)
+                    #
+                    #     agent.goal =Atom("AgentAt", agent.name, self.freeSafeCells.pop()[1])
+                    #     agent.plan(self.currentState)
+
 
                 print(prioritized_goal_is_assigned, file=sys.stderr)
 
@@ -708,9 +721,11 @@ class MasterAgent:
         # plan for the solution and set other agents in conflict's actions to NoOp
         agent.ghostmode = False
         object_in_conflict = self.currentState.find_object_at_position(solution.variables[0])
+        # agent.update_tracker(self.currentState)
+
         if object_in_conflict is not False:
             if object_in_conflict.name == "BoxAt" and agent.color == self.currentState.find_box_color(object_in_conflict.variables[0]):
-                agent.plan(self.currentState, strategy="bfs")
+                agent.plan(self.currentState, strategy="astar", max_depth=15)
                 for other_agent in conflicting_with:
                     if other_agent != int(agent.name):
                         self.agents[other_agent].current_plan.insert(0,{
@@ -720,7 +735,7 @@ class MasterAgent:
                             'priority':4,
                         })
             elif object_in_conflict.name == "AgentAt" and object_in_conflict.variables[0] == agent.name:
-                agent.plan(self.currentState, strategy="bfs")
+                agent.plan(self.currentState, strategy="astar", max_depth=15)
                 for other_agent in conflicting_with:
                     if other_agent != int(agent.name):
                         self.agents[other_agent].current_plan.insert(0,{
