@@ -710,7 +710,7 @@ class MasterAgent:
         object_in_conflict = self.currentState.find_object_at_position(solution.variables[0])
         if object_in_conflict is not False:
             if object_in_conflict.name == "BoxAt" and agent.color == self.currentState.find_box_color(object_in_conflict.variables[0]):
-                agent.plan(self.currentState, strategy="bfs")
+                agent.plan(self.currentState, strategy="astar", max_depth=15)
                 for other_agent in conflicting_with:
                     if other_agent != int(agent.name):
                         self.agents[other_agent].current_plan.insert(0,{
@@ -720,7 +720,7 @@ class MasterAgent:
                             'priority':4,
                         })
             elif object_in_conflict.name == "AgentAt" and object_in_conflict.variables[0] == agent.name:
-                agent.plan(self.currentState, strategy="bfs")
+                agent.plan(self.currentState, strategy="astar", max_depth=15)
                 for other_agent in conflicting_with:
                     if other_agent != int(agent.name):
                         self.agents[other_agent].current_plan.insert(0,{

@@ -4,6 +4,7 @@ from atom import Atom, StaticAtom, DynamicAtom
 from knowledgeBase import KnowledgeBase
 from heapq import heapify, heappush, heappop
 from multiprocessing import Process, Manager
+import numpy as np
 
 STATUS_WAIT_REPLAN = 0
 STATUS_REPLAN_AFTER_CONFLICT = 1
@@ -378,6 +379,23 @@ def identify_cells(state, rows, cols):
                 continue
 
             if [row[1] for row in safe_cells] == [True, True, True] and [row[2] for row in safe_cells] == [True, True, True]:
+                result['safe'].append((row, col))
+                continue
+
+            #add corners as free cells
+            if list(np.array(safe_cells).reshape(-1)) == [True, True, False, True, True, False, False, False, False]:
+                result['safe'].append((row, col))
+                continue
+
+            if list(np.array(safe_cells).reshape(-1)) == [False,True, True, False, True, True, False, False, False]:
+                result['safe'].append((row, col))
+                continue
+
+            if list(np.array(safe_cells).reshape(-1)) == [False, False, False, False, True, True, False, True, True]:
+                result['safe'].append((row, col))
+                continue
+
+            if list(np.array(safe_cells).reshape(-1)) == [False, False, False, True, True, False, True, True, False]:
                 result['safe'].append((row, col))
                 continue
 
