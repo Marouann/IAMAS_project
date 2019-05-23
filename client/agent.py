@@ -1,6 +1,7 @@
 from strategy import Strategy
 from action import *
 from Tracker import Tracker
+import random
 from multiprocessing import Process, Event
 from time import sleep
 
@@ -49,6 +50,16 @@ class Agent:
         self.occupied = True
 
     def getPossibleActions(self, s: 'State', ghostmode:'bool'=False) -> '[Action]':
+
+        randomization = random.randint(0,1000)
+        if randomization < 50:
+            noise = random.random()*5
+        elif randomization > 950:
+            noise = random.random() * (-5)
+        else:
+            noise = 0
+
+
         possibleActions = list()
         N = (-1, 0, 'N')
         S = (1, 0, 'S')
@@ -62,7 +73,7 @@ class Agent:
 
                 if action.name == "Move":
                     if action.checkPreconditions(s, [self.name, agtFrom, agtTo], ghostmode=ghostmode):
-                        possibleActions.append((action, [self.name, agtFrom, agtTo], "Move(" + dir[2] + ")", agtTo, 0))
+                        possibleActions.append((action, [self.name, agtFrom, agtTo], "Move(" + dir[2] + ")", agtTo, 0 + noise))
 
                 elif action.name == "Push":
                     for second_dir in [N, S, E, W]:
@@ -79,7 +90,7 @@ class Agent:
                                                             [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
                                                             "Push(" + dir[2] + "," + second_dir[2] + ")",
                                                             boxFrom,
-                                                            0.5))
+                                                            0.5 + noise))
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
@@ -93,7 +104,7 @@ class Agent:
                                                             [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                             "Pull(" + dir[2] + "," + second_dir[2] + ")",
                                                             agtTo,
-                                                            0.55))
+                                                            0.55 + noise))
                 elif action.name == 'NoOp':
                     possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 0.7))
 
