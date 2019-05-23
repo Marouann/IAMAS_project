@@ -15,7 +15,10 @@ class SearchClient:
 
         # We get the level information from the incoming stream.
         level = get_level(server_messages)
-        level['initial_state'].rigid_atoms += level_adjacency(level['initial_state']) ## state, max rows and max cols in level
+        first_adjacency = level_adjacency(level['initial_state'], level['rows'], level['cols'])
+        level['initial_state'].rigid_atoms += first_adjacency['distances'] ## state, max rows and max cols in level
+        level['initial_state'] = replace_box_by_walls(level['initial_state'], first_adjacency['clusters'], level['boxes'], level['agents'])
+
         cell_types = identify_cells(level['initial_state'], level['rows'], level['cols'])
         level['initial_state'].safe_cells = cell_types['safe']
         level['initial_state'].tunnel_cells = cell_types['tunnel']
