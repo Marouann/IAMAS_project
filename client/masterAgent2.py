@@ -303,24 +303,30 @@ class MasterAgent:
             # #
             # if nb_iter > 15:
             #     break
+
             
-            (unmet_goals, goalsMet) = self.currentState.get_unmet_goals()
-            (unmet_agent_goals, agent_goalsMet) = self.currentState.get_unmet_agent_goals()
+            
+        # (unmet_goals, goalsMet) = self.currentState.get_unmet_goals()
+        (unmet_agent_goals, agent_goalsMet) = self.currentState.get_unmet_agent_goals()
 
-            print('*****unmet_agent_goals*****',
-                  unmet_agent_goals, file=sys.stderr)
+        print('*****unmet_agent_goals*****',
+                unmet_agent_goals, file=sys.stderr)
 
-            if unmet_goals == [] and unmet_agent_goals != []:
-                for agent in self.agents:
-                    for unmet_agent in unmet_agent_goals:
-                        print('agent[name]', agent.name, file=sys.stderr)
-                        print('unmet_agent[letter]',
-                              unmet_agent['letter'], file=sys.stderr)
-                        if agent.name == unmet_agent['letter']:
-                            print('Hello', file=sys.stderr)
-                            agent.goal = Atom('AgentAt', agent.name, unmet_agent['position'])
-                            
-                        agent.plan(self.currentState)
+        if unmet_agent_goals != []:
+            for agent in self.agents:
+                for unmet_agent_goal in unmet_agent_goals:
+                    print('agent[name]', agent.name, file=sys.stderr)
+                    print('unmet_agent[letter]',
+                            unmet_agent_goal['letter'], file=sys.stderr)
+                    if agent.name == unmet_agent_goal['letter']:
+                        print('Hello', file=sys.stderr)
+                        agent.goal = Atom('AgentAt', agent.name, unmet_agent_goal['position'])
+                        
+                    agent.plan(self.currentState)
+
+                self.executeActionOnlyForAgents([agent])
+                        
+                        # valid = self.executeAction(nextAction, multi_goal=True)
 
 
             
