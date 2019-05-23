@@ -4,6 +4,9 @@ from masterAgent2 import *
 from utils import level_adjacency, get_level, identify_cells
 from Tracker import Tracker
 
+
+sys.setrecursionlimit(10000)
+
 class SearchClient:
     def __init__(self, server_messages):
         self.domain = None

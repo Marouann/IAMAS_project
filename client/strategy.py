@@ -195,7 +195,7 @@ class Strategy:
                             return True
                         elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
                             if len(expanded) < bound:
-                                # print(len(expanded), file= sys.stderr)
+
                                 heappush(frontier, (s_child.f(), s_child))
                             else:
                                 print("Bound reached", file=sys.stderr)
