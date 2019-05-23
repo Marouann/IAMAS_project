@@ -10,10 +10,11 @@ METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 
 STRATEGY_GHOST = 'astar'
 HEURISTICS_GHOST = 'Tie Breaking'
+#BOUND_GHOST = 5000
 
 
 
-BOUND = 1000 #['None', integer]
+BOUND = 10000 #['None', integer]
 
 
 
@@ -120,7 +121,7 @@ class Agent:
                                 metrics=metrics,
                                 multi_goal=multi_goal,
                                 max_depth=BOUND,
-                                ghostmode=self.ghostmode)
+                                ghostmode=False)
         else:
             strategy = Strategy(state, self,
                                 strategy=STRATEGY_GHOST,
