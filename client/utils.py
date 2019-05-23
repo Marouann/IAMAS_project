@@ -370,7 +370,7 @@ def identify_cells(state, rows, cols):
 
     for safe_cell in result['safe']:
         for tunnel_cell in result['tunnel']:
-            if Atom('Neighbour', safe_cell, tunnel_cell) in state.rigid_atoms:
+            if Atom('Neighbour', safe_cell, tunnel_cell) in state.rigid_atoms and safe_cell in result['safe']:
                 result['safe'].remove(safe_cell)
 
     return result
