@@ -5,7 +5,7 @@ from heapq import heapify, heappush, heappop
 from agent import *
 from multiprocessing import Event
 
-from Heuristics.heuristics import GoalCount, DistanceBased, ActionPriority, DynamicHeuristics
+from Heuristics.heuristics import TieBreaking, DistanceBased, DynamicHeuristics
 import sys
 
 INF = inf
@@ -137,7 +137,7 @@ class Strategy:
 
         return False
 
-    def best_first(self):
+    def best_first(self, bound=INF):
         if self.max_depth:
             bound = self.max_depth
 
@@ -159,6 +159,8 @@ class Strategy:
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
         elif self.heuristics == 'Dynamic':
             self.state.h_cost = DynamicHeuristics.h(self.state,self.agent, self.metrics, 0)
+        elif self.heuristics == 'Tie Breaking':
+            self.state.h_cost = TieBreaking.h(self.state, self.agent, metrics=self.metrics)
         else:
             raise Exception('STRATEGY::', 'Wrong Heuristics')
 
@@ -173,7 +175,6 @@ class Strategy:
 
             if not self.goal_found:
                 for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode):
-                    # print(action, file=sys.stderr)
                     s_child = s.create_child(action, cost=0, ghostmode=self.ghostmode)
                     if s_child:
 
@@ -181,6 +182,8 @@ class Strategy:
                             s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics)
                         elif self.heuristics == 'Dynamic':
                             s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics, expanded_len=len(expanded))
+                        elif self.heuristics == 'Tie Breaking':
+                            s_child.h_cost = TieBreaking.h(s_child, self.agent, metrics=self.metrics)
                         else:
                             raise Exception('STRATEGY::', 'Wrong Heuristics')
 
@@ -221,6 +224,8 @@ class Strategy:
             self.state.h_cost = DistanceBased.h(self.state, self.agent, metrics=self.metrics)
         elif self.heuristics == 'Dynamic':
             self.state.h_cost = DynamicHeuristics.h(self.state,self.agent, self.metrics, 0)
+        elif self.heuristics == 'Tie Breaking':
+            self.state.h_cost = TieBreaking.h(self.state, self.agent, metrics=self.metrics)
         else:
             raise Exception('STRATEGY::', 'Wrong Heuristics')
 
@@ -243,12 +248,13 @@ class Strategy:
                             s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics)
                         elif self.heuristics == 'Dynamic':
                             s_child.h_cost = DynamicHeuristics.h(s_child, self.agent, metrics=self.metrics, expanded_len=len(expanded))
+                        elif self.heuristics == 'Tie Breaking':
+                            s_child.h_cost = TieBreaking.h(s_child, self.agent, metrics=self.metrics)
                         else:
                             raise Exception('STRATEGY::', 'Wrong Heuristics')
 
                         self.__is_goal__(self.agent, s_child)
 
-                        #evaluate_cost(s_child)
                         if self.goal_found:
                             return True
                         elif ((s_child.f(), s_child) not in frontier) and not (s_child in expanded):
