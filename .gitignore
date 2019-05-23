@@ -2,5 +2,4 @@
 /.idea
 /client/Heuristics/__pycache__
 /client/Heuristics/__pycache__/heuristics.cpython-37.pyc
-/levels/
 /test_levels_conflicts/
