@@ -124,10 +124,12 @@ def get_level(server_messages):
 
         agents = []
         goals = []
+        agent_goals = []
         boxes = []
 
         currentBox = 1
         currentGoal = 1
+        currentAgentGoal = 1
 
         while line != "#end":
             if line == '#domain':
@@ -250,7 +252,20 @@ def get_level(server_messages):
                         goals.append({'name': Goal, 'position': (row, col), 'letter': char})
 
                         currentGoal += 1
+                    
+                    if char in "0123456789":
+                        AgentGoal = 'AG' + str(currentAgentGoal)
 
+                        Letter = Atom('Letter', AgentGoal, char)
+                        rigidAtoms.update(Letter)
+
+                        AgentGoalAt = Atom('AgentGoalAt', AgentGoal, (row, col))
+                        rigidAtoms.update(AgentGoalAt)
+
+                        agent_goals.append({'name': AgentGoal, 'position': (row, col), 'letter': char})
+
+                        currentAgentGoal += 1
+                        
                 row += 1
 
             previousLine = line
@@ -262,11 +277,12 @@ def get_level(server_messages):
         sys.exit(1)
 
     return {
-        'initial_state': State('s0', goals, atoms, rigidAtoms),
+        'initial_state': State('s0', goals, agent_goals, atoms, rigidAtoms),
         'domain': domain,
         'levelName': levelName,
         'agents': agents,
         'goals': goals,
+        'agent_goals': agent_goals,
         'boxes': boxes,
         'rows': max_row,
         'cols': max_col,
@@ -287,6 +303,12 @@ def areGoalsMet(state: 'State', goals) -> 'bool':
             return False
     return True
 
+
+def areAgentGoalsMet(state: 'State', agent_goals) -> 'bool':
+    for goal in agent_goals:
+        if goal not in state.atoms:
+            return False
+    return True
 
 def get_cluster_conflict(who_is_conflicting_with, key_to_remove):
     clusters = []

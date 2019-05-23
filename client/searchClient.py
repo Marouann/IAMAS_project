@@ -4,6 +4,9 @@ from masterAgent2 import *
 from utils import level_adjacency, get_level, identify_cells
 from Tracker import Tracker
 
+
+sys.setrecursionlimit(10000)
+
 class SearchClient:
     def __init__(self, server_messages):
         self.domain = None
@@ -25,9 +28,12 @@ class SearchClient:
                                        level['boxes'])
 
 
+        print('\n******Agent Goals******* : ', level['agent_goals'], file=sys.stderr)
+
+
 def main():
     # We first declare our name. The server will receive it and be ready to start with us.
-    print('Best group', flush=True)
+    print('AIMAS', flush=True)
     # Read server messages from stdin.
     server_messages = sys.stdin
 

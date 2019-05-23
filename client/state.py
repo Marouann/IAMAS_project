@@ -8,6 +8,7 @@ import numpy as np
 class State:
     def __init__(self, name: 'str',
                  goals: '[dict]',
+                 agent_goals: '[dict]',
                  atoms: 'KnowledgeBase',
                  rigid_atoms: 'KnowledgeBase',
                  safe_cells = [],
@@ -19,6 +20,7 @@ class State:
                  ):
         self.name = name
         self.goals = goals
+        self.agent_goals = agent_goals
         self.helping_goals = []
         self.atoms = atoms
         self.rigid_atoms = rigid_atoms
@@ -145,6 +147,25 @@ class State:
                     metGoals.append(goal)
         return [unmetGoals, metGoals]
 
+
+    def get_unmet_agent_goals(self):
+        metGoals = []
+        unmetGoals = []
+        for goal in self.agent_goals:
+            agent = self.find_agent(goal['position'])
+            if False == agent:
+                unmetGoals.append(goal)
+            else:
+                agentLetter = self.find_agent_letter(agent.variables[0])
+                letter = agentLetter
+                if letter != goal['letter']:
+                    unmetGoals.append(goal)
+                else:
+                    metGoals.append(goal)
+        return [unmetGoals, metGoals]
+
+
+
     def getNeithbourGoals(self, position):
         neighbourLocations = []
         for atom in self.rigid_atoms:
@@ -181,6 +202,7 @@ class State:
         atoms_copy.copy(self.atoms)
         return State(name=self.name,
                      goals=self.goals,
+                     agent_goals=self.agent_goals,
                      atoms=atoms_copy,
                      rigid_atoms=self.rigid_atoms,
                      parent=self.parent,
@@ -192,6 +214,7 @@ class State:
 
         state = State(name=self.name,
                       goals=self.goals,
+                      agent_goals=self.agent_goals,
                       atoms=atoms_copy,
                       rigid_atoms=self.rigid_atoms,
                       parent=self,

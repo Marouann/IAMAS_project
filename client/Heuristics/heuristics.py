@@ -47,6 +47,17 @@ class DistanceBased(Heuristic):
                     if d < min_distance:
                         min_distance = d
                     distance += min_distance
+                elif goal.name == 'AgentAt':
+                    goal_pos = goal.variables[1]
+                    if metrics == 'Manhattan':
+                        d = manhattan(agent_pos, goal_pos)
+                    elif metrics == 'Euclidean':
+                        d = euclidean(agent_pos, goal_pos)
+                    else:  # real metrics
+                        d = state.find_distance(agent_pos, goal_pos)
+                    if d < min_distance:
+                        min_distance = d
+                    distance += min_distance
                 else:
                     goal_pos = goal.variables[1]
                     atom = StaticAtom('BoxAt^', goal.variables[0])

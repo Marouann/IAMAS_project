@@ -6,7 +6,7 @@ from time import sleep
 import random
 
 STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
-HEURISTICS = 'Tie Breaking' #['Distance', 'Dynamic', 'Tie Breaking']
+HEURISTICS = 'Tie Breaking'  # ['Distance', 'Dynamic', 'Tie Breaking']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 
 STRATEGY_GHOST = 'astar'
