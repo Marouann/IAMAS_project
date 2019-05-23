@@ -950,7 +950,30 @@ class MasterAgent:
                 self.freeSafeCells = updateSafeCells(self.currentState, sorted_actual_safe_cells)
 
                 if self.freeSafeCells == []:
-                    freeGoal = [Atom('Free', box.variables[1])]
+                    if self.currentState.tunnel_cells:
+                        tunnels = list()
+                        for tunnel in self.currentState.tunnel_cells:
+                            if not self.currentState.find_object_at_position(tunnel):
+                                agent_pos = self.currentState.find_agent(agent.name)
+                                agent_area = Tracker(agent_pos)
+                                agent_area.estimate(self.currentState)
+                                cell_area = Tracker(tunnel)
+                                cell_area.estimate(self.currentState)
+                                if agent_area.intersection(cell_area, self.currentState) > 0:
+                                    count = 1
+                                    dist_to_goal = 0
+                                    for goal in self.currentState.goals:
+                                        dist_to_goal = self.currentState.find_distance(tunnel, goal['position'])
+                                        count +=1
+                                    #dist_to_goal /= count
+                                    tunnels.append((tunnel,self.currentState.find_distance(agent_pos, tunnel) + dist_to_goal))
+
+                        tunnels.sort(key= lambda x: x[1])
+                        cell = tunnels[-1]
+                        freeGoal = [Atom('BoxAt', box.variables[0], cell[0])]
+
+                    else:
+                        freeGoal = [Atom('Free', box.variables[1])]
                 else:
                     cell = self.freeSafeCells.pop()
                     freeGoal = [Atom('BoxAt', box.variables[0], cell[1])]

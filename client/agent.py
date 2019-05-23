@@ -10,11 +10,11 @@ HEURISTICS = 'Tie Breaking'  # ['Distance', 'Dynamic', 'Tie Breaking']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 
 STRATEGY_GHOST = 'astar'
-HEURISTICS_GHOST = 'Distance'
+HEURISTICS_GHOST = 'Tie Breaking'
 
 
 ASYNC = False
-BOUND = 000 #['None', integer]
+BOUND = 10000 #['None', integer]
 
 
 
