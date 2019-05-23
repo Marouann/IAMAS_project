@@ -5,15 +5,15 @@ from multiprocessing import Process, Event
 from time import sleep
 
 STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
-HEURISTICS = 'Tie Breaking' #['Distance', 'Dynamic', 'Tie Breaking']
+HEURISTICS = 'Distance' #['Distance', 'Dynamic', 'Tie Breaking']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 
 STRATEGY_GHOST = 'astar'
-HEURISTICS_GHOST = 'Distance'
+HEURISTICS_GHOST = 'Tie Breaking'
 
 
-ASYNC = False
-BOUND = 50000 #['None', integer]
+
+BOUND = 1000 #['None', integer]
 
 
 
@@ -108,7 +108,7 @@ class Agent:
 
     def plan(self, state: 'State', strategy=STRATEGY,
              multi_goal=False, max_depth=BOUND,
-             async_mode=ASYNC, metrics =METRICS, heuristics=HEURISTICS):
+           metrics =METRICS, heuristics=HEURISTICS):
 
         print("Agent:", self.name, file=sys.stderr)
         print("Planning for goal:", self.goal_details, file=sys.stderr)
@@ -119,7 +119,7 @@ class Agent:
                                 heuristics=heuristics,
                                 metrics=metrics,
                                 multi_goal=multi_goal,
-                                max_depth=max_depth,
+                                max_depth=BOUND,
                                 ghostmode=self.ghostmode)
         else:
             strategy = Strategy(state, self,

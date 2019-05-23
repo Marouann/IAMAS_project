@@ -76,9 +76,6 @@ class TieBreaking(Heuristic):
 
 class DynamicHeuristics(Heuristic):
     @staticmethod
-    def h(state: 'State', agent: 'Agent', metrics, expanded_len,
-          goal_scaler=25., distance_scaler=5.0) -> 'float':
-        weight = math.exp(-expanded_len / len(state.atoms))
-
-        h = DistanceBased.h(state, agent, metrics, distance_scaler, distance_scaler) + GoalCount.h(state, goal_scaler)
+    def h(state: 'State', agent: 'Agent', metrics, goal_scale = 5.0):
+        h = TieBreaking.h(state, agent, metrics) + GoalCount.h(state, goal_scale)
         return h
