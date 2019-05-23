@@ -9,7 +9,7 @@ STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
 HEURISTICS = 'Distance' #['Distance', 'Dynamic', 'Tie Breaking']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 
-STRATEGY_GHOST = 'astar'
+STRATEGY_GHOST = 'best'
 HEURISTICS_GHOST = 'Tie Breaking'
 #BOUND_GHOST = 5000
 
@@ -52,10 +52,10 @@ class Agent:
     def getPossibleActions(self, s: 'State', ghostmode:'bool'=False) -> '[Action]':
 
         randomization = random.randint(0,1000)
-        if randomization < 50:
-            noise = random.random()*5
-        elif randomization > 950:
-            noise = random.random() * (-5)
+        if randomization < 10:
+            noise = random.random()
+        elif randomization > 990:
+            noise = random.random()
         else:
             noise = 0
 
@@ -73,7 +73,7 @@ class Agent:
 
                 if action.name == "Move":
                     if action.checkPreconditions(s, [self.name, agtFrom, agtTo], ghostmode=ghostmode):
-                        possibleActions.append((action, [self.name, agtFrom, agtTo], "Move(" + dir[2] + ")", agtTo, 0 + noise))
+                        possibleActions.append((action, [self.name, agtFrom, agtTo], "Move(" + dir[2] + ")", agtTo, 0))
 
                 elif action.name == "Push":
                     for second_dir in [N, S, E, W]:
