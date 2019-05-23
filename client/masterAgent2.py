@@ -23,6 +23,7 @@ class MasterAgent:
         self.goalsInAction = []
         self.previous_actions = None
         self.blocked_goals = {}
+        self.freeSafeCells = []
 
         for agt in sorted(agents, key=lambda k: k['name']):
             agtAt = initial_state.find_agent(agt['name'])
@@ -42,7 +43,7 @@ class MasterAgent:
     def assignGoals(self, agentsToReplan):
         print("Assigning goals", file=sys.stderr)
         (goalsToAssign, goalsMet) = self.currentState.get_unmet_goals()
-        
+
         if agentsToReplan != []:
             print('\nFree agents : ' + str([agent.name for agent in agentsToReplan]), file=sys.stderr, flush=True)
             print('Goals unmet : ' + str(goalsToAssign), file=sys.stderr, flush=True)
@@ -210,7 +211,7 @@ class MasterAgent:
 
     def solveLevel(self):
         # We need to check the goal.
-        
+
         self.assignGoals(self.agents)
 
         # Store previous and current joint actions
@@ -304,8 +305,8 @@ class MasterAgent:
             # if nb_iter > 15:
             #     break
 
-            
-            
+
+
         # (unmet_goals, goalsMet) = self.currentState.get_unmet_goals()
         (unmet_agent_goals, agent_goalsMet) = self.currentState.get_unmet_agent_goals()
 
@@ -321,15 +322,15 @@ class MasterAgent:
                     if agent.name == unmet_agent_goal['letter']:
                         print('Hello', file=sys.stderr)
                         agent.goal = Atom('AgentAt', agent.name, unmet_agent_goal['position'])
-                        
+
                     agent.plan(self.currentState)
 
                 self.executeActionOnlyForAgents([agent])
-                        
+
                         # valid = self.executeAction(nextAction, multi_goal=True)
 
 
-            
+
 
 
 
@@ -946,18 +947,13 @@ class MasterAgent:
 
                 sorted_actual_safe_cells = sorted([cell for cell in actual_safe_cells if cell[0]>0], key=lambda cell: cell[0])
 
+                self.freeSafeCells = updateSafeCells(self.currentState, sorted_actual_safe_cells)
 
-                cell_found = False
-                while not cell_found and sorted_actual_safe_cells != []:
-                    cell = sorted_actual_safe_cells.pop()
-
-                    if not self.currentState.find_object_at_position(cell):
-                        freeGoal = [Atom('BoxAt', box.variables[0], cell[1])]
-                        # self.currentState.safe_cells.remove(cell[1])
-                        cell_found = True
-                
-                if sorted_actual_safe_cells == []:
+                if self.freeSafeCells == []:
                     freeGoal = [Atom('Free', box.variables[1])]
+                else:
+                    cell = self.freeSafeCells.pop()
+                    freeGoal = [Atom('BoxAt', box.variables[0], cell[1])]
                 # freeGoal = [Atom('Free', box.variables[1])]
 
                 keep_goal = agent.goal

@@ -252,7 +252,7 @@ def get_level(server_messages):
                         goals.append({'name': Goal, 'position': (row, col), 'letter': char})
 
                         currentGoal += 1
-                    
+
                     if char in "0123456789":
                         AgentGoal = 'AG' + str(currentAgentGoal)
 
@@ -265,7 +265,7 @@ def get_level(server_messages):
                         agent_goals.append({'name': AgentGoal, 'position': (row, col), 'letter': char})
 
                         currentAgentGoal += 1
-                        
+
                 row += 1
 
             previousLine = line
@@ -406,3 +406,12 @@ def add_safe_atoms(coords):
         kb.update(atom)
 
     return kb
+
+
+def updateSafeCells(state, cells):
+    freeSafeCells = []
+    for cell in cells:
+        if not state.find_object_at_position(cell[1]):
+            freeSafeCells.append(cell)
+
+    return freeSafeCells
