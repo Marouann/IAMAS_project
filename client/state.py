@@ -236,6 +236,7 @@ class State:
     def return_safe(self, agent_name: 'str'):
         safe = list()
 
+
         number = 0
         search = True
         while search:
@@ -250,6 +251,7 @@ class State:
                 search = False
 
             safe.sort(key=lambda x: x[1])
+            print(safe, file=sys.stderr)
         return safe[-1][0]
 
     def isGoalAchievable(self, agent, goal):

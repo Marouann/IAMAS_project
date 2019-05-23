@@ -223,6 +223,14 @@ class Strategy:
 
         print('STRATEGY::', 'A* Strategy', '(', self.heuristics, ')', 'for ', self.agent.name, file=sys.stderr,
               flush=True)
+        if self.agent.goal:
+            goals = []
+            if isinstance(self.agent.goal, list):
+                goals = self.agent.goal
+            else:
+                goals = [self.agent.goal]
+        for g in goals:
+            print('GOAL:', g.name, g.variables, file=sys.stderr)
 
         self.state.reset_state()
         self.agent.reset_plan()

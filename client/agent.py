@@ -14,7 +14,7 @@ HEURISTICS_GHOST = 'Distance'
 
 
 ASYNC = False
-BOUND = 50000 #['None', integer]
+BOUND = 000 #['None', integer]
 
 
 
@@ -111,7 +111,7 @@ class Agent:
              multi_goal=False, max_depth=BOUND,
              async_mode=ASYNC, metrics =METRICS, heuristics=HEURISTICS):
 
-        print("Agent:", self.name, file=sys.stderr)
+        print("Agent:", self.name,  file=sys.stderr)
         print("Planning for goal:", self.goal_details, file=sys.stderr)
         print("Ghost mode is on", self.ghostmode, file=sys.stderr)
         if not self.ghostmode:
