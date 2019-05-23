@@ -14,7 +14,7 @@ HEURISTICS_GHOST = 'Distance'
 
 
 ASYNC = False
-BOUND = 000 #['None', integer]
+BOUND = 1750 #['None', integer]
 
 
 
@@ -79,7 +79,7 @@ class Agent:
                                                             [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
                                                             "Push(" + dir[2] + "," + second_dir[2] + ")",
                                                             boxFrom,
-                                                            0.5))
+                                                            0.7))
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
@@ -93,7 +93,7 @@ class Agent:
                                                             [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                             "Pull(" + dir[2] + "," + second_dir[2] + ")",
                                                             agtTo,
-                                                            0.55))
+                                                            0.7))
                 elif action.name == 'NoOp':
                     possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 0.7))
 
