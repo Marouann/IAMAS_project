@@ -63,7 +63,7 @@ def level_adjacency(state: 'State', row=60, col=60) -> 'KnowledgeBase':
                 atom = StaticAtom('Distance', (r, c), cell)
                 atom.assign_property(distance)
                 adjacency.update(atom)
-            
+
             if not r_c_already_in_a_cluster and len(clusters[str((r, c))]) == 1:
                 del clusters[str((r, c))]
 
@@ -82,7 +82,7 @@ def replace_box_by_walls(state: 'State', clusters, boxes, agents):
             if agent['initial_position'] in cluster:
                 cluster_colors[cluster_name].add(agent['color'])
                 continue
-    
+
     for box in boxes:
         for cluster_name, cluster in clusters.items():
             if box['initial_position'] in cluster:
@@ -97,7 +97,7 @@ def replace_box_by_walls(state: 'State', clusters, boxes, agents):
                         state.rigid_atoms.delete(StaticAtom('Distance', (row, col), cell))
                         state.rigid_atoms.delete(StaticAtom('Distance', cell, (row, col)))
                 continue
-    
+
     return state
 
 
@@ -356,7 +356,7 @@ def identify_cells(state, rows, cols):
                 for j in range(3):
                     if i == 1 or j == 1:
                         safe_cells[i][j] = is_safe_cell(state, row, col, i - 1, j - 1)
-            
+
             safe_cells[0][0] = safe_cells[1][0] and is_safe_cell(state, row, col - 1, -1, 0) or safe_cells[0][1] and is_safe_cell(state, row - 1, col, 0, -1)
             safe_cells[2][0] = safe_cells[1][0] and is_safe_cell(state, row, col - 1, 1, 0) or safe_cells[2][1] and is_safe_cell(state, row + 1, col, 0, -1)
             safe_cells[0][2] = safe_cells[1][2] and is_safe_cell(state, row, col + 1, 0, -1) or safe_cells[0][1] and is_safe_cell(state, row - 1, col, 0, 1)
@@ -380,12 +380,12 @@ def identify_cells(state, rows, cols):
             if [row[1] for row in safe_cells] == [True, True, True] and [row[2] for row in safe_cells] == [True, True, True]:
                 result['safe'].append((row, col))
                 continue
-            
+
             # We then check if the cell is a tunel
             if [safe_cells[0][1], safe_cells[2][1], safe_cells[1][0], safe_cells[1][2]] == [False, False, True, True]:
                 result['tunnel'].append((row, col))
                 continue
-            
+
             if [safe_cells[0][1], safe_cells[2][1], safe_cells[1][0], safe_cells[1][2]] == [True, True, False, False]:
                 result['tunnel'].append((row, col))
                 continue

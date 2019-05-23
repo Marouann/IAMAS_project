@@ -76,10 +76,14 @@ class State:
     def check_if_connected(self, start: ('int', 'int'), end: ('int', 'int')) -> 'bool':
         return StaticAtom('Distance', start, end) in self.rigid_atoms
 
-    def find_box(self, position):  #### WHAT DOES IT DO ??
+    def find_box(self, position, color=None):  #### WHAT DOES IT DO ??
         for atom in self.atoms:
             if atom.name == "BoxAt" and atom.variables[1] == position:
-                return atom
+                if color is not None:
+                    if self.find_box_color(atom.variables[0]) == color:
+                        return atom
+                else:
+                    return atom
         return False
 
     def find_box_position(self, name: 'str'):

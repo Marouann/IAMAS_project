@@ -38,7 +38,12 @@ class Strategy:
         self.found_event = found_event
 
     def plan(self):
-        print(self.agent.goal, file=sys.stderr)
+
+        if self.multi_goal:
+            for goal in self.agent.goal:
+                print(goal, file=sys.stderr)
+        else:
+            print(self.agent.goal, file=sys.stderr)
         if not self.__is_goal__(self.agent, self.state, multi_goal=self.multi_goal) and self.agent.goal is not None:
             if self.strategy == 'bfs':
                 self.bfs()
@@ -239,11 +244,14 @@ class Strategy:
         while frontier and not self.goal_found:
             _, s = heappop(frontier)
             expanded.add(s)
-
+            # print("h", file=sys.stderr)
             if not self.goal_found:
+                # print(s.last_action, file=sys.stderr)
                 for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode):
-                    # print(action, file=sys.stderr)
+
                     s_child = s.create_child(action, cost=int(not self.ghostmode), ghostmode=self.ghostmode)
+                    # s_child = s.create_child(action, 0, ghostmode=self.ghostmode)
+                    # print("child is", not s_child, file=sys.stderr)
                     if s_child:
 
                         if self.heuristics == 'Distance':
@@ -349,6 +357,7 @@ class Strategy:
         else:
             is_goal = True
             for goal in agent.goal:
+                # print(state.atoms, file=sys.stderr)
                 if goal not in state.atoms:
                     is_goal = False
             if is_goal:

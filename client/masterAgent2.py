@@ -300,7 +300,7 @@ class MasterAgent:
 
                 self.replanAgentWithStatus(STATUS_REPLAN_GHOST)
 
-            # #
+            #
             # if nb_iter > 15:
             #     break
 
@@ -812,6 +812,7 @@ class MasterAgent:
         iter = 0
         while not areGoalsMet(self.currentState, self.currentState.helping_goals):
             iter += 1
+            print("\n\n\n\n\n\n", iter, file=sys.stderr)
             print("Helping goal:", file=sys.stderr)
 
             for goal in self.currentState.helping_goals:
@@ -830,13 +831,13 @@ class MasterAgent:
                 freeAgentAt = Atom("Free", agentPos)
                 if freeAgentAt not in self.currentState.helping_goals:
                     self.currentState.helping_goals.append(freeAgentAt)
-                responsible[agent.name] = []
+                responsible[agent.name] = set()
 
             for goal in self.currentState.helping_goals:
                 obstructed_by = self.currentState.find_object_at_position(goal.variables[0])
 
                 if obstructed_by is not False and obstructed_by.name == 'AgentAt':
-                    responsible[obstructed_by.variables[0]].append(goal)
+                    responsible[obstructed_by.variables[0]].add(goal)
 
                 elif obstructed_by is not False and obstructed_by.name == 'BoxAt':
                     print("A box is on the way", file=sys.stderr)
@@ -851,28 +852,30 @@ class MasterAgent:
                                 min_distance = dist_
                                 closest_agent = agent
                     if closest_agent is not None:
-                        responsible[closest_agent.name].append(goal)
+                        responsible[closest_agent.name].add(goal)
                 else:
                     for agent in available_agents:
-                        responsible[agent.name].append(goal)
+                        responsible[agent.name].add(goal)
 
 
             '''
             All agents now plan for their own goals.
             '''
             for name, goals in responsible.items():
-                self.agents[int(name)].goal = goals
+                self.agents[int(name)].goal = list(goals)
                 self.agents[int(name)].ghostmode = False
                 self.agents[int(name)].current_plan = []
-                self.agents[int(name)].plan(self.currentState, strategy='bfs', multi_goal=True, max_depth=10)
+                self.agents[int(name)].plan(self.currentState, strategy='astar', multi_goal=True, max_depth=20)
+                # self.agents[int(name)].plan(self.currentState, strategy='astar', multi_goal=True, max_depth=10)
+                self.executeActionOnlyForAgents([self.agents[int(name)]], multi_goal=True)
 
             nextAction = []
 
-            self.executeActionOnlyForAgents([self.agents[int(key)] for key in responsible.keys()], multi_goal=True)
+            # self.executeActionOnlyForAgents([self.agents[int(key)] for key in responsible.keys()], multi_goal=True)
 
 
-
-            if self.currentState.isGoalAchievable(priority_agent, goal) or iter > 5:
+            print("Goal achievable", self.currentState.isGoalAchievable(priority_agent, goal), file=sys.stderr)
+            if self.currentState.isGoalAchievable(priority_agent, goal) or iter > 15:
                 break
             print("goal division:", responsible, file=sys.stderr)
 
@@ -950,9 +953,9 @@ class MasterAgent:
 
                     if not self.currentState.find_object_at_position(cell):
                         freeGoal = [Atom('BoxAt', box.variables[0], cell[1])]
-                        self.currentState.safe_cells.remove(cell[1])
+                        # self.currentState.safe_cells.remove(cell[1])
                         cell_found = True
-
+                
                 if sorted_actual_safe_cells == []:
                     freeGoal = [Atom('Free', box.variables[1])]
                 # freeGoal = [Atom('Free', box.variables[1])]
