@@ -3,6 +3,7 @@ from action import *
 from Tracker import Tracker
 from multiprocessing import Process, Event
 from time import sleep
+import random
 
 STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
 HEURISTICS = 'Tie Breaking' #['Distance', 'Dynamic', 'Tie Breaking']
@@ -67,7 +68,7 @@ class Agent:
                     for second_dir in [N, S, E, W]:
                         boxFrom = agtTo  # the agent will take the place of box
                         boxTo = (boxFrom[0] + second_dir[0], boxFrom[1] + second_dir[1])
-                        box = s.find_box(boxFrom)
+                        box = s.find_box(boxFrom, self.color)
                         # if (box and not ghostmode) or (ghostmode and box and box.variables[0] == boxOfGoal)
                         if box:
                             boxName = box.variables[0]
@@ -82,7 +83,7 @@ class Agent:
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
-                        box = s.find_box(boxFrom)
+                        box = s.find_box(boxFrom, self.color)
                         if box:
                             boxName = box.variables[0]
                             if agtFrom != agtTo and agtTo != boxFrom and boxFrom != agtFrom:
