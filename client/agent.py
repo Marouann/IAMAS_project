@@ -6,8 +6,13 @@ from time import sleep
 import random
 
 STRATEGY = 'astar' # [ 'uniform', 'bfs', 'dfs', 'best' , 'astar', 'ida']
-HEURISTICS = 'Distance' #['Distance', 'Dynamic']
+HEURISTICS = 'Tie Breaking' #['Distance', 'Dynamic', 'Tie Breaking']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
+
+STRATEGY_GHOST = 'astar'
+HEURISTICS_GHOST = 'Distance'
+
+
 ASYNC = False
 BOUND = 50000 #['None', integer]
 
@@ -24,7 +29,7 @@ class Agent:
         self.occupied = False
         self.status = None
         self.tracker = None
-        self.ghostmode = True
+        self.ghostmode = False
 
     '''
     getPossibleActions return a list of tuple that represents the different actions the agent
@@ -43,16 +48,13 @@ class Agent:
         self.goal_details = goal_details
         self.occupied = True
 
-    def getPossibleActions(self, s: 'State', ghostmode:'Bool'=False) -> '[Action]':
+    def getPossibleActions(self, s: 'State', ghostmode:'bool'=False) -> '[Action]':
         possibleActions = list()
         N = (-1, 0, 'N')
         S = (1, 0, 'S')
         E = (0, 1, 'E')
         W = (0, -1, 'W')
         agtFrom = s.find_agent(self.name)
-
-        # if self.goal and self.goal.name == "BoxAt":
-        #     boxOfGoal = self.goal.variables[0]
 
         for action in self.actions:
             for dir in [N, S, E, W]:
@@ -109,50 +111,24 @@ class Agent:
              multi_goal=False, max_depth=BOUND,
              async_mode=ASYNC, metrics =METRICS, heuristics=HEURISTICS):
 
-        if not async_mode:
-            print("Agent:", self.name, file=sys.stderr)
-            print("Planning for goal:", self.goal_details, file=sys.stderr)
-            print("Ghost mode is on", self.ghostmode, file=sys.stderr)
+        print("Agent:", self.name, file=sys.stderr)
+        print("Planning for goal:", self.goal_details, file=sys.stderr)
+        print("Ghost mode is on", self.ghostmode, file=sys.stderr)
+        if not self.ghostmode:
             strategy = Strategy(state, self,
-                                strategy=strategy,
+                                strategy=STRATEGY,
                                 heuristics=heuristics,
                                 metrics=metrics,
                                 multi_goal=multi_goal,
                                 max_depth=max_depth,
                                 ghostmode=self.ghostmode)
-            strategy.plan()
         else:
-            found_event = Event()
-            quit_event = Event()
+            strategy = Strategy(state, self,
+                                strategy=STRATEGY_GHOST,
+                                heuristics=HEURISTICS_GHOST,
+                                metrics=metrics,
+                                multi_goal=multi_goal,
+                                max_depth=max_depth,
+                                ghostmode=self.ghostmode)
 
-
-
-
-            print('STRATEGY::','Agent', self.name, file=sys.stderr, flush=True)
-            print('STRATEGY::', 'ASYNC Planning for goal:', self.goal_details, file=sys.stderr, flush=True)
-
-            #### STRATEGY SPECIFICATIONS
-            strategies = list()
-            strategies.append(Strategy(state, self, strategy='astar', heuristics='Dynamic',
-                                       metrics='Real', found_event=found_event, quit_event=quit_event))
-            strategies.append(Strategy(state, self, strategy='IDA', heuristics='Distance',
-                                       metrics='Real', found_event=found_event, quit_event=quit_event))
-
-            #### PROCESSES SPECIFICATION
-            processes = list()
-            process = Process(target=strategies[0].async_plan(), name='A* Process', group=None)
-            process.start()
-            print('STRATEGY::', process.name, 'started', file=sys.stderr, flush = True)
-            processes.append(process)
-            process = Process(target=strategies[0].async_plan(), name='IDA* Process', group=None)
-            process.start()
-            print('STRATEGY::', process.name, 'started', file=sys.stderr, flush=True)
-            processes.append(process)
-            found_event.wait() #wait for the event
-
-            print('STRATEGY::','Found the solution', file=sys.stderr, flush=True)
-            quit_event.set()
-            print('STRATEGY::', 'Set QUIT EVENT to the TRUE', file=sys.stderr, flush=True)
-            for p in processes:
-                print('STRATEGY::', p.name, 'terminated', file=sys.stderr, flush=True)
-                p.terminate()
+        strategy.plan()
