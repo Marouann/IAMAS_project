@@ -233,6 +233,25 @@ class State:
         self.h_cost = 0
         self.parent = None
 
+    def return_safe(self, agent_name: 'str'):
+        safe = list()
+
+        number = 0
+        search = True
+        while search:
+            name = 'S' + str(number)
+            atom = StaticAtom('Safe*', name)
+            if atom in self.rigid_atoms:
+                coord = self.rigid_atoms[atom].property_()
+                if Atom('Free', coord):
+                    safe.append((coord, self.find_distance(coord, self.find_agent(agent_name))))
+                number += 1
+            else:
+                search = False
+
+            safe.sort(key=lambda x: x[1])
+        return safe[-1][0]
+
     def isGoalAchievable(self, agent, goal):
         if goal.name == 'BoxAt':
             agent.update_tracker(self)
