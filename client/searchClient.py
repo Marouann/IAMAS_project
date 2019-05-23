@@ -22,9 +22,12 @@ class SearchClient:
                                        level['boxes'])
 
 
+        print('\n******Agent Goals******* : ', level['agent_goals'], file=sys.stderr)
+
+
 def main():
     # We first declare our name. The server will receive it and be ready to start with us.
-    print('Best group', flush=True)
+    print('AIMAS', flush=True)
     # Read server messages from stdin.
     server_messages = sys.stdin
 
