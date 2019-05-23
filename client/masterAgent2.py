@@ -925,9 +925,9 @@ class MasterAgent:
 
                     if not self.currentState.find_object_at_position(cell):
                         freeGoal = [Atom('BoxAt', box.variables[0], cell[1])]
-                        self.currentState.safe_cells.remove(cell[1])
+                        # self.currentState.safe_cells.remove(cell[1])
                         cell_found = True
-
+                
                 if sorted_actual_safe_cells == []:
                     freeGoal = [Atom('Free', box.variables[1])]
                 # freeGoal = [Atom('Free', box.variables[1])]
