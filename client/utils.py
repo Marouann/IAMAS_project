@@ -374,3 +374,14 @@ def identify_cells(state, rows, cols):
                 result['safe'].remove(safe_cell)
 
     return result
+
+def add_safe_atoms(coords):
+    kb = KnowledgeBase()
+    for num, coord in enumerate(coords):
+        name = 'S' + str(num)
+        atom = StaticAtom('Safe*',name)
+        atom.assign_property(coord)
+        kb.update(atom)
+
+    return kb
+

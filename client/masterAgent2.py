@@ -913,22 +913,20 @@ class MasterAgent:
                 print("Box is the same color as the agent", file=sys.stderr)
 
 
-                actual_safe_cells = list(map(lambda cell: (self.currentState.find_distance(cell, agentPos), cell),
-                                            self.currentState.safe_cells))
+                #actual_safe_cells = list(map(lambda cell: (self.currentState.find_distance(cell, agentPos), cell),
+                 #                           self.currentState.safe_cells))
 
-                sorted_actual_safe_cells = sorted([cell for cell in actual_safe_cells if cell[0]>0], key=lambda cell: cell[0])
+                #sorted_actual_safe_cells = sorted([cell for cell in actual_safe_cells if cell[0]>0], key=lambda cell: cell[0])
 
 
                 cell_found = False
-                while not cell_found and sorted_actual_safe_cells != []:
-                    cell = sorted_actual_safe_cells.pop()
+                #while not cell_found and sorted_actual_safe_cells != []:
+                 #   cell = sorted_actual_safe_cells.pop()
 
-                    if not self.currentState.find_object_at_position(cell):
-                        freeGoal = [Atom('BoxAt', box.variables[0], cell[1])]
-                        # self.currentState.safe_cells.remove(cell[1])
-                        cell_found = True
-                
-                if sorted_actual_safe_cells == []:
+                if self.currentState.return_safe(agent.name):
+                    freeGoal = [Atom('BoxAt', box.variables[0], self.currentState.return_safe(agent.name))]
+                    cell_found = True
+                else:
                     freeGoal = [Atom('Free', box.variables[1])]
                 # freeGoal = [Atom('Free', box.variables[1])]
 

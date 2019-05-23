@@ -19,6 +19,7 @@ class SearchClient:
         cell_types = identify_cells(level['initial_state'], level['rows'], level['cols'])
         level['initial_state'].safe_cells = cell_types['safe']
         level['initial_state'].tunnel_cells = cell_types['tunnel']
+        level['initial_state'].rigid_atoms += add_safe_atoms(cell_types['safe'])
         self.domain = level['domain']
         self.levelName = level['levelName']
         self.masterAgent = MasterAgent(level['initial_state'], level['agents'],

@@ -122,12 +122,63 @@ class State:
         return False
 
     def find_object_at_position(self, position: ('int', 'int')):
-        for atom in self.atoms:
-            if atom.name == "AgentAt" and atom.variables[1] == position:
-                return atom
-            elif atom.name == "BoxAt" and atom.variables[1] == position:
-                return atom
+        print('I check', file=sys.stderr)
+        for name, pos in self.return_boxes():
+            if pos == position:
+                return Atom('AgentAt', name, pos)
+        for name, pos in self.return_agents():
+            if pos == position:
+                return Atom('BoxAt', name, pos)
         return False
+
+    def return_agents(self):  # returns name - color - position
+        number = 0
+        search = True
+        agents = []
+        while search:
+            name = str(number)
+            atom = StaticAtom('AgentAt^', name)
+            if atom in self.atoms:
+                agents.append((name, self.atoms[atom].property()))
+                number += 1
+            else:
+                search = False
+        return agents
+
+    def return_boxes(self):
+        '''Returns a list of boxes that can be placed on the goal'''
+        boxes = list()
+
+        number = 1
+        search = True
+        while search:
+            name = 'B' + str(number)
+            atom = StaticAtom('BoxAt^', name)
+            if atom in self.atoms:
+                boxes.append((name, self.atoms[atom].property()))
+                number += 1
+            else:
+                search = False
+        return boxes
+
+    def return_safe(self, agent_name:'str'):
+        safe = list()
+
+        number = 0
+        search = True
+        while search:
+            name = 'S' + str(number)
+            atom = StaticAtom('Safe*', name)
+            if atom in self.rigid_atoms:
+                coord = self.rigid_atoms[atom].property_()
+                if Atom('Free', coord):
+                    safe.append((coord, self.find_distance(coord, self.find_agent(agent_name))))
+                number += 1
+            else:
+                search = False
+
+            safe.sort(key= lambda x:x[1])
+        return safe[-1][0]
 
     def get_unmet_goals(self):
         metGoals = []
