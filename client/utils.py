@@ -42,17 +42,63 @@ def level_adjacency(state: 'State', row=60, col=60) -> 'KnowledgeBase':
 
     start_time = time.time()
     adjacency = KnowledgeBase('Real Distances')
+    clusters = {}
+    added_to_a_cluster = set()
     for r in range(row):
         for c in range(col):
+            r_c_already_in_a_cluster = (r, c) in added_to_a_cluster
+
+            if not r_c_already_in_a_cluster:
+                clusters[str((r, c))] = set()
+                clusters[str((r, c))].add((r, c))
+                added_to_a_cluster.add((r, c))
+
             for distance, cell in distance_calculator((r, c)):
+                cell_already_in_a_cluster = cell in added_to_a_cluster
+
+                if not cell_already_in_a_cluster:
+                    clusters[str((r, c))].add(cell)
+                    added_to_a_cluster.add(cell)
+
                 atom = StaticAtom('Distance', (r, c), cell)
                 atom.assign_property(distance)
                 adjacency.update(atom)
+            
+            if not r_c_already_in_a_cluster and len(clusters[str((r, c))]) == 1:
+                del clusters[str((r, c))]
 
     print('Distances computed in %.2f seconds' % (time.time() - start_time), file=sys.stderr, flush=True)
 
     # print('I calculated {} distances'.format(adjacency), file=sys.stderr, flush=True)
-    return adjacency
+    return {'distances': adjacency, 'clusters': clusters}
+
+def replace_box_by_walls(state: 'State', clusters, boxes, agents):
+    cluster_colors = {}
+    for cluster_name in clusters:
+        cluster_colors[cluster_name] = set()
+
+    for agent in agents:
+        for cluster_name, cluster in clusters.items():
+            if agent['initial_position'] in cluster:
+                cluster_colors[cluster_name].add(agent['color'])
+                continue
+    
+    for box in boxes:
+        for cluster_name, cluster in clusters.items():
+            if box['initial_position'] in cluster:
+                if not box['color'] in cluster_colors[cluster_name]:
+                    (row, col) = box['initial_position']
+                    state.atoms.delete(DynamicAtom('BoxAt^', box['initial_position'], box['name']))
+                    for (i, j) in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                        state.rigid_atoms.delete(Atom('Neighbour', (row, col), (row + i, col + j)))
+                        state.rigid_atoms.delete(Atom('Neighbour', (row + i, col + j), (row, col)))
+
+                    for cell in cluster:
+                        state.rigid_atoms.delete(StaticAtom('Distance', (row, col), cell))
+                        state.rigid_atoms.delete(StaticAtom('Distance', cell, (row, col)))
+                continue
+    
+    return state
 
 
 def get_level(server_messages):
@@ -140,7 +186,7 @@ def get_level(server_messages):
                         Color.assign_property(boxColors[char])
                         rigidAtoms.update(Color)
 
-                        agents.append({'name': char, 'color': boxColors[char]})
+                        agents.append({'name': char, 'color': boxColors[char], 'initial_position': (row, col)})
 
                     elif char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
                         Box = 'B' + str(currentBox)
@@ -166,7 +212,7 @@ def get_level(server_messages):
                         BoxAt.assign_property((row, col))
                         atoms.update(BoxAt)
 
-                        boxes.append({'name': Box, 'letter': char, 'color': boxColors[char]})
+                        boxes.append({'name': Box, 'letter': char, 'color': boxColors[char], 'initial_position': (row, col)})
 
                         currentBox += 1
                     elif char == ' ':
@@ -321,5 +367,10 @@ def identify_cells(state, rows, cols):
             if [safe_cells[0][1], safe_cells[2][1], safe_cells[1][0], safe_cells[1][2]] == [True, True, False, False]:
                 result['tunnel'].append((row, col))
                 continue
+
+    for safe_cell in result['safe']:
+        for tunnel_cell in result['tunnel']:
+            if Atom('Neighbour', safe_cell, tunnel_cell) in state.rigid_atoms:
+                result['safe'].remove(safe_cell)
 
     return result
