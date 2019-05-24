@@ -31,7 +31,7 @@ class SearchClient:
                                        level['boxes'])
 
 
-        print('\n******Agent Goals******* : ', level['agent_goals'], file=sys.stderr)
+        # print('\n******Agent Goals******* : ', level['agent_goals'], file=sys.stderr)
 
 
 def main():
@@ -40,7 +40,7 @@ def main():
     # Read server messages from stdin.
     server_messages = sys.stdin
 
-    # Use stderr to print to console through server.
+    # Use stderr to # print to console through server.
     print('SearchClient initializing. I am sending this using the error output stream.', file=sys.stderr, flush=True)
 
     # Read level and create the initial state of the problem.

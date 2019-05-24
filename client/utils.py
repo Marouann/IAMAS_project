@@ -68,9 +68,9 @@ def level_adjacency(state: 'State', row=60, col=60) -> 'KnowledgeBase':
             if not r_c_already_in_a_cluster and len(clusters[str((r, c))]) == 1:
                 del clusters[str((r, c))]
 
-    print('Distances computed in %.2f seconds' % (time.time() - start_time), file=sys.stderr, flush=True)
+    # print('Distances computed in %.2f seconds' % (time.time() - start_time), file=sys.stderr, flush=True)
 
-    # print('I calculated {} distances'.format(adjacency), file=sys.stderr, flush=True)
+    # # print('I calculated {} distances'.format(adjacency), file=sys.stderr, flush=True)
     return {'distances': adjacency, 'clusters': clusters}
 
 def replace_box_by_walls(state: 'State', clusters, boxes, agents):
@@ -220,7 +220,7 @@ def get_level(server_messages):
                         atoms.update(FreeL)
                         pass
                     else:
-                        print('Error, read invalid level character: {}'.format(char), file=sys.stderr, flush=True)
+                        # print('Error, read invalid level character: {}'.format(char), file=sys.stderr, flush=True)
                         sys.exit(1)
 
                     if char != '+':
@@ -270,7 +270,7 @@ def get_level(server_messages):
 
 
     except Exception as ex:
-        print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)
+        # print('Error parsing level: {}.'.format(repr(ex)), file=sys.stderr, flush=True)
         sys.exit(1)
 
     return {

@@ -22,8 +22,8 @@ class Action:
         while practical and i < len(preconditions):
             actual_atom = preconditions[i]
 
-            # print(actual_atom, file=sys.stderr)
-            # print(s.atoms, file=sys.stderr)
+            # # print(actual_atom, file=sys.stderr)
+            # # print(s.atoms, file=sys.stderr)
             if not ghostmode or actual_atom.name != "Free":
                 practical = practical and (actual_atom in s.atoms or actual_atom in s.rigid_atoms)
             i += 1
@@ -37,14 +37,6 @@ class Action:
 
             for effect in self.positive_effects(*variables):
                 s.add_atom(effect)
-        elif self.name == 'NoOp':
-            print("NoOp action with wrong variables.", variables, file=sys.stderr)
-        else:
-            print('\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*', file=sys.stderr)
-            print("This action is not applicable here.", variables, file=sys.stderr)
-            print('\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*\n*', file=sys.stderr)
-            print(fuc)
-
 
 Move = Action(
     'Move',

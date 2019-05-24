@@ -251,7 +251,7 @@ class State:
                 search = False
 
             safe.sort(key=lambda x: x[1])
-            print(safe, file=sys.stderr)
+            # print(safe, file=sys.stderr)
         return safe[-1][0]
 
     def isGoalAchievable(self, agent, goal):

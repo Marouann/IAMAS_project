@@ -38,12 +38,6 @@ class Strategy:
         self.found_event = found_event
 
     def plan(self):
-
-        if self.multi_goal:
-            for goal in self.agent.goal:
-                print(goal, file=sys.stderr)
-        else:
-            print(self.agent.goal, file=sys.stderr)
         if not self.__is_goal__(self.agent, self.state, multi_goal=self.multi_goal) and self.agent.goal is not None:
             if self.strategy == 'bfs':
                 self.bfs()
@@ -66,7 +60,7 @@ class Strategy:
                 self.IDA()
 
     def uniform(self):
-        print('STRATEGY::', 'Uniform Search for ', self.agent.name, file=sys.stderr, flush=True)
+        # print('STRATEGY::', 'Uniform Search for ', self.agent.name, file=sys.stderr, flush=True)
         self.state.reset_state()
         self.agent.reset_plan()
         self.goal_found = False
@@ -92,7 +86,7 @@ class Strategy:
         return False
 
     def bfs(self, bound=INF):
-        print('STRATEGY::', 'BFS Strategy for ', self.agent.name, file=sys.stderr, flush=True)
+        # print('STRATEGY::', 'BFS Strategy for ', self.agent.name, file=sys.stderr, flush=True)
         if self.max_depth:
             bound = self.max_depth
         frontier = deque()
@@ -117,7 +111,7 @@ class Strategy:
         return False
 
     def dfs(self, bound=INF):
-        print('STRATEGY::', 'DFS Strategy for ', self.agent.name, file=sys.stderr, flush=True)
+        # print('STRATEGY::', 'DFS Strategy for ', self.agent.name, file=sys.stderr, flush=True)
         if self.max_depth:
             bound = self.max_depth
         frontier = list()
@@ -155,7 +149,7 @@ class Strategy:
                 if (new_state.cost + bias) <= old_state.cost:
                     expanded.remove(old_state)
 
-        print('STRATEGY::', 'Best-First Strategy for ', self.agent.name, file=sys.stderr, flush=True)
+        # print('STRATEGY::', 'Best-First Strategy for ', self.agent.name, file=sys.stderr, flush=True)
 
         self.state.reset_state()
         self.agent.reset_plan()
@@ -203,7 +197,7 @@ class Strategy:
 
                                 heappush(frontier, (s_child.f(), s_child))
                             else:
-                                print("Bound reached", file=sys.stderr)
+                                # print("Bound reached", file=sys.stderr)
                                 return False
 
         return False
@@ -221,16 +215,12 @@ class Strategy:
                 if (new_state.cost + bias) <= old_state.cost:
                     expanded.remove(old_state)
 
-        print('STRATEGY::', 'A* Strategy', '(', self.heuristics, ')', 'for ', self.agent.name, file=sys.stderr,
-              flush=True)
         if self.agent.goal:
             goals = []
             if isinstance(self.agent.goal, list):
                 goals = self.agent.goal
             else:
                 goals = [self.agent.goal]
-        for g in goals:
-            print('GOAL:', g.name, g.variables, file=sys.stderr)
 
         self.state.reset_state()
         self.agent.reset_plan()
@@ -252,14 +242,14 @@ class Strategy:
         while frontier and not self.goal_found:
             _, s = heappop(frontier)
             expanded.add(s)
-            # print("h", file=sys.stderr)
+            # # print("h", file=sys.stderr)
             if not self.goal_found:
-                # print(s.last_action, file=sys.stderr)
+                # # print(s.last_action, file=sys.stderr)
                 for action in self.agent.getPossibleActions(s, ghostmode=self.ghostmode):
 
                     s_child = s.create_child(action, cost=int(not self.ghostmode), ghostmode=self.ghostmode)
                     # s_child = s.create_child(action, 0, ghostmode=self.ghostmode)
-                    # print("child is", not s_child, file=sys.stderr)
+                    # # print("child is", not s_child, file=sys.stderr)
                     if s_child:
 
                         if self.heuristics == 'Distance':
@@ -280,14 +270,11 @@ class Strategy:
                             if len(expanded) < bound:
                                 heappush(frontier, (s_child.f(), s_child))
                             else:
-                                print("Bound reached", file=sys.stderr)
+                                # print("Bound reached", file=sys.stderr)
                                 return False
         return False
 
     def IDA(self, h_function=DistanceBased):
-        print('STRATEGY::', 'IDA* Strategy', '(', self.heuristics, ')', 'for ', self.agent.name, file=sys.stderr,
-              flush=True)
-
         expanded = set()
 
         def search(state, limit):
@@ -303,7 +290,7 @@ class Strategy:
                     if s:
                         self.__is_goal__(self.agent, s)
                         if self.goal_found:
-                            print('IDA', 'solution is found', file=sys.stderr)
+                            # print('IDA', 'solution is found', file=sys.stderr)
                             return True
                         temporary = search(s, limit)
                         if temporary < minimum and (s, s.cost) not in expanded:
@@ -319,30 +306,18 @@ class Strategy:
             expanded.add((self.state, 0))
             temp = search(self.state, threshold)
             if self.goal_found:
-                print('IDA', 'solution is found', file=sys.stderr)
+                # print('IDA', 'solution is found', file=sys.stderr)
                 return True
             elif temp == INF and not self.goal_found:
-                print('IDA', 'solution is not found', file=sys.stderr)
+                # print('IDA', 'solution is not found', file=sys.stderr)
                 return False
             threshold = temp
-        print('IDA', 'solution is not found', file=sys.stderr)
+        # print('IDA', 'solution is not found', file=sys.stderr)
         return False
 
     def extract_plan(self, state: 'State'):
         if state:
-            # if self.agent.goal in state.atoms:
-            #     self.agent.reset_plan()
-
             self.agent.current_plan.append(state.last_action)
-            # print('STRATEGY::', 'CHOSEN IN PREVIOUS STATE', state.last_action['message'], 'goal::', self.agent.goal,
-            #       file=sys.stderr)
-            # for action in self.agent.getPossibleActions(state):
-            #     s_child = state.create_child(action, cost=1)
-            #     s_child.h_cost = DistanceBased.h(s_child, self.agent, metrics=self.metrics) + \
-            #                      ActionPriority.h(s_child)
-            #     print(action, s_child.__total_cost__(), DistanceBased.h(s_child, self.agent, metrics=self.metrics),
-            #           file=sys.stderr)
-
             self.extract_plan(state.parent)
         else:
             self.agent.current_plan = self.agent.current_plan[:-1]
@@ -356,24 +331,17 @@ class Strategy:
             if agent.goal in state.atoms and not self.goal_found:
                 self.extract_plan(state)
                 self.goal_found = True
-                # print('Plan found for agent : ' + str(agent.name) + ' with goal : ' + str(agent.goal) + '\n',
-                #     file=sys.stderr, flush=True)  # print out
-                for item in agent.current_plan:
-                    print(item['message'], item['params'], file=sys.stderr, flush=True)
+
                 return True
             return False
         else:
             is_goal = True
             for goal in agent.goal:
-                # print(state.atoms, file=sys.stderr)
+                # # print(state.atoms, file=sys.stderr)
                 if goal not in state.atoms:
                     is_goal = False
             if is_goal:
                 self.goal_found = True
                 self.extract_plan(state)
-                ### print('Plan found for agent : ' + str(agent.name) + ' with goal : ',
-                ####     file=sys.stderr, flush=True)
-                for goal in agent.goal:
-                    print(goal, file=sys.stderr)
 
             return is_goal

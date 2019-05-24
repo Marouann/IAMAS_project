@@ -113,10 +113,10 @@ class Agent:
              async_mode=ASYNC, metrics =METRICS, heuristics=HEURISTICS):
         max_depth = self.bound
 
-        print("Agent:", self.name,  file=sys.stderr)
-        print("Planning for goal:", self.goal_details, file=sys.stderr)
-        print("Bound is ", self.bound, file=sys.stderr)
-        print("Ghost mode is on", self.ghostmode, file=sys.stderr)
+        # print("Agent:", self.name,  file=sys.stderr)
+        # print("Planning for goal:", self.goal_details, file=sys.stderr)
+        # print("Bound is ", self.bound, file=sys.stderr)
+        # print("Ghost mode is on", self.ghostmode, file=sys.stderr)
         if not self.ghostmode:
             strategy = Strategy(state, self,
                                 strategy=STRATEGY,
