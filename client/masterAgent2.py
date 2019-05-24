@@ -31,6 +31,17 @@ class MasterAgent:
             self.agents.append(agent)
 
         self.isSAlvl = 1 == len(self.agents)
+        box_number = len(self.boxes)
+        for agt in self.agents:
+            if self.isSAlvl:
+                if box_number <= 10:
+                    agt.bound = 5000
+                elif 10 < box_number and box_number <= 25:
+                    agt.bound = 1700
+                else:
+                    agt.bound = 5000
+            else:
+                agt.bound = 1000
 
     def prioritizeGoals(self, goals):
         # Sort goals 1st by number of free neighbour fields, then by number of neighbour goals)
@@ -594,20 +605,21 @@ class MasterAgent:
                     agent.update_tracker(self.currentState)
 
                     print('Agent:', agent.name, file=sys.stderr)
-                    print(agent.goal.variables[1], file=sys.stderr)
+                    # print(agent.goal.variables[1], file=sys.stderr)
                     print("Boundary", agent.tracker.boundary, file=sys.stderr)
-                    goalBoxPosition = self.currentState.find_box_position(agent.goal.variables[0])
-                    box_tracker = Tracker(goalBoxPosition)
-                    box_tracker.estimate(self.currentState)
-                    if agent.goal.name == 'BoxAt' and goalBoxPosition in agent.tracker.boundary \
-                        and (agent.goal.variables[1] in box_tracker.boundary or agent.goal.variables[1] in box_tracker.reachable) :
-                        agent.plan(self.currentState)
-                        print("here", file=sys.stderr)
-                    if agent.current_plan == []:
-                        #first put last action in plan cause it has not been executed
-                        agent.current_plan = keep_plan
-                        agent.current_plan.insert(0, action)
-                        self.solveGhostBoxConflict(agent, box)
+                    if agent.goal:
+                        goalBoxPosition = self.currentState.find_box_position(agent.goal.variables[0])
+                        box_tracker = Tracker(goalBoxPosition)
+                        box_tracker.estimate(self.currentState)
+                        if agent.goal.name == 'BoxAt' and goalBoxPosition in agent.tracker.boundary \
+                            and (agent.goal.variables[1] in box_tracker.boundary or agent.goal.variables[1] in box_tracker.reachable) :
+                            agent.plan(self.currentState)
+                            print("here", file=sys.stderr)
+                        if agent.current_plan == []:
+                            #first put last action in plan cause it has not been executed
+                            agent.current_plan = keep_plan
+                            agent.current_plan.insert(0, action)
+                            self.solveGhostBoxConflict(agent, box)
 
 
         print("who is conflicting", who_is_conflicting_with, file=sys.stderr)
@@ -639,6 +651,13 @@ class MasterAgent:
 
         conflict_clusters = get_cluster_conflict(who_is_conflicting_with, key_to_remove)
         print('conflict clusters', conflict_clusters, file=sys.stderr)
+        if len(conflict_clusters) >=5:
+            for agent in self.agents:
+                agent.goal = None
+                agent.occupied = False
+                agent.goal_details = None
+            return 0
+
         for cluster in conflict_clusters:
             prioritization_needed = False
             for current_agent_index  in cluster:

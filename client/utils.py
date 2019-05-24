@@ -93,10 +93,6 @@ def replace_box_by_walls(state: 'State', clusters, boxes, agents):
                     for (i, j) in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                         state.rigid_atoms.delete(Atom('Neighbour', (row, col), (row + i, col + j)))
                         state.rigid_atoms.delete(Atom('Neighbour', (row + i, col + j), (row, col)))
-
-                    for cell in cluster:
-                        state.rigid_atoms.delete(StaticAtom('Distance', (row, col), cell))
-                        state.rigid_atoms.delete(StaticAtom('Distance', cell, (row, col)))
                 continue
 
     return state

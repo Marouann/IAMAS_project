@@ -10,11 +10,11 @@ HEURISTICS = 'Tie Breaking'  # ['Distance', 'Dynamic', 'Tie Breaking']
 METRICS = 'Real' #['Manhattan', 'Euclidean', 'Real']
 
 STRATEGY_GHOST = 'astar'
-HEURISTICS_GHOST = 'Distance'
+HEURISTICS_GHOST = 'Tie Breaking'
 
 
 ASYNC = False
-BOUND = 000 #['None', integer]
+# BOUND = 1750 #['None', integer] ## replaced by agent attribute
 
 
 
@@ -30,6 +30,7 @@ class Agent:
         self.status = None
         self.tracker = None
         self.ghostmode = False
+        self.bound = 1750
 
     '''
     getPossibleActions return a list of tuple that represents the different actions the agent
@@ -79,7 +80,7 @@ class Agent:
                                                             [self.name, agtFrom, boxName, boxFrom, boxTo, self.color],
                                                             "Push(" + dir[2] + "," + second_dir[2] + ")",
                                                             boxFrom,
-                                                            0.5))
+                                                            0.7))
                 elif action.name == "Pull":
                     for second_dir in [N, S, E, W]:
                         boxFrom = (agtFrom[0] + second_dir[0], agtFrom[1] + second_dir[1])
@@ -93,7 +94,7 @@ class Agent:
                                                             [self.name, agtFrom, agtTo, boxName, boxFrom, self.color],
                                                             "Pull(" + dir[2] + "," + second_dir[2] + ")",
                                                             agtTo,
-                                                            0.55))
+                                                            0.7))
                 elif action.name == 'NoOp':
                     possibleActions.append((action, [self.name, agtFrom], 'NoOp', agtFrom, 0.7))
 
@@ -108,11 +109,13 @@ class Agent:
 
 
     def plan(self, state: 'State', strategy=STRATEGY,
-             multi_goal=False, max_depth=BOUND,
+             multi_goal=False, max_depth=None,
              async_mode=ASYNC, metrics =METRICS, heuristics=HEURISTICS):
+        max_depth = self.bound
 
         print("Agent:", self.name,  file=sys.stderr)
         print("Planning for goal:", self.goal_details, file=sys.stderr)
+        print("Bound is ", self.bound, file=sys.stderr)
         print("Ghost mode is on", self.ghostmode, file=sys.stderr)
         if not self.ghostmode:
             strategy = Strategy(state, self,
