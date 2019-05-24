@@ -31,6 +31,15 @@ class MasterAgent:
             self.agents.append(agent)
 
         self.isSAlvl = 1 == len(self.agents)
+        box_number = len(self.boxes)
+        for agt in self.agents:
+            if self.isSAlvl:
+                if box_number <= 10:
+                    agt.bound = 5000
+                else:
+                    agt.bound = 1700
+            else:
+                agt.bound = 1000
 
     def prioritizeGoals(self, goals):
         # Sort goals 1st by number of free neighbour fields, then by number of neighbour goals)
