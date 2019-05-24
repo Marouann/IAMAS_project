@@ -36,8 +36,10 @@ class MasterAgent:
             if self.isSAlvl:
                 if box_number <= 10:
                     agt.bound = 5000
-                else:
+                elif 10 < box_number and box_number <= 25:
                     agt.bound = 1700
+                else:
+                    agt.bound = 5000
             else:
                 agt.bound = 1000
 
